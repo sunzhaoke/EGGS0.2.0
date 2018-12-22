@@ -70,16 +70,21 @@
                     <img :src="oneSelfImg">
                   </span>
                   <span class="line"></span>
-                  <span class="addPhoto"
-                        v-for='(item,index) in userList'
-                        :key="index">
-                    <img :src="item.image"
-                         alt="">
-                    <i class="delBox"
-                       v-if="classify!=='pigeonhole'||classify=='newInformation'"></i>
-                    <i class="iconfont  icon-guanbijiantou"
-                       v-if="classify!=='pigeonhole'||classify=='newInformation'"
-                       @click="delPeo(item,index)"></i>
+                  <span>
+                    <span v-for='(item,index) in userList'
+                          :key="index">
+                      {{item}}
+                      <span class="addPhoto"
+                            v-if="!item.del || !item.del==true">
+                        <img :src="item.image"
+                             alt="">
+                        <i class="delBox"
+                           v-if="classify!=='pigeonhole'||classify=='newInformation'"></i>
+                        <i class="iconfont  icon-guanbijiantou"
+                           v-if="classify!=='pigeonhole'||classify=='newInformation'"
+                           @click="delPeo(item,index)"></i>
+                      </span>
+                    </span>
                   </span>
 
                   <span class="addPhotoIcon"
@@ -94,7 +99,7 @@
                 <i class="iconfont icon-rili1"></i>
                 <span v-if="classify=='iParticipate'||classify=='pigeonhole' ">
                   <span>{{startTime}}</span>
-                  -
+                  <span class="lines">-</span>
                   <span>{{endTime}}</span>
                 </span>
                 <span v-else>
@@ -105,7 +110,8 @@
                                     placeholder="设置开始时间">
                     </el-date-picker>
                   </div>
-                  -
+
+                  <span class="lines"> -</span>
                   <div class="block">
                     <el-date-picker v-model="endTime"
                                     type="date"
@@ -180,7 +186,6 @@ export default {
       } else {
         this.newButtonShow = false;
       }
-      console.log(val, this.itemInfo)
       if (val !== this.itemInfo.title) {
         this.saveButton = true;
       } else {
@@ -223,12 +228,13 @@ export default {
   methods: {
     ...mapMutations(["SHOW_NEWPREJECTPOP"]),
     cancelAddPeople(ids) {
-      console.log(ids, 'ids')
       this.addPeopleShow = false;
       if (ids) {
+        // if()
         for (let item of ids.arr) {
-          this.userList.push({ 'image': item.Images, 'userId': item.userid, 'realname': item.realname })
+          this.userList.push({ 'image': item.Images, 'userId': item.userid, 'realname': item.realname, 'add': true })
         }
+        console.log(this.userList, ' this.userList')
         // this.userList = ids;
       }
     },
@@ -243,21 +249,32 @@ export default {
       this.addPeopleShow = true;
       this.addListShow = true;
       this.userLitsShow = true; //点击添加成员 显示列表显示；
-      console.log(this.userList, 'this.userList')
       let userIds = [];
+      console.log(this.userList, 'ddddddddddddddddd');
       if (this.userList) {
         for (let item of this.userList) {
           userIds.push(item.userId);
         }
         this.addPeopleLists = userIds;
       }
-      console.log(this.addPeopleLists, 'this.addPeopleLists')
 
     },
     // 删除添加人员
     delPeo(item, index) {
-      console.log(item, index)
-      this.userList.splice(index, 1);
+
+      // 如果是有默认属性
+      if (item.default) {
+        // this.userList[index].del = true;
+        item.del = true;
+        this.userList[index].del = true
+        console.log(this.userList[index])
+      } else if (item.add) {
+        this.$delete(item, "del", '')
+      }
+      // this.$delete(this.data,"obj",value)
+
+
+      // this.userList.splice(index, 1);
     },
     // 开始创建
     enterNew() {
@@ -345,7 +362,7 @@ export default {
         endTime: this.endTime,
         userId: this.userId,
         AddUserList: '',
-        DelUserList:'',
+        DelUserList: '',
       };
       this.$HTTP("post", "/project_update", obj).then(res => {
         this.$message("信息修改成功");
@@ -371,8 +388,13 @@ export default {
         this.descn = this.itemInfo.descn;
         this.startTime = this.itemInfo.startTime;
         this.endTime = this.itemInfo.endTime;
+
+        // 删除数组第一个数据
         this.userList = this.itemInfo.userlist;
         this.userList.splice(0, 1);
+        for (let item of this.userList) {
+          item.default = true;
+        }
       });
     },
     // 标题输入框失焦
@@ -442,10 +464,14 @@ export default {
       .optionDate {
         width: 100%;
         .block {
-          width: 150px;
+          width: 105px;
           .el-date-editor {
-            width: 145px;
+            width: 105px;
           }
+        }
+        .lines {
+          // color: red;
+          margin-right: 20px;
         }
         .titleInput {
           width: 319px;

@@ -5,7 +5,7 @@
                 <div class="popup_top">
                     <i v-if="!invite" class="iconfont icon-return fl" @click.stop="lastStep"></i>
                     <span class="popup_title">{{addInvite ? '邀请新成员' : '好友列表'}}</span>
-                    <i class="iconfont icon-close fr" @click.stop="cancel"></i>
+                    <i class="iconfont icon-guanbijiantou fr" @click.stop="cancel"></i>
                 </div>
                 <!-- 添加人员 -->
                 <div v-if="!addInvite && !invite">

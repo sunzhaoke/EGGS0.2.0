@@ -12,7 +12,7 @@
       </el-select>
       <i class="iconfont project_star"
          :class="starFlag ? 'icon-star' : 'icon-shoucang'"></i>
-      <i class="iconfont icon-gantanhao"
+      <i class="iconfont icon-shuxingliebiaoxiangqing"
          @click="itemInformationShow=true"></i>
       <i class="iconfont icon-rili fr"></i>
       <div class="project_search fr">
@@ -23,6 +23,9 @@
                   v-model="searchValue"
                   @input="searchChange">
         </el-input>
+        <i class="iconfont icon-19daoru"></i>
+        <i class="iconfont icon-gengduo"></i>
+
         <el-collapse-transition>
           <div v-if="searchLists && searchLists.length"
                class="search_list">
@@ -52,6 +55,10 @@
         </el-collapse-transition>
       </div>
     </div>
+    
+
+
+    
     <left-list ref="ledtList"
                @handleDetails="extendDetails" />
     <right-details ref="details"
@@ -218,7 +225,8 @@ export default {
     height: 50px;
     line-height: 51px;
     border-bottom: 1px solid @bg-f2f2f2;
-
+    padding: 0 25px;
+    .box_sizing;
     .iconfont {
       padding: 5px;
       &:not(.project_star) {
@@ -235,10 +243,11 @@ export default {
     }
 
     .el-select {
-      margin-left: 24px;
+      // margin-left: 24px;
       .el-input {
       }
       .el-input__inner {
+        padding: 0;
         border: none;
         &:focus {
           border: none;
@@ -249,7 +258,7 @@ export default {
     .project_search {
       position: relative;
       .el-input {
-        width: 520px;
+        width: 290px;
       }
       .search_list {
         position: absolute;
