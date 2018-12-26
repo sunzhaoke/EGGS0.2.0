@@ -11,7 +11,7 @@ dev: {
 assetsSubDirectory:'static', 
 assetsPublicPath:'/', 
 proxyTable: {
-"/EggsService.asmx": {
+"/EggsWebService.asmx": {
 target:" http://eggs.apexgame.cn/",
 logLevel:'debug', 
 changeOrigin:true

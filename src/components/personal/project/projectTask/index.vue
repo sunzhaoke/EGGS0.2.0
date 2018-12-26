@@ -24,8 +24,8 @@
                   @input="searchChange">
         </el-input>
         <i class="iconfont icon-19daoru"></i>
+        <i class="iconfont icon-haoyou"></i>
         <i class="iconfont icon-gengduo"></i>
-
         <el-collapse-transition>
           <div v-if="searchLists && searchLists.length"
                class="search_list">
@@ -223,7 +223,7 @@ export default {
   .project_task_top {
     width: 100%;
     height: 50px;
-    line-height: 51px;
+    line-height: 50px;
     border-bottom: 1px solid @bg-f2f2f2;
     padding: 0 25px;
     .box_sizing;

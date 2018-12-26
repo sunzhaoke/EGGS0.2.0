@@ -7,7 +7,6 @@
 <script>
 import { setCookie, getCookie } from './api/cookie';
 export default {
-
   name: "App"
 }
 
