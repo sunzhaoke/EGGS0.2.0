@@ -2,7 +2,7 @@
   <div id="top_k"
        class="clearfix">
     <span class="personImg">
-      <img src="../../../assets/img/egLogo_small.png"
+      <img src="../../assets/img/egLogo_small.png"
            class="company_logo"
            alt="">
     </span>
@@ -45,7 +45,7 @@
   </div>
 </template>
 <script>
-import { setCookie } from '../../../api/cookie';
+import { setCookie } from '../../api/cookie';
 
 export default {
   components: {},
@@ -114,7 +114,7 @@ export default {
 };
 </script>
 <style lang='less'>
-@import "../../../assets/css/base.less";
+@import "../../assets/css/base.less";
 
 #top_k {
   width: 100%;

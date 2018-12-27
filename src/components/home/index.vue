@@ -1,286 +1,121 @@
 <template>
-  <div id="homeBox">
-    <div class="bgSvg_k">
-      <div class="grid_ke"></div>
-      <div class="svg"></div>
+  <div class="bigBox_k clearfix">
+    <div class="leftNav_k fl">
+      <left-nav></left-nav>
     </div>
-
-    <div class="topNav">
-      <img src="../../assets/img/egLogo_small.png"
-           class="company_logo"
-           height="40px"
-           alt="">
-      <span class="logon"
-            @click="logIn">登录</span>
-      <span class="register"
-            @click="register">注册</span>
+    <div class="topBar_k fl">
+      <top-bar></top-bar>
     </div>
-    <div class="main_box">
-      <div class="main">
-        <img src="../../assets/img/egLogo.png"
-             width="170px"
-             alt="">
-        <div class="box">
-          <span class="hint"
-                v-show="hintEmail">请输入您的工作邮箱</span>
-          <input type="text"
-                 :placeholder="emPlace"
-                 class="inputBox"
-                 v-model="email"
-                 v-on:blur="autofocusEm(email)"
-                 @focus="emailFocus"
-                 @keyup.enter="enter">
-          <span class="error_title"
-                v-if="errorTitle">{{errorTitle}}</span>
-          <i class="el-icon-back"
-             @click="enter"></i>
-        </div>
-      </div>
+    <div class="maiContent">
+      <router-view></router-view>
     </div>
   </div>
+
 </template>
 <script>
-import { setCookie, getCookie } from "../../api/cookie";
+import leftNav from "../common/left";
+import topBar from "../common/topBar";
+import { setCookie, getCookie } from '../../api/cookie';
 
 export default {
+  components: {
+    leftNav,
+    topBar
+  },
   data() {
     return {
-      emPlace: "请输入您的工作邮箱", //em placeholder
-      userName: "",
-      passWord: "",
-      checked: false,
-      loginType: false, // 登录账户类型 true是公司账户 false是员工账户
-      errorTitle: "", // 错误提示
-      email: "",
-      hintEmail: false,
-
-      nextPagetwo: false,
-      nextPage: false
+      userId: '',
     };
   },
-
-  watch: {
-    userName(val) {
-      if (this.errorTitle) {
-        this.errorTitle = "";
-      }
-    },
-    passWord(val) {
-      if (this.errorTitle) {
-        this.errorTitle = "";
-      }
-    }
-  },
-  mounted() {
-    if (getCookie("Uname")) {
-      this.userName = getCookie("Uname");
-    }
-    if (getCookie("userPwd")) {
-      this.passWord = getCookie("userPwd");
-    }
-    if (this.userName && this.passWord) {
-      this.$refs.passWord.focus();
-    }
-  },
   methods: {
-    logIn() {
-      this.$router.push("/login");
+    // 获取个人信息
+    getInfo(userpkid) {
+      let data = { userPkid: userpkid };
+      this.$HTTP("post", "/user_get", data).then(res => {
+        localStorage.setItem("staffInfo", JSON.stringify(res.result));
+      });
     },
-    register() {
-      setCookie("registerEmail", "");
-      this.$router.push("/register");
-    },
-    enter(e) {
-      this.autofocusEm(this.email);
-      if (this.email && this.errorTitle == "") {
-        let data = { Email: this.email };
-        this.$HTTP("post", "/UnameEmail", data).then(res => {
-          if (res.result == false) {
-            console.log(" this.nextPage = true;");
-            this.nextPage = true;
-          } else {
-            console.log(" this.nextPage = false;");
-            this.nextPage = false;
-          }
-        });
-        this.$HTTP("post", "/UnameExists", data).then(ress => {
-          if (ress.result == false) {
-            console.log(" this.nextPagetwo = true;");
-            this.nextPagetwo = true;
-          } else {
-            console.log(" this.nextPagetwo = false;");
-            this.nextPagetwo = false;
-          }
-        });
-        let time;
-        time = setTimeout(res => {
-          if (this.nextPage == true && this.nextPagetwo == true) {
-            let t;
-            t = setTimeout(res => {
-              this.$router.push("/register");
-              setCookie("registerEmail", this.email, 1000 * 60);
-            }, 2000);
-          } else if (this.nextPage == false || this.nextPagetwo == false) {
-            this.$router.push("/login");
-            setCookie("loginEmail", this.email, 1000 * 60);
-          }
-        }, 100);
-      } else {
-        return false;
-      }
-    },
-    //      邮箱输入框设置
-    autofocusEm(email) {
-      this.hintEmail = false;
-      this.emPlace = "请输入您的工作邮箱";
-      let emailReg = /^\w+@[a-zA-Z0-9]{2,10}(?:\.[a-z]{2,4}){1,3}$/;
-      if (this.email == "") {
-        this.errorTitle = "请输入您的工作邮箱";
-      } else if (!emailReg.test(this.email)) {
-        this.errorTitle = "请输入正确的邮箱格式";
-      } else {
-        this.errorTitle = "";
-      }
-    },
-    //      获取焦点事件
-    emailFocus() {
-      this.emPlace = "";
-      this.hintEmail = true;
-      this.errorTitle = "";
-      this.eamilBoderRed = false;
-      this.hintPw = false;
+    // 同意添加好友
+    agreeJoin(myUserId, friendsUserId) {
+      let obj = { myUserId: myUserId, friendsUserId: friendsUserId };
+      this.$HTTP('post', '/user_friends_add', obj).then(res => {
+        console.log(res)
+      })
     }
   },
   created() {
-    console.log(localStorage.getItem('RememberYourPassword'))
-    if (localStorage.getItem('staffInfo') && getCookie('RememberYourPassword')) {
-      this.$router.push("/project/projectManage");
+    let urls = decodeURI(window.location.href).split("?")[1];
+    let staffInfo = localStorage.getItem('staffInfo');
+    let RememberYourPassword = getCookie('RememberYourPassword');
+    // 1.状态1 如果有自动登录并且保存数据
+    console.log(RememberYourPassword, '==================')
+    if (staffInfo && getCookie('RememberYourPassword')) {
+      this.$router.push("/project");
+      this.userId = JSON.parse(localStorage.getItem("staffInfo")).userPkid;
+      // 2.有链接地址
+    } else if (urls) {
+      let url = decodeURI(window.location.href)
+        .split("?")[1]
+        .split("&");
+      if (url[0].split("=")[0] == 'userId') {
+        let userId = url[0].split("=")[1];
+        this.getInfo(userId);
+      } else {
+        this.myUserId = url[0].split("=")[1];
+        this.type = url[1].split("=")[1];
+        this.id = url[2].split("=")[1];
+        if (this.userId !== this.myUserId) {
+          this.agreeJoin(this.userId, this.myUserId);
+        }
+      }
+      // 没有链接地址 没有自动登录
+    } else {
+      this.$router.push("/login");
     }
+
+  },
+  mounted() {
+
   }
 };
 </script>
-
-<style lang="less">
+<style lang='less'>
 @import "../../assets/css/base.less";
-@import "../../assets/css/media.less";
 
-.bgSvg_k {
+.bigBox_k {
   width: 100%;
-  height: 100%;
-  position: absolute;
-  /*left: 50%;*/
-  /*margin-left: -600px;*/
-  /*top: 50%;*/
-  /*margin-top: -300px;*/
-  .svg {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    background: url("../../assets/img/bg.svg");
-  }
-  .grid_ke {
-    width: 100%;
-    height: 100%;
-    background: -webkit-linear-gradient(top, transparent 179px, #f0f0f0 180px),
-      -webkit-linear-gradient(left, transparent 179px, #f0f0f0 180px);
-    background-size: 180px 180px;
-    position: absolute;
-    z-index: 1;
-  }
-}
-
-#homeBox {
-  width: 100%;
-  height: 100%;
-  background: #ffffff;
+  height: 100vh;
+  overflow: hidden;
   position: relative;
-
-  .topNav {
-    height: 50px;
-    width: 100%;
-    line-height: 50px;
-    z-index: 9999;
-    right: 0;
-    position: absolute;
-    .company_logo {
-      display: block;
-      height: 30px;
-      left: 100px;
-      top: 15px;
-      position: absolute;
-    }
-    span {
-      position: absolute;
-      color: #333333;
-      cursor: pointer;
-    }
-    .logon {
-      right: 150px;
-    }
-    .register {
-      right: 100px;
-    }
+  .leftNav_k {
+    z-index: 10;
+    width: 100x;
+    height: 100%;
+    background: #ffffff;
+    box-shadow: -1px 0px 4px 0px rgba(95, 95, 95, 0.3);
+    position: fixed;
+    top: 50px;
+    left: 0;
   }
-  .main_box {
-    height: calc(100vh - 20px);
+  .topBar_k {
+    z-index: 11;
     width: 100%;
-    position: relative;
-    .main {
-      width: 317px;
-      height: 200px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      margin-left: -158px;
-      margin-top: -100px;
-      background: #ffffff;
-      z-index: 999;
-      padding: 20px 0;
-      p {
-        text-align: center;
-        margin-bottom: 25px;
-        font-size: 18px;
-      }
-      .box {
-        height: 50px;
-        position: relative;
-        margin-top: 40px;
-        .hint {
-          font-size: 12px;
-          padding-left: 10px;
-          position: absolute;
-          bottom: 30px;
-          color: #999999;
-        }
-        .inputBox {
-          width: 317px;
-          border-bottom: 1px solid #999999;
-          padding: 0 10px 10px 10px;
-          .box_sizing;
-          position: absolute;
-          bottom: 0;
-        }
-        .el-icon-back {
-          transform: rotate(180deg);
-          cursor: pointer;
-          right: 10px;
-          bottom: 10px;
-          position: absolute;
-        }
-        .error_title {
-          position: absolute;
-          color: red;
-          bottom: -20px;
-          left: 10px;
-          font-size: 12px;
-        }
-      }
-
-      img {
-        display: block;
-        margin: 0 auto;
-      }
-    }
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 50px;
+    background: #ffffff;
+    box-shadow: 1px 0px 4px 0px rgba(95, 95, 95, 0.3);
+  }
+  .maiContent {
+    height: calc(100% - 50px);
+    width: calc(100% - 100px);
+    margin-left: 100px;
+    margin-top: 50px;
+    .box_sizing;
+    background: #ffffff;
+    overflow: hidden;
   }
 }
 </style>
+

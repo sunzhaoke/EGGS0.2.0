@@ -24,21 +24,21 @@ export default {
         {
           id: "01",
           name: "iconfont icon-gongzuotai",
-          path: "/myTask",
+          path: "/workbench",
           menuSelected: true,
           prompt: "工作台"
         },
         {
           id: "02",
           name: "iconfont icon-gongdan",
-          path: "/project/projectManage",
+          path: "/project",
           menuSelected: false,
           prompt: "项目"
         },
         {
           id: "03",
           name: "icon-wenjian1",
-          path: "/transmit",
+          path: "/personalDocuments",
           menuSelected: false,
           prompt: "个人文档"
         },
@@ -53,10 +53,7 @@ export default {
       this.$router.push(nav.path);
       localStorage.setItem("menuSelected", this.menuSelected);
     },
-    logoClick() {
-      this.menuSelected = "01";
-      this.$router.push("/myTask");
-    }
+
   },
   created() { },
   mounted() {
@@ -66,7 +63,7 @@ export default {
 </script>
 
 <style lang='less'>
-@import "../../../assets/css/base.less";
+@import "../../assets/css/base.less";
 #k_leftNav {
   width: 100%;
   height: 100vh;

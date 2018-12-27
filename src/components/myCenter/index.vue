@@ -380,7 +380,7 @@
 <script>
 import Reminder2 from "../common/reminder2";
 
-import topBar from "../personal/common/topBar";
+import topBar from "../common/topBar";
 import "../../api/birthday.js";
 import { setInterval } from 'timers';
 import reminder2Vue from '../common/reminder2.vue';

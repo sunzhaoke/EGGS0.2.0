@@ -189,11 +189,9 @@ export default {
         this.$HTTP("post", "/user_login", data, $('.loginBox')[0])
           .then(res => {
             if (res.code == 200) {
-
               if (this.myUserId) {
-                // console.log('有地址，加参数登录')
                 this.$router.push({
-                  path: "/project/projectManage",
+                  path: "/project",
                   query: { myUserId: this.myUserId, type: this.type, id: this.id }
                 });
                 if (this.checked) {
@@ -204,7 +202,7 @@ export default {
                   localStorage.setItem("staffInfo", JSON.stringify(res.result));
                 }
               } else {
-                this.$router.push({ path: "/project/projectManage" });
+                this.$router.push({ path: "/project" });
                 if (this.checked) {
                   setCookie('RememberYourPassword', this.email, 30 * 24 * 60 * 60 * 1000)
                   localStorage.setItem("staffInfo", JSON.stringify(res.result));
@@ -228,13 +226,16 @@ export default {
   },
   computed: {},
   created() {
-
+    let staffInfo = localStorage.getItem('staffInfo');
+    console.log(staffInfo, getCookie('RememberYourPassword'))
     if (localStorage.getItem("registerEmail")) {
       this.email = localStorage.getItem("registerEmail");
     }
 
     let urls = decodeURI(window.location.href).split("?")[1];
     if (urls) {
+      console.log('meiy you ')
+
       let url = decodeURI(window.location.href)
         .split("?")[1]
         .split("&");
@@ -242,9 +243,11 @@ export default {
       this.type = url[1].split("=")[1];
       this.id = url[2].split("=")[1];
       this.$router.push({
-        path: "/project/projectManage",
+        path: "/project",
         query: { myUserId: this.myUserId, type: this.type, id: this.id }
       });
+    } else if (staffInfo && getCookie('RememberYourPassword')) {
+      this.$router.push('/');
     }
   },
   mounted() {

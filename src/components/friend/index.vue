@@ -174,7 +174,7 @@
                 </div>
             </div>
             <div v-else class="friend_empty">
-                <img src="../../../assets/img/noBody1.png" alt="">
+                <img src="../../assets/img/noBody1.png" alt="">
                 <p>您还没有好友，<span class="mainColor_text" @click="addFriend">点击这里</span> 去添加好友</p>
             </div>
         </div>
@@ -244,7 +244,7 @@
 import draggable from "vuedraggable";
 
 import AddPeople from '../common/addPeople';
-import Reminder2 from '../../common/reminder2';
+import Reminder2 from '../common/reminder2';
 
 export default {
     components: {
@@ -767,7 +767,7 @@ export default {
 </script>
 
 <style lang="less">
-@import "../../../assets/css/base.less";
+@import "../../assets/css/base.less";
 .friend_management {
     width: 100%;
     height: 100%;

@@ -38,78 +38,78 @@ export default {
     return {
       fileTypeImgIcon: [
         {
-          src: require("../../../assets/img/file_s/0.png")
+          src: require("../../assets/img/file_s/0.png")
         },
         {
-          src: require("../../../assets/img/file_s/1.png")
+          src: require("../../assets/img/file_s/1.png")
         },
         {
-          src: require("../../../assets/img/file_s/2.png")
+          src: require("../../assets/img/file_s/2.png")
         },
         {
-          src: require("../../../assets/img/file_s/3.png")
+          src: require("../../assets/img/file_s/3.png")
         },
         {
-          src: require("../../../assets/img/file_s/4.png")
+          src: require("../../assets/img/file_s/4.png")
         },
         {
-          src: require("../../../assets/img/file_s/5.png")
+          src: require("../../assets/img/file_s/5.png")
         },
         {
-          src: require("../../../assets/img/file_s/6.png")
+          src: require("../../assets/img/file_s/6.png")
         },
         {
-          src: require("../../../assets/img/file_s/7.png")
+          src: require("../../assets/img/file_s/7.png")
         },
         {
-          src: require("../../../assets/img/file_s/8.png")
+          src: require("../../assets/img/file_s/8.png")
         },
         {
-          src: require("../../../assets/img/file_s/9.png")
+          src: require("../../assets/img/file_s/9.png")
         },
         {
-          src: require("../../../assets/img/file_s/10.png")
+          src: require("../../assets/img/file_s/10.png")
         },
         {
-          src: require("../../../assets/img/file_s/11.png")
+          src: require("../../assets/img/file_s/11.png")
         }
       ],
       fileTypeImg: [
         {
-          src: require("../../../assets/img/file_b/0.png")
+          src: require("../../assets/img/file_b/0.png")
         },
         {
-          src: require("../../../assets/img/file_b/0.png")
+          src: require("../../assets/img/file_b/0.png")
         },
         {
-          src: require("../../../assets/img/file_b/2.png")
+          src: require("../../assets/img/file_b/2.png")
         },
         {
-          src: require("../../../assets/img/file_b/3.png")
+          src: require("../../assets/img/file_b/3.png")
         },
         {
-          src: require("../../../assets/img/file_b/4.png")
+          src: require("../../assets/img/file_b/4.png")
         },
         {
-          src: require("../../../assets/img/file_b/5.png")
+          src: require("../../assets/img/file_b/5.png")
         },
         {
-          src: require("../../../assets/img/file_b/6.png")
+          src: require("../../assets/img/file_b/6.png")
         },
         {
-          src: require("../../../assets/img/file_b/7.png")
+          src: require("../../assets/img/file_b/7.png")
         },
         {
-          src: require("../../../assets/img/file_b/8.png")
+          src: require("../../assets/img/file_b/8.png")
         },
         {
-          src: require("../../../assets/img/file_b/9.png")
+          src: require("../../assets/img/file_b/9.png")
         },
         {
-          src: require("../../../assets/img/file_b/10.png")
+          src: require("../../assets/img/file_b/10.png")
         },
         {
-          src: require("../../../assets/img/file_b/11.png")
+          src: require("../../assets/img/file_b/11.png")
         }
       ],
       eidtHtml: "",
@@ -359,7 +359,7 @@ export default {
 };
 </script>
 <style lang="less">
-@import "../../../assets/css/base.less";
+@import "../../assets/css/base.less";
 
 .eidtable {
   width: 100%;
@@ -420,7 +420,7 @@ export default {
       font-size: 14px;
       line-height: 30px;
       position: relative;
-      background: url("../../../assets/img/lines.png") repeat;
+      background: url("../../assets/img/lines.png") repeat;
       padding: 0 10px;
       strong {
         font-weight: normal;

@@ -57,7 +57,7 @@
                     </ul>
                   </div>
                   <div v-else class="content_empty">
-                      <img src="../../../assets/img/noBody.png" alt="">
+                      <img src="../../assets/img/noBody.png" alt="">
                       <p>您还没有好友，请点击<span @click="clickInvite">这里</span>邀请朋友加入吧！</p>
                   </div>
                   <div class="popup_bottom">
@@ -484,7 +484,7 @@ export default {
 };
 </script>
 <style lang="less">
-@import "../../../assets/css/base.less";
+@import "../../assets/css/base.less";
 .add_people {
   .popup {
     .popup_box {
