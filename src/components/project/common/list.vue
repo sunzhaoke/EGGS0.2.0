@@ -618,7 +618,7 @@ export default {
 </script>
 
 <style lang="less" >
-@import "../../assets/css/base.less";
+@import "../../../assets/css/base.less";
 .mf-20 {
   margin-left: 20px;
 }

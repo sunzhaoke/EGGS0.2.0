@@ -32,7 +32,7 @@
                             <p>产品开发</p> 
                             <p class="hoverFont">产品开发2</p> 
                             <span class="cardShade"></span>
-                            <img src="../../assets/img/module_2.png" alt="">
+                            <img src="../../../assets/img/module_2.png" alt="">
                           </div>                      
                        </div>
                     </div>
@@ -79,7 +79,7 @@ export default {
 };
 </script>
 <style lang="less">
-@import "../../assets/css/base.less";
+@import "../../../assets/css/base.less";
 .new_template {
   .popup1_k .popup_content {
     width: 800px;

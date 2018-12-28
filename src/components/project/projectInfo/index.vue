@@ -86,15 +86,15 @@
               <div v-for="(element,index) in partitionsList"
                    :key="element.partitionId"
                    class="partitionsMain"
-                   :data-partitionId='element.partitionId'>
+                   :data-partitionid='element.partitionId'>
                 <transition name="fade">
                   <div class="partitionsAndStages"
-                       v-if="element.autoExpand">
+                       v-if="!element.autoExpand">
                     <div ref='partitions'
                          class="cur"
                          style="heigth:100px;"
                          :class="leftFixed?'partitionsLabelFixed':'partitionsLabel'"
-                         :style="'height:'+ ((element.stage.length )* 72) +'px;'">
+                         :style="'height:'+ ((element.taskList.length )* 72) +'px;'">
                       <span class="iconBox">
                         <span class="icon"
                               @click="move">
@@ -111,21 +111,28 @@
                         </span>
                       </span>
                       <i class="iconfont cur unfold"
-                         :class="element.autoExpand?'icon-unfold':'icon-packup'"
+                         :class="!element.autoExpand?'icon-unfold':'icon-packup'"
                          @click="goFlod(element)"></i>
                       <textarea type="text"
                                 class="stageTittle"
-                                v-model="element.title"
-                                @blur="stageBlur(element.title,index)"></textarea>
+                                v-model="element.partitionTitle"
+                                style="resize:none"
+                                @blur="stageBlur(element.partitionTitle,element,index)"></textarea>
                     </div>
-                    <draggable v-model="element.stage"
+                    <draggable v-model="element.taskList"
                                :move='getdata2'
                                @update="datadragEnd2"
-                               :options="{group: 'file', ghostClass: 'ghost_file', dragClass: 'drag_file'}">
+                               :options="{
+                                 group: 'file', 
+                                 ghostClass: 'ghost_file', 
+                                 dragClass: 'drag_file',
+                                 draggable: '.dragging'
+                                 }">
                       <transition-group class="taskLists">
-                        <li v-for="(item,index) in element.stage"
+                        <li v-for="(item,index) in element.taskList"
                             :key="item.taskId"
-                            :class="leftFixed?'stageBoxFixed':'stageBox'">
+                            v-if="item.taskId"
+                            :class="{'stageBox':!leftFixed,'stageBoxFixed':leftFixed,'dragging':item.taskId!==''}">
                           <span class="stageLists cur">
                             <span class="iconBox_">
                               <span class="icon"
@@ -134,23 +141,24 @@
                                    @click="movePartitions"></i>
                               </span>
                               <span class="icon"
-                                    @click="addStage(element.stage,index)">
+                                    @click="addStage(element.taskList,index)">
                                 <i class="iconfont icon-jia1 cur"></i>
                               </span>
                               <span class="icon"
-                                    @click="delStage(element.stage,index)">
+                                    @click="delStage(element.taskList,index)">
                                 <i class="iconfont icon-delete cur"></i>
                               </span>
                             </span>
-                            <textarea v-model="item.name"
+                            <textarea v-model="item.taskTitle"
                                       class="stageName"
-                                      @blur="stageNameBlur(item.name,element,index)">
+                                      style="resize:none"
+                                      @blur="stageNameBlur(item.taskTitle,element,index)">
                             </textarea>
                           </span>
                           <div class="stageListsBox">
                             <div class="stage cur"
-                                 v-for="(lists,index) in  item.stageMain"
-                                 :key="index">
+                                 v-for="(lists,index) in  item.stageTaskList"
+                                 :key="lists.stageId">
                               <div class="stageBg"></div>
                               <div class="stageInfo cur">
                                 <span class="participantImg">
@@ -175,9 +183,99 @@
                                 </div>
                               </div>
                               <div class="stageHover">
-                                dd
+                                <el-tooltip class="item"
+                                            effect="dark"
+                                            content="参与任务"
+                                            placement="top-start">
+                                  <el-button>
+                                    <span class="iconBg">
+                                      <i class="iconfont icon-jiaru-1"></i>
+                                    </span>
+                                  </el-button>
+                                </el-tooltip>
+                                <el-tooltip class="item"
+                                            effect="dark"
+                                            content="取消参与"
+                                            placement="top-start">
+                                  <el-button>
+                                    <span class="iconBg">
+                                      <i class="iconfont icon-tuichu-"></i>
+                                    </span>
+                                  </el-button>
+                                </el-tooltip>
+                                <el-tooltip class="item"
+                                            effect="dark"
+                                            content="进入详情"
+                                            placement="top-start">
+                                  <el-button>
+                                    <span class="iconBg">
+                                      <i class="iconfont icon-xiangqing"></i>
+                                    </span>
+                                  </el-button>
+                                </el-tooltip>
+                                <el-tooltip class="item"
+                                            effect="dark"
+                                            content="添加时间"
+                                            placement="top-start">
+                                  <el-button>
+                                    <i class="iconfont icon-rili1 otherColor "></i>
+                                  </el-button>
+                                </el-tooltip>
+                                <el-tooltip class="item"
+                                            effect="dark"
+                                            content="添加成员"
+                                            placement="top-start">
+                                  <el-button>
+                                    <i class="iconfont icon-tianjiarenyuan otherColor"></i>
+                                  </el-button>
+                                </el-tooltip>
+                                <el-tooltip class="item"
+                                            effect="dark"
+                                            content="上传文件"
+                                            placement="top-start">
+                                  <el-button>
+                                    <i class="iconfont icon-shangchuan otherColor"></i>
+                                  </el-button>
+                                </el-tooltip>
+                                <el-tooltip class="item"
+                                            effect="dark"
+                                            content="关闭阶段"
+                                            placement="top-start">
+                                  <el-button>
+                                    <i class="iconfont icon-jinzhi otherColor"></i>
+                                  </el-button>
+                                </el-tooltip>
                               </div>
+
                             </div>
+                          </div>
+                        </li>
+                        {{element}}
+                        <li v-if='element.taskList[0]'>
+                          <span class="stageLists cur">
+                            <span class="iconBox_">
+                              <span class="icon"
+                                    @click="move">
+                                <i class="iconfont icon-pailie cur"
+                                   @click="movePartitions"></i>
+                              </span>
+                              <span class="icon"
+                                    @click="addStage(element.taskList,index)">
+                                <i class="iconfont icon-jia1 cur"></i>
+                              </span>
+                              <span class="icon"
+                                    @click="delStage(element.taskList,index)">
+                                <i class="iconfont icon-delete cur"></i>
+                              </span>
+                            </span>
+                            <textarea 
+                                      class="stageName"
+                                      style="resize:none"
+                                      @blur="stageNameBlur(item.taskTitle,element,index)">
+                            </textarea>
+                          </span>
+                          <div class="stageListsBox">
+                            hehehe
                           </div>
                         </li>
                       </transition-group>
@@ -186,7 +284,7 @@
                 </transition>
                 <!-- 缩略列表 -->
                 <div class="thumbnailList"
-                     v-if="!element.autoExpand">
+                     v-if="element.autoExpand">
                   <div class="iconBox_">
                     <span class="icon"
                           @click="move">
@@ -205,11 +303,11 @@
                   <li class="">
                     <transition name="flodRotate">
                       <i class="iconfont"
-                         :class="element.autoExpand ? 'icon-unfold':'icon-packup'"
+                         :class="!element.autoExpand ? 'icon-unfold':'icon-packup'"
                          @click="goFlod(element)"></i>
                     </transition>
                     <span>
-                      {{element.title}}
+                      {{element.partitionTitle}}
                     </span>
                   </li>
                 </div>
@@ -230,21 +328,35 @@
             :projectId='projectId'
             :classify='classify'></Info>
     </transition>
+    <transition name="fade1">
+      <Reminder2 v-if="reminder2Flag"
+                 :type="1"
+                 :text="errMessage"
+                 :sureText="buttonMes"
+                 @handleCancle="reminderCancel"
+                 @handleSure="reminderSure" />
+    </transition>
   </div>
 </template>
 <script>
 import { mapMutations } from 'vuex';
-import Info from "../info";
+import Info from "../common/info";
+import Reminder2 from "../../common/reminder2";
+
 // import { searchList } from './data.js';/ 
 import draggable from "vuedraggable";
 
 export default {
   components: {
     draggable,
-    Info
+    Info,
+    Reminder2
   },
   data() {
     return {
+      reminder2Flag: false, //确认删除弹框
+      errMessage: 'hahh',
+      buttonMes: '确认',
       itemInformationShow: false, //INFO是否显示
       projectId: JSON.parse(localStorage.getItem('projectItem')).projectid,
       classify: "", //点击进入 是我负责的还是 我参与 权限修改
@@ -272,129 +384,47 @@ export default {
       loginUser: JSON.parse(localStorage.getItem('staffInfo')), // 当前登录者的信息
       userPkid: JSON.parse(localStorage.getItem('staffInfo')).userPkid, // 当前登录者的ID
       stageList: '',
-      partitionsList: [
-        {          title: '分区1', partitionId: 1, autoExpand: true,
-          stage: [
-            {              name: '阶段1', id: 1, taskId: 1, stageMain: [
-                { name: '阶段1-产品规划内容', id: 1, pkid: 1 },
-                { name: '阶段2-产品设计内容', id: 2, pkid: 2 },
-                { name: '阶段3-开发阶段内容', id: 3, pkid: 3 },
-                { name: '阶段4-测试阶段内容', id: 4, pkid: 4 }
-              ]            },
-            {              name: '阶段2', id: 2, taskId: 2, stageMain: [
-                { name: '阶段1-产品规划内容', id: 1, pkid: 1 },
-                { name: '阶段2-产品设计内容', id: 2, pkid: 2 },
-                { name: '阶段3-开发阶段内容', id: 3, pkid: 3 },
-                { name: '阶段4-测试阶段内容', id: 4, pkid: 4 }
-              ]            },
-            {              name: '阶段3', id: 3, taskId: 3, stageMain: [
-                { name: '阶段1-产品规划内容', id: 1, pkid: 1 },
-                { name: '阶段2-产品设计内容', id: 2, pkid: 2 },
-                { name: '阶段3-开发阶段内容', id: 3, pkid: 3 },
-                { name: '阶段4-测试阶段内容', id: 4, pkid: 4 }
-              ]            },
-            {              name: '阶段4', id: 4, taskId: 4, stageMain: [
-                { name: '阶段1-产品规划内容', id: 1, pkid: 1 },
-                { name: '阶段2-产品设计内容', id: 2, pkid: 2 },
-                { name: '阶段3-开发阶段内容', id: 3, pkid: 3 },
-                { name: '阶段4-测试阶段内容', id: 4, pkid: 4 }
-              ]            },
-          ]
-        }, {          title: '分区2', partitionId: 2, autoExpand: true,
-          stage: [
-            {              name: '阶段1', id: 1, taskId: 1, stageMain: [
-                { name: '阶段1-产品规划内容', id: 1, pkid: 1 },
-                { name: '阶段2-产品设计内容', id: 2, pkid: 2 },
-                { name: '阶段3-开发阶段内容', id: 3, pkid: 3 },
-                { name: '阶段4-测试阶段内容', id: 4, pkid: 4 }
-              ]            },
-            {              name: '阶段2', id: 2, taskId: 2, stageMain: [
-                { name: '阶段1-产品规划内容', id: 1, pkid: 1 },
-                { name: '阶段2-产品设计内容', id: 2, pkid: 2 },
-                { name: '阶段3-开发阶段内容', id: 3, pkid: 3 },
-                { name: '阶段4-测试阶段内容', id: 4, pkid: 4 }
-              ]            },
-            {              name: '阶段3', id: 3, taskId: 3, stageMain: [
-                { name: '阶段1-产品规划内容', id: 1, pkid: 1 },
-                { name: '阶段2-产品设计内容', id: 2, pkid: 2 },
-                { name: '阶段3-开发阶段内容', id: 3, pkid: 3 },
-                { name: '阶段4-测试阶段内容', id: 4, pkid: 4 }
-              ]            },
-            {              name: '阶段4', id: 4, taskId: 4, stageMain: [
-                { name: '阶段1-产品规划内容', id: 1, pkid: 1 },
-                { name: '阶段2-产品设计内容', id: 2, pkid: 2 },
-                { name: '阶段3-开发阶段内容', id: 3, pkid: 3 },
-                { name: '阶段4-测试阶段内容', id: 4, pkid: 4 }
-              ]            },
-          ]
-        },
-      ],
-      EmptyData: {        'title': '', 'partitionId': '', 'autoExpand': true,
-        stage: [
+      partitionsList: [],
+      EmptyData: {        'partitionTitle': '', 'partitionId': '', 'autoExpand': false,
+        taskList: [
           {
-            name: '2', id: '', taskId: '',
-            stageMain: [
-              { name: '', id: '', pkid: '' },
-              { name: '', id: '', pkid: '' },
-              { name: '', id: '', pkid: '' },
-              { name: '', id: '', pkid: '' }
-            ]          },
+            taskTitle: '', taskId: '', isnew: true,
+            stageTaskList: [
+              { enabled: '', endTime: '', fileCont: '', stageTaskId: '' },
+              { enabled: '', endTime: '', fileCont: '', stageTaskId: '' },
+              { enabled: '', endTime: '', fileCont: '', stageTaskId: '' },
+              { enabled: '', endTime: '', fileCont: '', stageTaskId: '' },
+            ]
+          },
         ]
       },
       // 添加任务
       newTask: {
-        name: '', id: 11, taskId: 11,
-        stageMain: [
-          { name: '2', id: 12, pkid: 12 },
-          { name: '3', id: 13, pkid: 13 },
-          { name: '', id: 14, pkid: 14 },
-          { name: '', id: 15, pkid: 15 }
+        taskTitle: '', taskId: '',
+        stageTaskList: [
+          { enabled: '', endTime: '', fileCont: '', stageTaskId: '' },
+          { enabled: '', endTime: '', fileCont: '', stageTaskId: '' },
+          { enabled: '', endTime: '', fileCont: '', stageTaskId: '' },
+          { enabled: '', endTime: '', fileCont: '', stageTaskId: '' },
         ]      },
     };
   },
+  watch: {
 
+  },
   methods: {
     ...mapMutations(['DETAILS_CHANGE', 'TASKITEM_CHANGE', 'TASK_POSITION', 'PROJECT_CHANGE']),
     // 展开详情
-    extendDetails(flag, id) {
-      if (id) {
-        this.taskId = id;
-        this.$refs.details.changeTask(this.taskId);
-      }
-      var docEl = document.documentElement,
-        resizeEvt = 'onorientationchange' in window ? 'orientationchange' : 'resize',
-        clientWidth = docEl.clientWidth;
-      let W = $('.project_task').eq(0).width();
-      // 1进入详情 0关闭详情
-      if (flag) {
-        this.detailsShow = true;
-        this.$nextTick(() => {
-          $("#taskList").animate({
-            width: clientWidth > 1600 ? W - 780 : W - 600
-          });
-          $("#taskDetails").show();
-          $("#taskDetails").animate({
-            width: clientWidth > 1600 ? 779 : 599
-          });
-        });
-
-        this.DETAILS_CHANGE(true);
-
-      } else {
-        this.DETAILS_CHANGE(false);
-
-        $("#taskList").animate({
-          width: "100%"
-        });
-        $("#taskDetails").hide();
-        $("#taskDetails").animate({
-          width: "0"
-        }, () => {
-          this.detailsShow = false;
-        });
-      }
-
+    // 取消
+    reminderCancel() {
+      this.reminder2Flag = false;
     },
+    //  确认
+    reminderSure() {
+      this.delPartition();
+    },
+
+
 
     projectChange(val) {
       // this.PROJECT_CHANGE(val);
@@ -405,15 +435,12 @@ export default {
         this.searchLists = [...searchList];
       } else {
         this.searchLists = [];
-
       }
     },
 
     goTo(item) {
       this.searchChange('');
-      this.extendDetails(1, item.id);
       this.TASK_POSITION(item.id);
-
     },
 
     // 关闭
@@ -425,42 +452,91 @@ export default {
       this.partitionsList.splice(index + 1, 0, this.EmptyData);
       this.$nextTick(res => {
         $('.hhah').children().eq(index + 1).find('.stageTittle').focus()
-        console.log()
       })
     },
 
     // 删除分区
     delPartition(element, index) {
+      let taskIds = [];
+      for (let list of element.taskList) {
+        // taskId=='' 时 说明没有任务 可以直接删除 不用移动
+        if (list.taskId !== '') {
+          taskIds.push(list.taskId);
+        }
+      }
+
+      // this.partitionsList.splice(index, 1);
+
+      console.log(taskIds)
+      return
+      this.reminder2Flag = true;
+
       let obj = { 'partitionId': element.partitionId }
       this.$HTTP('post', '/partition_delete', obj).then(res => {
         this.partitionsList.splice(index, 1);
+
       })
+
+      let arr = { 'vals': taskIds.join(','), 'type': 0 }
+      this.$HTTP('post', '/partition_updateType', arr).then(res => {
+        this.partitionsList.splice(index, 1);
+
+      })
+
     },
     // 分区移动
     getdata(evt) {
-      console.log('异动前')
-      console.log(evt.draggedContext.element.id)
+      // console.log(evt.draggedContext.element.id)
     },
     // 分区移动
     datadragEnd(evt) {
+
       let obj = { partitionId: evt.item.dataset.partitionid, isSort: evt.newIndex }
       this.$HTTP('post', '/partition_update_isSort', obj).then(res => {
       })
-      console.log('拖动后的索引 :' + evt.newIndex)
+      // console.log('拖动后的索引 :' + evt.newIndex)
     },
     // 添加分区 判断是否有内容
-    stageBlur(name, index) {
-      if (name == '') {
-        this.partitionsList.splice(index, 1);
+    stageBlur(name, el, index) {
+      // 旧的
+      console.log(el.isnew)
+      if (el.isnew === false) {
+        // 旧的 空的
+        if (name == '') {
+          return
+        } else {
+          // 判断 名字是否需要修改 
+          this.modifyPartitionName(el.partitionId, name);
+        }
+        // 新建的
       } else {
-        let obj = { 'myUserId': this.userPkid, 'projectId': this.projectItem.projectid, title: name }
-        this.$HTTP('post', '/partition_add', obj).then(res => {
-          this.EmptyData.partitionId = res.result.partitionId;
-        })
+        if (name == '') {
+          this.partitionsList.splice(index, 1);
+        } else {
+          console.log('执行了，创建新的一条')
+          let obj = { 'myUserId': this.userPkid, 'projectId': this.projectItem.projectid, title: name }
+          this.$HTTP('post', '/partition_add', obj).then(res => {
+            this.EmptyData.partitionId = res.result.partitionId;
+          })
+        }
       }
     },
 
+    // 修改分区名字
+    modifyPartitionName(partitionId, title) {
+      let data = { 'partitionId': partitionId, 'title': title }
+      this.$HTTP('post', '/partition_update', data).then(res => {
+        console.log(res)
+      })
+    },
 
+    // 修改任务名字
+    ModifyTaskName(taskId, title) {
+      let data = { 'taskId': taskId, 'title': title }
+      this.$HTTP('post', '/task_update_title', data).then(res => {
+        console.log(res)
+      })
+    },
     // 添加任务
     addStage(el, index) {
       el.splice(index + 1, 0, this.newTask)
@@ -468,31 +544,49 @@ export default {
         $('.taskLists').children().eq(index + 1).find('.stageName').focus()
       })
     },
+    // 添加项目 光标离开判断
+    stageNameBlur(name, el, index) {
+      if (el.isnew === false) {
+        // 旧的 空的
+        if (name == '') {
+          return
+        } else {
+          // 判断 名字是否需要修改 
+          this.ModifyTaskName(el.taskId, name);
+        }
+        // 新建的
+      } else {
+        if (name == '') {
+          el.taskList.splice(index, 1);
+        } else {
+          console.log('执行了，创建新的一条')
+          let obj = { 'myUserId': this.userPkid, 'projectId': this.projectItem.projectid, partitionId: el.partitionId, 'title': name, 'iSort': index }
+          this.$HTTP('post', '/task_add', obj).then(res => {
+            // el.taskList.taskId = res.result.taskId;
+            console.log(res)
+          })
+        }
+      }
+    },
+    // 删除任务
     delStage(el, index) {
       console.log(el, index, '888');
       el.splice(index, 1)
+      let obj = { 'taskId': '' }
+      this.$HTTP('post', '/task_del', obj).then(res => {
 
+      })
     },
 
     starDrag() {
       for (let item of this.partitionsList) {
-        item.autoExpand = false;
+        item.autoExpand = true;
       }
     },
     movePartitions() {
       console.log('ceshi ')
     },
-    stageNameBlur(name, el, index) {
-      if (name == '') {
-        el.stage.splice(index, 1);
-      } else {
-        let obj = { 'myUserId': this.userPkid, 'projectId': this.projectItem.projectid, partitionId: el.partitionId, 'title': name, 'iSort': index }
-        this.$HTTP('post', '/task_add', obj).then(res => {
-          el.stage.taskId = res.result.taskId;
-          console.log(res)
-        })
-      }
-    },
+
     move() { },
 
     startDrag(data) {
@@ -503,6 +597,13 @@ export default {
     },
     goFlod(el) {
       el.autoExpand = !el.autoExpand;
+
+      let obj = { 'myUserId': this.userPkid, 'projectId': this.projectItem.projectid, 'partitionId': el.partitionId, 'isState': !el.autoExpand }
+      this.$HTTP('post', '/partition_operation', obj).then(res => {
+
+      })
+
+
     },
     handleScroll() {
       var scrollTop = parseInt($('.tableBox')[0].scrollTop);
@@ -535,39 +636,50 @@ export default {
       let data = { 'projectId': this.projectItem.projectid, 'state': 0 };
       this.$HTTP('post', '/stage_list_get', data).then(res => {
         this.stageList = res.result;
+      
       })
     },
     // 获取项目所有列表
     getProjectAll() {
-      let data = { project: this.projectItem.projectid }
+      let data = { project: this.projectItem.projectid, 'myUserId': this.userPkid }
       this.$HTTP('post', '/project_get_info', data).then(res => {
+              console.log(res.result)
+        
         this.partitionsList = res.result;
-        console.log(this.partitionsList)
+
+        for (let list of this.partitionsList) {
+              console.log(list)
+          
+          list.isnew = false;
+          if (list.taskList !== '') {
+            for (let i of list.taskList) {
+              i.isnews = false;
+            }
+          }
+        }
       })
     },
 
   },
   created() {
     this.getstageList(); //获取阶段列表 
-    // this.getProjectAll();
+    this.getProjectAll();
   },
   mounted() {
-    this.extendDetails(0);
-
     let _ = this;
     $('.tableBox')[0].addEventListener('scroll', _.handleScroll);
-    window.onresize = () => {
-      return (() => {
-        if (this.detailsShow) {
-          var docEl = document.documentElement,
-            resizeEvt = 'onorientationchange' in window ? 'orientationchange' : 'resize',
-            clientWidth = docEl.clientWidth;
-          let W = $('.project_task').eq(0).width();
-          $("#taskList").width(clientWidth > 1600 ? W - 780 : W - 600);
-          $("#taskDetails").width(clientWidth > 1600 ? 779 : 599);
-        }
-      })();
-    };
+    // window.onresize = () => {
+    //   return (() => {
+    //     if (this.detailsShow) {
+    //       var docEl = document.documentElement,
+    //         resizeEvt = 'onorientationchange' in window ? 'orientationchange' : 'resize',
+    //         clientWidth = docEl.clientWidth;
+    //       let W = $('.project_task').eq(0).width();
+    //       $("#taskList").width(clientWidth > 1600 ? W - 780 : W - 600);
+    //       $("#taskDetails").width(clientWidth > 1600 ? 779 : 599);
+    //     }
+    //   })();
+    // };
 
   }
 };
@@ -945,10 +1057,33 @@ export default {
                 display: inline-block;
                 height: 100%;
                 width: 100%;
-                background: red;
                 z-index: 3;
+                padding: 25px 35px;
+                .box_sizing;
                 opacity: 0;
+                .el-button {
+                  background: none;
+                  border: none;
+                  padding: 0;
+                  i {
+                    color: #fff;
+                    font-size: 14px;
+                  }
+                  .otherColor {
+                    color: #666666;
+                  }
+                }
+                .iconBg {
+                  display: inline-block;
+                  width: 24px;
+                  height: 24px;
+                  text-align: center;
+                  line-height: 24px;
+                  background: rgba(54, 132, 255, 1);
+                  border-radius: 4px;
+                }
               }
+
               .stageInfo {
                 position: absolute;
                 padding: 7px 0;
@@ -1003,6 +1138,8 @@ export default {
                 background: #ffffff;
                 z-index: 3;
                 opacity: 1;
+                padding: 25px 35px;
+                .box_sizing;
               }
             }
           }
@@ -1061,10 +1198,33 @@ export default {
                 display: inline-block;
                 height: 100%;
                 width: 100%;
-                background: red;
                 z-index: 3;
+                padding: 25px 35px;
+                .box_sizing;
                 opacity: 0;
+                .el-button {
+                  background: none;
+                  border: none;
+                  padding: 0;
+                  i {
+                    color: #fff;
+                    font-size: 14px;
+                  }
+                  .otherColor {
+                    color: #666666;
+                  }
+                }
+                .iconBg {
+                  display: inline-block;
+                  width: 24px;
+                  height: 24px;
+                  text-align: center;
+                  line-height: 24px;
+                  background: rgba(54, 132, 255, 1);
+                  border-radius: 4px;
+                }
               }
+
               .stageInfo {
                 position: absolute;
                 padding: 7px 0;
@@ -1075,7 +1235,6 @@ export default {
                 z-index: 2;
                 width: 100%;
                 text-align: center;
-                // margin: 0 auto;
 
                 .participantImg {
                   height: 20px;
@@ -1083,9 +1242,9 @@ export default {
                     display: inline-block;
                     width: 20px;
                     height: 20px;
-                    background: red;
                     border-radius: 3px;
                     overflow: hidden;
+                    background: red;
                     img {
                       width: 20px;
                       height: 20px;
@@ -1119,6 +1278,8 @@ export default {
                 background: #ffffff;
                 z-index: 3;
                 opacity: 1;
+                padding: 25px 35px;
+                .box_sizing;
               }
             }
           }
@@ -1254,7 +1415,7 @@ export default {
           right: 14px;
           top: 50%;
           margin-top: -10px;
-
+          border: none;
           i {
             position: absolute;
           }

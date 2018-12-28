@@ -113,7 +113,7 @@ export default {
 };
 </script>
 <style lang='less'>
-@import "../../assets/css/base.less";
+@import "../../../assets/css/base.less";
 
 #Info_k {
   .popup_content_main {

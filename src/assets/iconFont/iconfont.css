@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'iconfont';  /* project id 964637 */
-  src: url('//at.alicdn.com/t/font_964637_mcrc2pkc1yj.eot');
-  src: url('//at.alicdn.com/t/font_964637_mcrc2pkc1yj.eot?#iefix') format('embedded-opentype'),
-  url('//at.alicdn.com/t/font_964637_mcrc2pkc1yj.woff') format('woff'),
-  url('//at.alicdn.com/t/font_964637_mcrc2pkc1yj.ttf') format('truetype'),
-  url('//at.alicdn.com/t/font_964637_mcrc2pkc1yj.svg#iconfont') format('svg');
+  src: url('//at.alicdn.com/t/font_964637_x10p16vgog.eot');
+  src: url('//at.alicdn.com/t/font_964637_x10p16vgog.eot?#iefix') format('embedded-opentype'),
+  url('//at.alicdn.com/t/font_964637_x10p16vgog.woff') format('woff'),
+  url('//at.alicdn.com/t/font_964637_x10p16vgog.ttf') format('truetype'),
+  url('//at.alicdn.com/t/font_964637_x10p16vgog.svg#iconfont') format('svg');
 }
 .iconfont {
   font-family:"iconfont" !important;
@@ -13,6 +13,11 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.icon-tuichu-:before { content: "\e610"; }
+
+.icon-jiaru-1:before { content: "\e60d"; }
+
 .icon-delete:before { content: "\e69d"; }
 
 .icon-filter:before { content: "\e6f1"; }

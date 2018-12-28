@@ -144,7 +144,7 @@
   </div>
 </template>
 <script>
-import AddPeople from "../common/addPeople";
+import AddPeople from "../../common/addPeople";
 import { mapState, mapMutations } from "vuex";
 
 export default {
@@ -429,7 +429,7 @@ export default {
 };
 </script>
 <style lang='less'>
-@import "../../assets/css/base.less";
+@import "../../../assets/css/base.less";
 
 #Info_k {
   .popup_top {

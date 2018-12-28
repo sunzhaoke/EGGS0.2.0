@@ -21,8 +21,8 @@
   </div>
 </template>
 <script>
-import List from "./list";
-import Template from "./template";
+import List from "./common/list";
+import Template from "./common/template";
 export default {
   components: { List, Template },
   data() {

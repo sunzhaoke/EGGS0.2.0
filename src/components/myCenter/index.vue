@@ -379,11 +379,9 @@
 </template>
 <script>
 import Reminder2 from "../common/reminder2";
-
 import topBar from "../common/topBar";
 import "../../api/birthday.js";
 import { setInterval } from 'timers';
-import reminder2Vue from '../common/reminder2.vue';
 import { fail } from 'assert';
 export default {
   components: {
