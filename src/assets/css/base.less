@@ -35,7 +35,18 @@ html,body {
 .mainColor {
   color: @mainColor;
 }
-
+.underline_text {
+  color: @grayNight;
+  padding: 0 5px;
+  .cur;
+  text-decoration: underline;
+}
+.mainColor_underline_text {
+  color: @mainColor;
+  padding: 0 5px;
+  .cur;
+  text-decoration: underline;
+}
 .mainColor_text {
   color: @mainColor;
   padding: 0 5px;
@@ -301,7 +312,7 @@ input{
   text-align: center;
   background-color: @mainColor;
   color: #FFFFFF;
-  .border_radius(@br:4px);
+  .border_radius(@br:2px);
   cursor: pointer;
   vertical-align: middle;
   &:hover {
@@ -310,7 +321,7 @@ input{
   }
 }
 
-// 按钮无背景
+// 按钮无背景无边框
 .main_button {
   display: inline-block;
   padding: 0 20px;
@@ -318,8 +329,21 @@ input{
   line-height: 30px;
   text-align: center;
   color: @graySix;
+  .border_radius(@br:2px);
+  .box_sizing;
+  cursor: pointer;
+  vertical-align: middle;
+}
+// 按钮无背景有边框
+.main_button_border {
+  display: inline-block;
+  padding: 0 20px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  color: @graySix;
   border: 1px solid @grayNight;
-  .border_radius(@br:4px);
+  .border_radius(@br:2px);
   .box_sizing;
   cursor: pointer;
   vertical-align: middle;
@@ -330,6 +354,7 @@ input{
   }
 }
 
+
 // 按钮无背景字体有颜色
 .main_button_color {
   display: inline-block;
@@ -339,7 +364,7 @@ input{
   text-align: center;
   color: @mainColor;
   border: 1px solid @mainColor;
-  .border_radius(@br:4px);
+  .border_radius(@br:2px);
   .box_sizing;
   cursor: pointer;
   vertical-align: middle;
@@ -359,7 +384,7 @@ input{
   text-align: center;
   background: #E5E5E5;
   color: #FDFDFD;
-  .border_radius(@br:4px);
+  .border_radius(@br:2px);
   cursor: not-allowed;
   vertical-align: middle;
 
@@ -374,7 +399,7 @@ input{
   text-align: center;
   color: #E5E5E5;
   border: 1px solid #E5E5E5;
-  .border_radius(@br:4px);
+  .border_radius(@br:2px);
   .box_sizing;
   cursor: pointer;
   cursor: not-allowed;
@@ -392,7 +417,7 @@ input{
   color: @mainColor;
   border: 1px solid @graySix;
   background: @grayNight;
-  .border_radius(@br:4px);
+  .border_radius(@br:2px);
   .box_sizing;
   cursor: pointer;
   vertical-align: middle;

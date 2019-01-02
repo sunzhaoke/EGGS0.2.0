@@ -15,7 +15,7 @@ import global from './api/global';
 import Vuex from 'vuex'; 
 import store from './store'; 
 import domain from './api/domain'; 
-import {VTable, VPagination} from 'vue-easytable'
+// import {VTable, VPagination} from 'vue-easytable'
 
 Vue.use(Vuex); 
 Vue.config.productionTip = false; 
@@ -31,8 +31,8 @@ Vue.prototype.global = global;
 global.domain = domain; 
 
 /* eslint-disable no-new */
-Vue.component(VTable.name, VTable)
-Vue.component(VPagination.name, VPagination)
+// Vue.component(VTable.name, VTable)
+// Vue.component(VPagination.name, VPagination)
 new Vue( {
 el:'#app', 
 router, 

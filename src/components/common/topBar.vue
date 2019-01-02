@@ -178,6 +178,7 @@ export default {
       background: #fff;
       border: 1px solid #e5e5e5;
       box-shadow: 0 1px 4px 0 rgba(59, 81, 133, 0.3);
+      z-index: 101;
       li {
         height: 32px;
         line-height: 32px;

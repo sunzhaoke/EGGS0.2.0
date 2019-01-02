@@ -57,7 +57,7 @@ export default {
   },
   created() { },
   mounted() {
-    this.menuSelected = localStorage.getItem("menuSelected");
+    // this.menuSelected = localStorage.getItem("menuSelected");
   }
 };
 </script>

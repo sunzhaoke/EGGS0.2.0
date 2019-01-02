@@ -50,7 +50,7 @@ export default {
     // 1.状态1 如果有自动登录并且保存数据
     console.log(RememberYourPassword, '==================')
     if (staffInfo && getCookie('RememberYourPassword')) {
-      this.$router.push("/project");
+      // this.$router.push("/project");
       this.userId = JSON.parse(localStorage.getItem("staffInfo")).userPkid;
       // 2.有链接地址
     } else if (urls) {
