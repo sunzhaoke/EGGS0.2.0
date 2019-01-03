@@ -157,7 +157,6 @@ export default {
         // 列表页面
         // 返回info页面
         this.$emit("handleCancel");
-
       }
     },
 

@@ -14,7 +14,21 @@
          :class="starFlag ? 'icon-star' : 'icon-shoucang'"></i>
       <i class="iconfont icon-shuxingliebiaoxiangqing"
          @click="itemInformationShow=true"></i>
-      <i class="iconfont icon-rili fr"></i>
+
+      <div class="fr otherButton">
+        <i class="iconfont icon-19daoru"
+           @click="toLead()"></i>
+        <i class="iconfont icon-haoyou"></i>
+        <el-dropdown @click.native.stop="parthCommand()">
+          <span class="el-dropdown-link">
+            <i class="iconfont icon-gengduo"></i>
+          </span>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item @click.native="parthCommand('editStage')">编辑阶段</el-dropdown-item>
+            <el-dropdown-item @click.native="parthCommand('share')">分享</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+      </div>
       <div class="project_search fr">
         <el-input placeholder="请输入搜索的任务标题"
                   clearable
@@ -23,9 +37,7 @@
                   v-model="searchValue"
                   @input="searchChange">
         </el-input>
-        <i class="iconfont icon-19daoru"></i>
-        <i class="iconfont icon-haoyou"></i>
-        <i class="iconfont icon-gengduo"></i>
+
         <el-collapse-transition>
           <div v-if="searchLists && searchLists.length"
                class="search_list">
@@ -58,18 +70,19 @@
     <div class="project_task_list fl"
          id="taskList">
       <div class="tableBox">
-        <div :class="isFixed?'topTableFixed':'topTable'">
+        <div class="topTable"
+             :class="{'topTableFixed':isFixed}">
           <div class="topBar">
-            <div :class="leftFixed?'stageHeader':'stageListBox'"
-                 class="clearfix">
-              <div class="label ">分区</div>
-              <div class="label ">任务/阶段</div>
+            <div :class="{'stageHeader':leftFixed}"
+                 class="clearfix stageListBox">
+              <div class="label partitionTitle">分区</div>
+              <div class="label taskTitle">任务/阶段</div>
             </div>
-            <div :class="leftFixed ?'stageRight':'stageListBox'"
-                 class=" clearfix ">
+            <div :class="{'stageRight':leftFixed}"
+                 class=" clearfix stageListBox">
               <div v-for="list in stageList"
                    :key="list.pkid"
-                   class="stageLists">
+                   class="stageTitleLists">
                 {{list.title}}
               </div>
             </div>
@@ -91,9 +104,9 @@
                   <div class="partitionsAndStages"
                        v-if="!element.autoExpand">
                     <div ref='partitions'
-                         class="cur"
+                         class="cur partitionsLabel"
                          style="heigth:100px;"
-                         :class="leftFixed?'partitionsLabelFixed':'partitionsLabel'"
+                         :class="{'partitionsLabelFixed':leftFixed}"
                          :style="'height:'+ ((element.taskList.length )* 72) +'px;'">
                       <span class="iconBox">
                         <span class="icon"
@@ -149,12 +162,13 @@
                                  }">
                       <transition-group class="taskLists">
                         <!-- 任务及阶段 -->
-
                         <li v-for="(item,index) in element.taskList"
                             v-if='item.taskId'
                             :key="item.taskId"
-                            :class="{'stageBox':!leftFixed,'stageBoxFixed':leftFixed,'dragging':item.taskId!==''}">
-                          <span class="stageLists cur">
+                            class="stageBox"
+                            :class="{'stageBoxFixed':leftFixed,'dragging':item.taskId!==''}">
+                          <span class="stageLists cur"
+                                :class="{'leftTaskFixed':leftFixed}">
                             <span class="iconBox_">
                               <span class="icon"
                                     @click="move">
@@ -176,10 +190,19 @@
                                       @blur="stageNameBlur(item.taskTitle,item,element,index)">
                             </textarea>
                           </span>
-                          <div class="stageListsBox">
+                          <div class="stageListsBox"
+                               :class="{'stageListsBoxFixed':leftFixed}">
                             <div class="stage cur"
-                                 v-for="(lists,index) in  item.stageTaskList"
+                                 v-for="(lists,index) in item.stageTaskList"
                                  :key="lists.stageId">
+                              <!-- <div v-if='!lists.enabled'
+                                   class="closePage">
+                                阶段关闭
+                              </div> -->
+                              <!-- <div v-if='!lists.stageTaskState'>完成</div> -->
+                              <!-- <div>
+                                
+                              </div> -->
                               <div class="stageBg"></div>
                               <div class="stageInfo cur">
                                 <span class="participantImg">
@@ -192,16 +215,27 @@
                                 </span>
                                 <div class="participantMain">
                                   <span class="pieChart"></span>
-                                  <span class="">{{lists.startTime}}-</span>
-                                  <i class="iconfont icon-wenjian1">2</i>
-                                  <span></span>
+                                  <span v-for='(li,index) of lists.startTime'
+                                        :key="1+index">
+                                    <span v-if="true">{{li.year}}/</span>
+                                    <span> {{li.month}} {{li.hour}}:{{li.minute}} -</span>
+                                  </span>
+                                  <span v-for='(li,index) of lists.endTime'
+                                        :key="2+index">
+                                    <span v-if="true">{{li.year}}/</span>
+                                    <span> {{li.month}} {{li.hour}}:{{li.minute}} -</span>
+                                  </span>
+                                  <i class="iconfont icon-wenjian1"
+                                     v-if="lists.fileCont!=0||lists.fileCont!=''">{{lists.fileCont}}</i>
                                 </div>
                               </div>
                               <div class="stageHover">
                                 <el-tooltip class="item"
                                             effect="dark"
                                             content="参与任务"
-                                            placement="top-start">
+                                            @click.native="enter()"
+                                            placement="top-start"
+                                            v-if="lists.enabled">
                                   <el-button>
                                     <span class="iconBg">
                                       <i class="iconfont icon-jiaru-1"></i>
@@ -211,7 +245,8 @@
                                 <el-tooltip class="item"
                                             effect="dark"
                                             content="取消参与"
-                                            placement="top-start">
+                                            placement="top-start"
+                                            v-if="lists.enabled">
                                   <el-button>
                                     <span class="iconBg">
                                       <i class="iconfont icon-tuichu-"></i>
@@ -221,6 +256,7 @@
                                 <el-tooltip class="item"
                                             effect="dark"
                                             content="进入详情"
+                                            @click.native="enter()"
                                             placement="top-start">
                                   <el-button>
                                     <span class="iconBg">
@@ -303,12 +339,10 @@
               </div>
             </transition-group>
           </draggable>
-
           <div>
           </div>
         </div>
       </div>
-
     </div>
     <transition name="fade1">
       <Info v-if="itemInformationShow"
@@ -317,6 +351,7 @@
             :projectId='projectId'
             :classify='classify'></Info>
     </transition>
+
     <transition name="fade1">
       <Reminder2 v-if="reminder2Flag"
                  :type="1"
@@ -325,13 +360,22 @@
                  @handleCancle="reminderCancel"
                  @handleSure="reminderSure" />
     </transition>
+    <transition name="fade1">
+      <ShadePop v-if="popShow"
+                @closePop='closePop' />
+
+      <ToLead v-if="toLeadShow"
+              @closePop='closePop'></ToLead>
+    </transition>
   </div>
 </template>
 <script>
 import { mapMutations } from 'vuex';
 import Info from "../common/info";
-import Reminder2 from "../../common/reminder2";
+import ShadePop from "../common/shadePop";
+import ToLead from "./common/toLead";
 
+import Reminder2 from "../../common/reminder2";
 // import { searchList } from './data.js';/ 
 import draggable from "vuedraggable";
 
@@ -339,10 +383,14 @@ export default {
   components: {
     draggable,
     Info,
-    Reminder2
+    Reminder2,
+    ShadePop,
+    ToLead
   },
   data() {
     return {
+      toLeadShow: false, //弹框 导入是否显示 
+      popShow: false,// 弹框 阶段排序是否显示
       reminder2Flag: false, //确认删除弹框
       errMessage: 'hahh',
       newStageName: '',
@@ -381,15 +429,80 @@ export default {
       newTask: '',
       delPartitionLists: [], //当前删除的分区
       delIndex: '', //当前删除的分区的index
+      nowYear: '', //当前年
+
     };
   },
   watch: {
 
   },
+  computed: {
+
+    // 任务及阶段
+    taskListAndStage() {
+      let taskLists = [];
+      for (let list of this.partitionsList) {
+
+        for (let task of list.taskList) {
+          taskLists.push(task);
+          for (let item of task.stageTaskList) {
+            if (item.startTime) {
+              let time = item.startTime.split(' ');
+              time = time[0].split('/').concat(time[1].split(':'));
+              item.startTime = [
+                {                  year: time[0].substring(2, 4),
+                  month: time[1],
+                  day: time[2],
+                  hour: time[3],
+                  minute: time[4]
+                }
+              ]
+            }
+            if (item.endTime) {
+              let time = item.endTime.split(' ');
+              time = time[0].split('/').concat(time[1].split(':'));
+              item.endTime = [
+                {                  year: time[0].substring(2, 4),
+                  month: time[1],
+                  day: time[2],
+                  hour: time[3],
+                  minute: time[4]
+                }
+              ]
+            }
+          }
+        }
+      }
+      // console.log(taskList, 'stag/eLists')
+
+      console.log(this.partitionsList, taskLists)
+
+      return taskLists
+    }
+  }
+  ,
   methods: {
     ...mapMutations(['DETAILS_CHANGE', 'TASKITEM_CHANGE', 'TASK_POSITION', 'PROJECT_CHANGE']),
     // 展开详情
     // 取消
+    toLead() {
+      console.log('hah')
+      this.toLeadShow = true
+    },
+    // 关闭弹框
+    closePop() {
+      this.popShow = false;
+      this.toLeadShow = false;
+    },
+    parthCommand(command) {
+      if (command == 'editStage') {
+        console.log('chufa')
+        this.popShow = true;
+      }
+    },
+    enter() {
+      console.log(12)
+    },
     reminderCancel() {
       this.reminder2Flag = false;
     },
@@ -447,6 +560,7 @@ export default {
     openDelPartition(element, index) {
       this.delPartitionLists = element;
       this.delIndex = index;
+      this.errMessage = '您确认删除该分区？删除后，分区内的任务将移入到未分区内';
       this.reminder2Flag = true;
     },
     // 删除分区 操作
@@ -455,7 +569,6 @@ export default {
       // 判断如果有list列表
       if (element.taskList == '') {
         this.partitionsList.splice(index, 1);
-
       } else {
         let taskIds = [];
         for (let list of element.taskList) {
@@ -648,6 +761,33 @@ export default {
                 list.isBlank = true;
                 list.taskList.splice(i, 1)
               }
+              this.stageTaskList = i.stageTaskList;
+              for (let item of i.stageTaskList) {
+                if (item.startTime) {
+                  let time = item.startTime.split(' ');
+                  time = time[0].split('/').concat(time[1].split(':'));
+                  item.startTime = [
+                    {                      year: time[0].substring(2, 4),
+                      month: time[1],
+                      day: time[2],
+                      hour: time[3],
+                      minute: time[4]
+                    }
+                  ]
+                }
+                if (item.endTime) {
+                  let time = item.endTime.split(' ');
+                  time = time[0].split('/').concat(time[1].split(':'));
+                  item.endTime = [
+                    {                      year: time[0].substring(2, 4),
+                      month: time[1],
+                      day: time[2],
+                      hour: time[3],
+                      minute: time[4]
+                    }
+                  ]
+                }
+              }
             }
           }
         }
@@ -659,6 +799,10 @@ export default {
   created() {
     this.getstageList(); //获取阶段列表 
     this.getProjectAll();
+    let nowTime = new Date();
+    this.nowYear = nowTime.getFullYear();
+    // this.nowYear=this.nowYear.split(2,3)
+    console.log(this.nowYear)
   },
   mounted() {
     let _ = this;
@@ -688,7 +832,9 @@ export default {
 .fade-leave-active {
   transition: opacity 0.1s;
 }
-
+.iconfont:hover {
+  color: @mainColor !important;
+}
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
   opacity: 0;
 }
@@ -709,12 +855,19 @@ export default {
     transform: rotate(180deg);
   }
 }
-
+.shade {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: red;
+  z-index: 10000;
+}
 .project_task {
   width: 100%;
   height: 100%;
   // height: calc(~ '100% - 50px');
   overflow: hidden;
+
   .project_task_top {
     width: 100%;
     height: 50px;
@@ -822,6 +975,19 @@ export default {
         }
       }
     }
+    .otherButton {
+      height: 50px;
+      line-height: 50px;
+      vertical-align: middle;
+      margin-left: 10px;
+      .el-row {
+        height: 30px;
+        display: inline-block;
+      }
+      .el-dropdown {
+        height: 30px;
+      }
+    }
 
     .icon-rili {
       padding: 0 5px;
@@ -846,93 +1012,55 @@ export default {
         .topBar {
           display: flex;
           flex-direction: row;
+          // 左右移动 左侧 两个title 定位
           .stageHeader {
             display: flex;
             flex-direction: row;
             position: fixed;
+            z-index: 999;
           }
           .stageRight {
-            padding-left: 224px;
+            padding-left: 253px;
             display: flex;
             flex-direction: row;
           }
-        }
-        .label {
-          width: 112px;
-          height: 40px;
-          border-right: 1px solid #eeeeee;
-          border-bottom: 1px solid #eeeeee;
-          .box_sizing;
-          background: #fff;
-          text-align: center;
-          line-height: 40px;
-        }
-        .stageListBox {
-          display: flex;
-          flex-direction: row;
-        }
-        // 阶段标题内容
-        .stageLists {
-          z-index: 99;
-          width: 252px;
-          height: 40px;
-          line-height: 40px;
-          border-right: 1px solid #eeeeee;
-          border-bottom: 1px solid #eeeeee;
-          background: #fff;
-          text-align: center;
-          line-height: 40px;
-          .box_sizing;
+          .label {
+            width: 112px;
+            height: 40px;
+            border-right: 1px solid #eeeeee;
+            border-bottom: 1px solid #eeeeee;
+            .box_sizing;
+            background: #fff;
+            text-align: center;
+            line-height: 40px;
+          }
+          .taskTitle {
+            width: 140px;
+          }
+          .stageListBox {
+            display: flex;
+            flex-direction: row;
+          }
+          //4个阶段 标题 内容
+          .stageTitleLists {
+            z-index: 99;
+            width: 252px;
+            height: 40px;
+            line-height: 40px;
+            border-right: 1px solid #eeeeee;
+            border-bottom: 1px solid #eeeeee;
+            background: #fff;
+            text-align: center;
+            line-height: 40px;
+            .box_sizing;
+          }
         }
       }
+      // 上下滚动 定位样式
       .topTableFixed {
-        height: 40px;
-        background: #fff;
         position: fixed;
-        // box-shadow:
         z-index: 99;
         box-shadow: 0px 2px 4px 0px rgba(153, 153, 153, 0.4);
-        .topBar {
-          display: flex;
-          flex-direction: row;
-          .stageHeader {
-            display: flex;
-            flex-direction: row;
-            position: fixed;
-          }
-          .stageRight {
-            padding-left: 224px;
-            display: flex;
-            flex-direction: row;
-          }
-        }
-        .label {
-          width: 112px;
-          height: 40px;
-          border-right: 1px solid #eeeeee;
-          border-bottom: 1px solid #eeeeee;
-          .box_sizing;
-          background: #fff;
-          text-align: center;
-          line-height: 40px;
-        }
-        .stageListBox {
-          display: flex;
-          flex-direction: row;
-        }
-        // 阶段（标题）内容
-        .stageLists {
-          z-index: 99;
-          width: 252px;
-          height: 40px;
-          line-height: 40px;
-          border-right: 1px solid #eeeeee;
-          border-bottom: 1px solid #eeeeee;
-          background: #fff;
-          text-align: center;
-          line-height: 40px;
-          .box_sizing;
-        }
       }
 
       .mainContentFixed {
@@ -942,36 +1070,210 @@ export default {
         display: flex;
         flex-direction: column;
         z-index: 1;
+        //1. 每行内容 包含分区（任务 阶段）
         .partitionsMain {
           display: flex;
           flex-direction: row;
           min-height: 72px;
-          background: #fff;
           .partitionsAndStages {
             display: flex;
             flex-direction: row;
-            // height: 72px;
-            // 阶段标题内容
+            // 2. 每条任务阶段 及任务片段内容（不含分区）
             .stageBox {
               display: flex;
               flex-direction: row;
               .stageLists {
                 height: 72px;
-                width: 112px;
-                line-height: 72px;
+                width: 140px;
                 background: #fff;
+                line-height: 72px;
                 border-left: 1px solid rgba(153, 153, 153, 0);
                 border-top: 1px solid rgba(153, 153, 153, 0);
                 border-right: 1px solid #eeeeee;
                 border-bottom: 1px solid #eeeeee;
+                .box_sizing;
                 text-align: center;
+                position: relative;
+                .stageName {
+                  padding: 20px 0;
+                  width: 100px;
+                  border: none;
+                  .box_sizing;
+                }
+                .iconBox_ {
+                  position: absolute;
+                  height: 30px;
+                  line-height: 30px;
+                  left: 0px;
+                  .icon {
+                    display: inline-block;
+                    width: 14px;
+                    height: 14px;
+                    line-height: 14px;
+                    background: rgba(246, 250, 255, 1);
+                    border-radius: 4px;
+                    margin: 2px;
+                    display: none;
+                    i {
+                      font-size: 12px;
+                    }
+                  }
+                }
+              }
+              .stageLists:hover {
+                border: 1px solid#C4C4C4;
+                .box_sizing;
+                text-align: center;
+                position: relative;
+                .icon {
+                  display: inline-block;
+                  width: 14px;
+                  height: 14px;
+                  line-height: 14px;
+                  background: rgba(246, 250, 255, 1);
+                  border-radius: 4px;
+                  margin: 2px;
+                  display: inline-block;
+                }
+              }
+
+              .leftTaskFixed {
+                z-index: 99;
+                position: fixed;
               }
               .stage {
                 width: 252px;
                 height: 72px;
                 border-right: 1px solid #eeeeee;
                 border-bottom: 1px solid #eeeeee;
+                .box_sizing;
+                background: #fff;
               }
+              // 阶段（内容）样式
+              .stageListsBox {
+                display: flex;
+                flex-direction: row;
+                z-index: 1;
+                // 关闭状态样式
+                .closePage {
+                  background: skyblue;
+                  height: 100%;
+                  line-height: 72px;
+                  text-align: center;
+                }
+                .stage {
+                  position: relative;
+                  .stageBg {
+                    position: absolute;
+                    display: inline-block;
+                    height: 52px;
+                    width: 100%;
+                    background: rgba(171, 204, 255, 0.1);
+                    top: 10px;
+                    border-left: 2px solid #3684ff;
+                    z-index: 1;
+                  }
+                  .stageHover {
+                    position: absolute;
+                    display: inline-block;
+                    height: 100%;
+                    width: 100%;
+                    z-index: 3;
+                    padding: 25px 35px;
+                    .box_sizing;
+                    display: none;
+                    .el-button {
+                      background: none;
+                      border: none;
+                      padding: 0;
+                      i {
+                        color: #fff;
+                        font-size: 14px;
+                      }
+                      .otherColor {
+                        color: #666666;
+                      }
+                    }
+                    .iconBg {
+                      display: inline-block;
+                      width: 24px;
+                      height: 24px;
+                      text-align: center;
+                      line-height: 24px;
+                      background: rgba(54, 132, 255, 1);
+                      border-radius: 4px;
+                    }
+                  }
+
+                  .stageInfo {
+                    position: absolute;
+                    padding: 7px 0;
+                    .box_sizing;
+                    top: 10px;
+                    display: inline-block;
+                    height: 52px;
+                    z-index: 2;
+                    width: 100%;
+                    text-align: center;
+
+                    .participantImg {
+                      height: 20px;
+                      .img {
+                        display: inline-block;
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 3px;
+                        overflow: hidden;
+                        margin: 0 4px;
+                        img {
+                          width: 20px;
+                          height: 20px;
+                        }
+                      }
+                    }
+                    .participantMain {
+                      color: #666666;
+                      .pieChart {
+                        display: inline-block;
+                        width: 10px;
+                        height: 10px;
+                        border-radius: 50%;
+                        background: yellow;
+                      }
+                      span {
+                        font-size: 12px;
+                      }
+                      i {
+                        font-size: 12px;
+                      }
+                    }
+                  }
+                }
+                .stage:hover {
+                  .stageHover {
+                    position: absolute;
+                    display: inline-block;
+                    height: 100%;
+                    width: 100%;
+                    background: #ffffff;
+                    border: 1px solid #c4c4c4;
+                    z-index: 3;
+                    display: block;
+                    padding: 25px 35px;
+                    .box_sizing;
+                  }
+                }
+              }
+              // 阶段定位后左侧padding
+              .stageListsBoxFixed {
+                padding-left: 253px;
+              }
+            }
+            .stageBoxFixed {
+              // 阶段（内容）样式
+              // background: yellow;
+              // position: fixed;
+              padding-left: 112px;
             }
           }
           .defaultMainBox {
@@ -1025,355 +1327,8 @@ export default {
         }
 
         // .
-        // 阶段 定位样式
-        .stageBoxFixed {
-          padding-left: 112px;
-          display: flex;
-          flex-direction: row;
-          .iconBox_ {
-            position: absolute;
-            height: 30px;
-            line-height: 30px;
-            left: 14px;
-            opacity: 0;
-            // top: 10px;
-            .icon {
-              display: inline-block;
-              width: 14px;
-              height: 14px;
-              line-height: 14px;
-              background: rgba(246, 250, 255, 1);
-              border-radius: 4px;
-              margin: 2px;
-              i {
-                font-size: 12px;
-              }
-            }
-          }
-          .iconBox_:hover {
-            opacity: 1;
-          }
-          .stageListsBox {
-            display: flex;
-            flex-direction: row;
-            padding-left: 112px;
-            z-index: 1;
-            .stage {
-              position: relative;
-              .stageBg {
-                position: absolute;
-                display: inline-block;
-                height: 52px;
-                width: 100%;
-                background: rgba(171, 204, 255, 0.1);
-                top: 10px;
-                border-left: 2px solid #3684ff;
-                z-index: 1;
-              }
-              .stageHover {
-                position: absolute;
-                display: inline-block;
-                height: 100%;
-                width: 100%;
-                z-index: 3;
-                padding: 25px 35px;
-                .box_sizing;
-                opacity: 0;
-                .el-button {
-                  background: none;
-                  border: none;
-                  padding: 0;
-                  i {
-                    color: #fff;
-                    font-size: 14px;
-                  }
-                  .otherColor {
-                    color: #666666;
-                  }
-                }
-                .iconBg {
-                  display: inline-block;
-                  width: 24px;
-                  height: 24px;
-                  text-align: center;
-                  line-height: 24px;
-                  background: rgba(54, 132, 255, 1);
-                  border-radius: 4px;
-                }
-              }
 
-              .stageInfo {
-                position: absolute;
-                padding: 7px 0;
-                .box_sizing;
-                top: 10px;
-                display: inline-block;
-                height: 52px;
-                z-index: 2;
-                width: 100%;
-                text-align: center;
-                // margin: 0 auto;
-
-                .participantImg {
-                  height: 20px;
-                  .img {
-                    display: inline-block;
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 3px;
-                    overflow: hidden;
-                    img {
-                      width: 20px;
-                      height: 20px;
-                    }
-                  }
-                }
-                .participantMain {
-                  color: #666666;
-                  .pieChart {
-                    display: inline-block;
-                    width: 10px;
-                    height: 10px;
-                    border-radius: 50%;
-                    background: yellow;
-                  }
-                  span {
-                    font-size: 12px;
-                  }
-                  i {
-                    font-size: 12px;
-                  }
-                }
-              }
-            }
-            .stage:hover {
-              .stageHover {
-                position: absolute;
-                display: inline-block;
-                height: 100%;
-                width: 100%;
-                background: #ffffff;
-                z-index: 3;
-                opacity: 1;
-                padding: 25px 35px;
-                .box_sizing;
-              }
-            }
-          }
-          // 阶段（内容）样式
-          .stageLists {
-            z-index: 99;
-            height: 72px;
-            width: 112px;
-            line-height: 72px;
-            position: fixed;
-            background: #fff;
-            border-left: 1px solid rgba(153, 153, 153, 0);
-            border-top: 1px solid rgba(153, 153, 153, 0);
-            border-right: 1px solid #eeeeee;
-            border-bottom: 1px solid #eeeeee;
-            text-align: center;
-            box-shadow: 1px 2px 4px 0px rgba(153, 153, 153, 0.4);
-            .stageName {
-              padding: 20px 0;
-              width: 100px;
-              border: none;
-              .box_sizing;
-            }
-          }
-          .stageMain {
-            padding-left: 112px;
-          }
-          .stage {
-            width: 252px;
-            height: 72px;
-            border-right: 1px solid #eeeeee;
-            border-bottom: 1px solid #eeeeee;
-          }
-        }
-        // 正常样式
-        .stageBox {
-          display: flex;
-          flex-direction: row;
-          .stageListsBox {
-            display: flex;
-            flex-direction: row;
-            z-index: 1;
-            .stage {
-              position: relative;
-              .stageBg {
-                position: absolute;
-                display: inline-block;
-                height: 52px;
-                width: 100%;
-                background: rgba(171, 204, 255, 0.1);
-                top: 10px;
-                border-left: 2px solid #3684ff;
-                z-index: 1;
-              }
-              .stageHover {
-                position: absolute;
-                display: inline-block;
-                height: 100%;
-                width: 100%;
-                z-index: 3;
-                padding: 25px 35px;
-                .box_sizing;
-                opacity: 0;
-                .el-button {
-                  background: none;
-                  border: none;
-                  padding: 0;
-                  i {
-                    color: #fff;
-                    font-size: 14px;
-                  }
-                  .otherColor {
-                    color: #666666;
-                  }
-                }
-                .iconBg {
-                  display: inline-block;
-                  width: 24px;
-                  height: 24px;
-                  text-align: center;
-                  line-height: 24px;
-                  background: rgba(54, 132, 255, 1);
-                  border-radius: 4px;
-                }
-              }
-
-              .stageInfo {
-                position: absolute;
-                padding: 7px 0;
-                .box_sizing;
-                top: 10px;
-                display: inline-block;
-                height: 52px;
-                z-index: 2;
-                width: 100%;
-                text-align: center;
-
-                .participantImg {
-                  height: 20px;
-                  .img {
-                    display: inline-block;
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 3px;
-                    overflow: hidden;
-                    // background: red;
-                    img {
-                      width: 20px;
-                      height: 20px;
-                    }
-                  }
-                }
-                .participantMain {
-                  color: #666666;
-                  .pieChart {
-                    display: inline-block;
-                    width: 10px;
-                    height: 10px;
-                    border-radius: 50%;
-                    background: yellow;
-                  }
-                  span {
-                    font-size: 12px;
-                  }
-                  i {
-                    font-size: 12px;
-                  }
-                }
-              }
-            }
-            .stage:hover {
-              .stageHover {
-                position: absolute;
-                display: inline-block;
-                height: 100%;
-                width: 100%;
-                background: #ffffff;
-                z-index: 3;
-                opacity: 1;
-                padding: 25px 35px;
-                .box_sizing;
-              }
-            }
-          }
-          // 阶段（内容）样式
-          .stageLists {
-            height: 72px;
-            width: 112px;
-            line-height: 72px;
-            background: #fff;
-            border-left: 1px solid rgba(153, 153, 153, 0);
-            border-top: 1px solid rgba(153, 153, 153, 0);
-            border-right: 1px solid #eeeeee;
-            border-bottom: 1px solid #eeeeee;
-            .box_sizing;
-
-            text-align: center;
-            position: relative;
-            .stageName {
-              padding: 20px 0;
-              width: 100px;
-              border: none;
-            }
-            .iconBox_ {
-              position: absolute;
-              height: 30px;
-              line-height: 30px;
-              left: 0px;
-              .icon {
-                display: inline-block;
-                width: 14px;
-                height: 14px;
-                line-height: 14px;
-                background: rgba(246, 250, 255, 1);
-                border-radius: 4px;
-                margin: 2px;
-                opacity: 0;
-                i {
-                  font-size: 12px;
-                }
-              }
-            }
-          }
-          .stageLists:hover {
-            height: 72px;
-            width: 112px;
-            line-height: 72px;
-            background: #fff;
-            border: 1px solid #c4c4c4;
-            .box_sizing;
-            text-align: center;
-            position: relative;
-            .icon {
-              display: inline-block;
-              width: 14px;
-              height: 14px;
-              line-height: 14px;
-              background: rgba(246, 250, 255, 1);
-              border-radius: 4px;
-              margin: 2px;
-              opacity: 1;
-              i {
-                font-size: 12px;
-              }
-            }
-          }
-          .stageMain {
-            padding-left: 112px;
-          }
-          .stage {
-            width: 252px;
-            height: 72px;
-            border-right: 1px solid #eeeeee;
-            border-bottom: 1px solid #eeeeee;
-            .box_sizing;
-          }
-        }
+        // 任务阶段 左侧2 列表样式
         .partitionsLabel {
           display: block;
           width: 112px;
@@ -1384,7 +1339,6 @@ export default {
           border-top: 1px solid rgba(153, 153, 153, 0);
           border-bottom: 1px solid #eeeeee;
           .box_sizing;
-
           text-align: center;
           position: relative;
           .unfold {
@@ -1396,7 +1350,7 @@ export default {
           .box_sizing;
           .iconBox {
             position: absolute;
-            opacity: 0;
+            display: none;
             top: 7px;
             left: 14px;
             .icon {
@@ -1412,19 +1366,17 @@ export default {
             }
           }
         }
-
         .partitionsLabel:hover {
-          display: block;
-          width: 112px;
-          min-height: 72px;
-          background: #fff;
           border: 1px solid #c4c4c4;
-          .box_sizing;
-          text-align: center;
-          position: relative;
           .iconBox {
-            opacity: 1;
+            display: block;
           }
+        }
+
+        // 任务阶段 定位样式
+        .partitionsLabelFixed {
+          z-index: 99;
+          position: fixed;
         }
 
         .stageTittle {
@@ -1443,61 +1395,10 @@ export default {
             position: absolute;
           }
         }
-
-        .partitionsLabelFixed {
-          z-index: 99;
-          position: fixed;
-          display: block;
-          width: 112px;
-          min-height: 72px;
-          background: #fff;
-          border-right: 1px solid #eeeeee;
-          border-bottom: 1px solid #eeeeee;
-          .box_sizing;
-
-          text-align: center;
-          .unfold {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            margin-top: -10px;
-          }
-          .iconBox {
-            position: absolute;
-            opacity: 0;
-            top: 7px;
-            left: 14px;
-            .icon {
-              display: inline-block;
-              width: 14px;
-              height: 14px;
-              line-height: 14px;
-              background: rgba(246, 250, 255, 1);
-              border-radius: 4px;
-              i {
-                font-size: 12px;
-              }
-            }
-          }
-        }
-        .partitionsLabelFixed:hover {
-          position: fixed;
-          display: block;
-          width: 112px;
-          min-height: 72px;
-          background: #fff;
-          border-right: 1px solid #eeeeee;
-          border-bottom: 1px solid #eeeeee;
-          .box_sizing;
-
-          text-align: center;
-          .iconBox {
-            opacity: 1;
-          }
-        }
       }
     }
   }
+
   .ghost_file {
     // 折叠样式
     .thumbnailList {
