@@ -187,7 +187,7 @@ export default {
 }
 </script>
 <style lang="less">
-@import "../../../../../assets/css/base.less";
+@import "../../../../assets/css/base.less";
 .participant_y {
     position: absolute;
     top: -10px;

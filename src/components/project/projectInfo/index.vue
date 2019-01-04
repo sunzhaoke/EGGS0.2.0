@@ -80,9 +80,10 @@
             </div>
             <div :class="{'stageRight':leftFixed}"
                  class=" clearfix stageListBox">
-              <div v-for="list in stageList"
+              <div v-for="(list,index) in stageList"
                    :key="list.pkid"
-                   class="stageTitleLists">
+                   class="stageTitleLists"
+                   :class="{'hoverBg':mouseTopIndex==index} ">
                 {{list.title}}
               </div>
             </div>
@@ -99,6 +100,7 @@
               <div v-for="(element,index) in partitionsList"
                    :key="element.partitionId"
                    class="partitionsMain"
+                   @mouseenter="mouseEnter(element,index)"
                    :data-partitionid='element.partitionId'>
                 <transition name="fade">
                   <div class="partitionsAndStages"
@@ -106,7 +108,7 @@
                     <div ref='partitions'
                          class="cur partitionsLabel"
                          style="heigth:100px;"
-                         :class="{'partitionsLabelFixed':leftFixed}"
+                         :class="{'partitionsLabelFixed':leftFixed,'hoverBg':mouseLeftIndex==index}"
                          :style="'height:'+ ((element.taskList.length )* 72) +'px;'">
                       <span class="iconBox">
                         <span class="icon"
@@ -194,7 +196,8 @@
                                :class="{'stageListsBoxFixed':leftFixed}">
                             <div class="stage cur"
                                  v-for="(lists,index) in item.stageTaskList"
-                                 :key="lists.stageId">
+                                 :key="lists.stageId"
+                                 @mouseenter='mouseTopEnter(item,index)'>
                               <!-- <div v-if='!lists.enabled'
                                    class="closePage">
                                 阶段关闭
@@ -272,20 +275,90 @@
                                     <i class="iconfont icon-rili1 otherColor "></i>
                                   </el-button>
                                 </el-tooltip>
-                                <el-tooltip class="item"
-                                            effect="dark"
-                                            content="添加成员"
-                                            placement="top-start">
-                                  <el-button>
-                                    <i class="iconfont icon-tianjiarenyuan otherColor"></i>
-                                  </el-button>
-                                </el-tooltip>
+
+                                <div class="people">
+                                  <div class="people_header"
+                                       v-for="(item, index) in taskPeopleList"
+                                       :key="item.userId"
+                                       @mouseenter="peopleEnter(item)"
+                                       @mouseleave="peopleLeave(item)">
+                                    <img class="header"
+                                         :src="item.image"
+                                         alt="">
+                                    <el-tooltip v-show="item.hovers"
+                                                class="item"
+                                                effect="dark"
+                                                :content="(item.nickname ? item.nickname : item.userName) + (item.finish ? '：已完成' : '')"
+                                                placement="top">
+                                      <span class="del_peop iconfont icon-close"
+                                            @click="delPeople(item, index)"></span>
+                                    </el-tooltip>
+                                    <span v-if="item.finish"
+                                          class="icon_finish iconfont icon-xuanzhong"></span>
+                                  </div>
+                                  <div class="add_people_box"
+                                       @click.stop="addPeople">
+                                    <el-tooltip class="item"
+                                                effect="dark"
+                                                content="添加成员"
+                                                placement="top-start">
+                                      <el-button>
+                                        <i class="iconfont icon-tianjiarenyuan otherColor"></i>
+                                      </el-button>
+                                    </el-tooltip>
+
+                                    <!-- // <i class="iconfont icon-jia1 add_people"
+                                    //    :class="addPeopleShow ? 'add_people_show' : ''"
+                                    //    ></i>
+                                     -->
+                                    <el-collapse-transition>
+                                      <Participant v-if="addPeopleShow"
+                                                   ref="addPeople"
+                                                   id="addPeople"
+                                                   :defaultKeys="defaultKeys"
+                                                   :userList="userList"
+                                                   @handleSure="addPeopleSure"
+                                                   @handleInvite="invitePeople" />
+                                      <!-- :creatorId="creatorId" -->
+                                    </el-collapse-transition>
+                                  </div>
+                                </div>
+                                <el-dropdown>
+                                  <span class="el-dropdown-link">
+                                    <el-tooltip class="item"
+                                                effect="dark"
+                                                content="上传文件"
+                                                placement="top-start">
+                                      <el-button>
+                                        <i class="iconfont icon-shangchuan otherColor"></i>
+                                      </el-button>
+                                    </el-tooltip>
+                                  </span>
+                                  <el-dropdown-menu slot="dropdown">
+                                    <el-dropdown-item>
+                                      <el-upload ref="demandUpload"
+                                                 class="from_local dis-in-bl"
+                                                 :action="'/File_Upload.ashx?&projectId='+projectItem.projectid+'&taskId='+taskId+'&userId='+userPkid+'&replyId=-1'"
+                                                 :show-file-list="false"
+                                                 :multiple="true"
+                                                 :on-error="uploadError"
+                                                 :on-success="uploadSuccess"
+                                                 :on-progress="uploadProgress"
+                                                 :limit="9"
+                                                 :on-exceed="handleExceed"
+                                                 :before-upload="beforeUpload">
+                                        <span class="upload_name">本地上传</span>
+                                      </el-upload>
+
+                                    </el-dropdown-item>
+                                    <el-dropdown-item>从个人文档上传</el-dropdown-item>
+                                  </el-dropdown-menu>
+                                </el-dropdown>
                                 <el-tooltip class="item"
                                             effect="dark"
                                             content="上传文件"
                                             placement="top-start">
                                   <el-button>
-                                    <i class="iconfont icon-shangchuan otherColor"></i>
                                   </el-button>
                                 </el-tooltip>
                                 <el-tooltip class="item"
@@ -296,6 +369,15 @@
                                     <i class="iconfont icon-jinzhi otherColor"></i>
                                   </el-button>
                                 </el-tooltip>
+                                <!-- <div class="block">
+                                  <el-date-picker v-model="value6"
+                                                  type="datetimerange"
+                                                  range-separator="至"
+                                                  start-placeholder="开始日期"
+                                                  end-placeholder="结束日期">
+                                  </el-date-picker>
+                                </div> -->
+
                               </div>
 
                             </div>
@@ -362,7 +444,9 @@
     </transition>
     <transition name="fade1">
       <ShadePop v-if="popShow"
-                @closePop='closePop' />
+                @closePop='closePop'
+                :projectId='projectId'
+                :userPkid='userPkid' />
 
       <ToLead v-if="toLeadShow"
               @closePop='closePop'></ToLead>
@@ -374,6 +458,8 @@ import { mapMutations } from 'vuex';
 import Info from "../common/info";
 import ShadePop from "../common/shadePop";
 import ToLead from "./common/toLead";
+import Participant from "./common/participant";
+import UploadProgress from "../../common/uploadProgress";
 
 import Reminder2 from "../../common/reminder2";
 // import { searchList } from './data.js';/ 
@@ -385,10 +471,18 @@ export default {
     Info,
     Reminder2,
     ShadePop,
-    ToLead
+    ToLead,
+    Participant,
+    UploadProgress,
+
   },
   data() {
     return {
+      mouseLeftIndex: 0,
+      mouseTopIndex: 0,
+
+      taskPeopleList: [],
+      value6: '',
       toLeadShow: false, //弹框 导入是否显示 
       popShow: false,// 弹框 阶段排序是否显示
       reminder2Flag: false, //确认删除弹框
@@ -431,6 +525,46 @@ export default {
       delIndex: '', //当前删除的分区的index
       nowYear: '', //当前年
 
+      addPeopleShow: false, // 添加参与者是否显示
+      fileProgressList: '',
+      fileTypeImg: [
+        {
+          src: require("../../../assets/img/file_b/0.png")
+        },
+        {
+          src: require("../../../assets/img/file_b/0.png")
+        },
+        {
+          src: require("../../../assets/img/file_b/2.png")
+        },
+        {
+          src: require("../../../assets/img/file_b/3.png")
+        },
+        {
+          src: require("../../../assets/img/file_b/4.png")
+        },
+        {
+          src: require("../../../assets/img/file_b/5.png")
+        },
+        {
+          src: require("../../../assets/img/file_b/6.png")
+        },
+        {
+          src: require("../../../assets/img/file_b/7.png")
+        },
+        {
+          src: require("../../../assets/img/file_b/8.png")
+        },
+        {
+          src: require("../../../assets/img/file_b/9.png")
+        },
+        {
+          src: require("../../../assets/img/file_b/10.png")
+        },
+        {
+          src: require("../../../assets/img/file_b/11.png")
+        }
+      ],
     };
   },
   watch: {
@@ -485,6 +619,208 @@ export default {
     ...mapMutations(['DETAILS_CHANGE', 'TASKITEM_CHANGE', 'TASK_POSITION', 'PROJECT_CHANGE']),
     // 展开详情
     // 取消
+    mouseEnter(el, index) {
+      this.mouseLeftIndex = index;
+
+    },
+    mouseTopEnter(el, index) {
+      this.mouseTopIndex = index;
+    },
+    // 点击邀请好友
+    invitePeople(ids) {
+      this.addPeopleShow = false;
+      this.inviteShow = true;
+      this.inviteDefaultKeys = ids;
+    },
+
+    // 获取项目成员列表
+    getProjectUser() {
+      console.log('hdhdlf')
+      return
+      return new Promise((resolve, reject) => {
+        let obj = {
+          projectId: this.projectId,
+          myUserId: this.userPkid
+        }
+        this.$HTTP('post', '/project_userlist_get', obj).then(res => {
+          console.log('获取项目参与人员列表', res.result.userlist);
+          return
+          this.userList = res.result.userlist;
+          resolve(this.userList)
+        }).catch(err => {
+          console.log(err);
+          reject(err);
+        });
+      });
+
+    },
+    // 点击添加人员
+    defaultKeys() {
+      let arr = [];
+      for (let x of this.taskPeopleList) {
+        arr.push(x.userId);
+      }
+      // return [1, 2]
+      return arr;
+    },
+    async addPeople() {
+      try {
+        await this.getProjectUser();
+        this.addPeopleShow = true;;
+      } catch (err) {
+        console.log(err);
+      }
+      let clickHide = e => {
+        this.addPeopleShow = false; // 隐藏
+        $(document).unbind("click", clickHide)
+
+      };
+      $(document).bind("click", clickHide)
+    },
+
+    // 添加/删除人员成功
+    addPeopleSure(data) {
+      this.addPeopleShow = false; // 隐藏
+      console.log('participant', data);
+      // 发送请求
+      if (data && (data.add || data.del)) {
+        let add = [...data.add];
+        let del = [...data.del];
+        let obj = {
+          taskId: this.taskId,
+          myUserId: this.userPkid,
+          addUserList: add.join(','),
+          dekUserList: del.join(','),
+        }
+        this.$HTTP('post', '/task_users_update', obj).then(res => {
+          // 发送请求，taskPeopleList发生变化
+          let arr = res.result;
+          if (del) {
+            for (let x = 0; x < del.length; x++) {
+              for (let y = 0; y < this.taskPeopleList.length; y++) {
+                if (del[x] == this.taskPeopleList[y].userId) {
+                  this.taskPeopleList.splice(y, 1);
+                  y--;
+                }
+              }
+            }
+          }
+          this.taskPeopleList = this.taskPeopleList.concat(arr.taskUserList);
+
+          console.log('任务添加人员', res, this.taskPeopleList);
+
+        }).catch(err => {
+          console.log('任务添加人员失败', err);
+        });
+        // 发送请求
+      }
+    },
+
+    // ================================================================
+    // 文件上传
+
+
+    // 文件上传失败
+    uploadError(err, file) {
+      let ids = this.fileProgressList.findIndex(ele => {
+        return ele.uid === file.uid;
+      });
+      if (ids !== -1) {
+        this.fileProgressList[ids].status = 3;
+      }
+    },
+    // 文件上传成功
+    uploadSuccess(res, _file) {
+      let file = Object.assign({}, _file.response.result);
+      // let type = file.name.split(".")[1];
+      // this.$set(file, "FileTypeNum", this.getFlieTyle(file.FileType));
+      let file1 = Object.assign({}, file);
+      file1 = this.handleFile([file1]);
+      this.demandFile = this.demandFile.concat(file1);
+
+      let ids = this.fileProgressList.findIndex(ele => {
+        return ele.uid === file.uid;
+      });
+      if (ids !== -1) {
+        this.fileProgressList[ids].status = 2;
+      }
+      let returns = this.popFileProgress(this.fileProgressList);
+      if (this.uploadProgressFlag && returns) {
+        setTimeout(() => {
+          this.closeProgress();
+        }, 2000);
+      }
+    },
+    // 文件上传超出提示
+    handleExceed(files, fileList) {
+      this.$message.warning("最多只能选择9个文件");
+    },
+    // 文件上传前
+    beforeUpload(file) {
+      // 先判断有没有重复
+      let index = this.demandFile.findIndex(ele => {
+        return ele.name == file.name;
+      });
+      if (index !== -1) {
+        this.$message("文件重复");
+        return false;
+      }
+
+      if (!this.uploadProgressFlag) {
+        this.uploadProgressFlag = true;
+      }
+      let sizes = this.conver(file.size);
+      let FileTypeNum = this.getSuffix(file.name);
+      FileTypeNum = this.getFlieTyle(FileTypeNum);
+      let obj = {
+        uid: file.uid,
+        size: file.size,
+        sizes: sizes,
+        nowSize: 0,
+        name: file.name,
+        type: 2,
+        progress: 0,
+        status: 1,
+        FileTypeNum: FileTypeNum,
+        imgUrl: "",
+        file: file
+      };
+      this.fileProgressList.unshift(obj);
+    },
+
+    // 文件上传中
+    uploadProgress(event, file, fileList) {
+      let percents = parseInt(event.percent);
+      let ids = this.fileProgressList.findIndex(ele => {
+        return ele.uid === file.uid;
+      });
+
+      if (ids !== -1) {
+        this.fileProgressList[ids].progress = percents;
+        this.fileProgressList[ids].nowSize = this.conver(percents / 100 * this.fileProgressList[ids].size);
+
+        // 测试重新上传
+        if (percents > 30 && percents < 35) {
+          if (file.reUploadXhr) {
+            file.reUploadXhr.abort();
+            file.reUploadXhr = null;
+          } else {
+            this.$refs.demandUpload.abort(file);
+          }
+          this.uploadError('err', file);
+        }
+
+        if (
+          !this.fileProgressList[ids].imgUrl &&
+          this.fileProgressList[ids].FileTypeNum == 1
+        ) {
+          this.fileProgressList[ids].imgUrl = file.url;
+        }
+      }
+    },
+
+    // ======================================================
+
     toLead() {
       console.log('hah')
       this.toLeadShow = true
@@ -855,6 +1191,9 @@ export default {
     transform: rotate(180deg);
   }
 }
+.hoverBg {
+  background: red !important;
+}
 .shade {
   position: fixed;
   width: 100%;
@@ -1019,11 +1358,7 @@ export default {
             position: fixed;
             z-index: 999;
           }
-          .stageRight {
-            padding-left: 253px;
-            display: flex;
-            flex-direction: row;
-          }
+
           .label {
             width: 112px;
             height: 40px;
@@ -1038,6 +1373,11 @@ export default {
             width: 140px;
           }
           .stageListBox {
+            display: flex;
+            flex-direction: row;
+          }
+          .stageRight {
+            padding-left:253px;
             display: flex;
             flex-direction: row;
           }
@@ -1122,17 +1462,7 @@ export default {
               }
               .stageLists:hover {
                 border: 1px solid#C4C4C4;
-                .box_sizing;
-                text-align: center;
-                position: relative;
                 .icon {
-                  display: inline-block;
-                  width: 14px;
-                  height: 14px;
-                  line-height: 14px;
-                  background: rgba(246, 250, 255, 1);
-                  border-radius: 4px;
-                  margin: 2px;
                   display: inline-block;
                 }
               }
@@ -1153,7 +1483,7 @@ export default {
               .stageListsBox {
                 display: flex;
                 flex-direction: row;
-                z-index: 1;
+                // z-index: 1;
                 // 关闭状态样式
                 .closePage {
                   background: skyblue;
@@ -1181,7 +1511,7 @@ export default {
                     z-index: 3;
                     padding: 25px 35px;
                     .box_sizing;
-                    display: none;
+                    // display: none;
                     .el-button {
                       background: none;
                       border: none;
@@ -1202,6 +1532,64 @@ export default {
                       line-height: 24px;
                       background: rgba(54, 132, 255, 1);
                       border-radius: 4px;
+                    }
+
+                    .people {
+                      display: inline-block;
+                      // padding-left: 30px;
+                      // margin-top: 10px;
+                      .people_header {
+                        position: relative;
+                        .dis-in-bl;
+                        .cur;
+                        padding: 0 5px;
+                        position: relative;
+                        .del_peop {
+                          position: absolute;
+                          top: 1px;
+                          left: 5px;
+                          width: 20px;
+                          height: 20px;
+                          color: #fff;
+                          text-align: center;
+                          vertical-align: middle;
+                          line-height: 20px;
+                          background: #5f5f5f;
+                          opacity: 0.8;
+                          .border_radius(@br: 4px;);
+                          .dis-in-bl;
+                          z-index: 3;
+                        }
+                        .icon_finish {
+                          bottom: 1px;
+                          right: 6px;
+                          z-index: 2;
+                        }
+                      }
+
+                      .add_people_box {
+                        .dis-in-bl;
+                        position: relative;
+                        margin: 0 5px;
+                        .add_people {
+                          .dis-in-bl;
+                          width: 20px;
+                          height: 20px;
+                          text-align: center;
+                          line-height: 20px;
+                          .border_radius(@br: 2px;);
+                          background: @bg-f2f2f2;
+                          font-size: 12px;
+                          color: #cdcdcd;
+                          font-weight: bold;
+                          &:hover {
+                            color: @mainColor;
+                          }
+                        }
+                        .add_people_show {
+                          color: @mainColor;
+                        }
+                      }
                     }
                   }
 
@@ -1341,6 +1729,7 @@ export default {
           .box_sizing;
           text-align: center;
           position: relative;
+
           .unfold {
             position: absolute;
             left: 14px;
@@ -1366,6 +1755,7 @@ export default {
             }
           }
         }
+
         .partitionsLabel:hover {
           border: 1px solid #c4c4c4;
           .iconBox {
