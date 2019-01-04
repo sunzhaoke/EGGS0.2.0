@@ -696,7 +696,7 @@ export default {
     goFlod(el) {
       el.autoExpand = !el.autoExpand;
 
-      let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, 'partitionId': el.partitionId, 'isState': !el.autoExpand }
+      let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, 'partitionId': el.partitionId, 'isState': el.autoExpand }
       this.$HTTP('post', '/partition_operation', obj).then(res => {
 
       })
