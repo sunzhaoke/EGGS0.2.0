@@ -202,10 +202,9 @@ export default {
     background: rgba(255, 255, 255, 1);
     border-radius: 4px;
     position: absolute;
+    top: 50%;
     left: 50%;
-    margin-left: -270px;
-    top: 10px;
-    position: relative;
+    transform: translate(-50%, -50%);   
     .titleTop {
       height: 44px;
       line-height: 44px;
@@ -235,7 +234,6 @@ export default {
       .userDefined:hover {
         border: 1px solid rgba(54, 132, 255, 1);
       }
-
       .box_sizing;
       .stageLists {
         .stageL {
@@ -283,7 +281,6 @@ export default {
             left: 6px;
             top: 12px;
             display: none;
-
             i {
               font-size: 10px;
             }
@@ -332,13 +329,11 @@ export default {
           right: 6px;
           top: 12px;
           display: none;
-
           i {
             font-size: 10px;
           }
         }
       }
-
       .stageListCheck:hover {
         .close {
           display: block;

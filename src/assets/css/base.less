@@ -224,7 +224,10 @@ input{
 .cur {
   cursor: pointer;
 }
-
+.cur_dis {
+  cursor: not-allowed;
+  color: @grayNight;
+}
 .word_over {
   overflow: hidden;
   text-overflow:ellipsis;
@@ -421,6 +424,7 @@ input{
   .box_sizing;
   cursor: pointer;
   vertical-align: middle;
+
 }
 
 // 弹框样式
@@ -959,6 +963,14 @@ not supported by any browser */
     text-decoration: none;
     color:inherit;
   }
+  .upload_file {
+    .el-upload {
+      width: 100%;
+      text-align: left !important;
+
+    }
+  }
+  
 }
 
 .parth_el_dropdown_move {

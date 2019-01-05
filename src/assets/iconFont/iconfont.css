@@ -13,6 +13,10 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+.icon-wancheng:before { content: "\e617"; }
+
+.icon-kaishi:before { content: "\e611"; }
+
 .icon-wancheng_huaban:before { content: "\e60b"; }
 
 .icon-chaoxian_right:before { content: "\e6a7"; }

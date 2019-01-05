@@ -71,7 +71,15 @@ MyApi.install = function (Vue, options) {
         }
         }
     // 参数加密
-    var objSortJoin = (arys) => {
+    var objSortJoin = (obj) => {
+        let upperJSONKey = (jsonObj) => {
+            for (var key in jsonObj){
+                jsonObj[key.toUpperCase()] = jsonObj[key];
+                delete(jsonObj[key]);
+            }
+            return jsonObj;
+        }
+        let arys = upperJSONKey(obj);
         var newkey = Object.keys(arys).sort();
         var newObj = {}; //创建一个新的对象，用于存放排好序的键值对
         for (var i = 0; i < newkey.length; i++) {
@@ -79,13 +87,13 @@ MyApi.install = function (Vue, options) {
           newObj[newkey[i]] = arys[newkey[i]];
           //向新创建的对象中按照排好的顺序依次增加键值对
         }
-        let str = '';      
+        let str = '';    
         for (let i in newObj) {
             newObj[i] = encodeURIComponent(newObj[i]);
             str += i + '=' + newObj[i] + '&';
         }
         str = str.slice(0, str.length - 1);
-        str = str.toLocaleUpperCase();    
+        str = str.toLocaleUpperCase(); 
         str = Vue.prototype.$md5(str);
         str = str.toLocaleUpperCase();
         return str; //返回排好序连接好的新对象

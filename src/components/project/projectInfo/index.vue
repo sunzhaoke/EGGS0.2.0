@@ -196,18 +196,19 @@
                                :class="{'stageListsBoxFixed':leftFixed}">
                             <div class="stage cur"
                                  v-for="(lists,index) in item.stageTaskList"
-                                 :key="lists.stageId"
+                                 :key="index"
                                  @mouseenter='mouseTopEnter(item,index)'>
-                              <!-- <div v-if='!lists.enabled'
-                                   class="closePage">
-                                阶段关闭
-                              </div> -->
-                              <!-- <div v-if='!lists.stageTaskState'>完成</div> -->
-                              <!-- <div>
-                                
-                              </div> -->
-                              <div class="stageBg"></div>
-                              <div class="stageInfo cur">
+                              <!-- 正常显示状态==================================================================== -->
+                              <!-- 1.我参与时 有背景 -->
+                              <div class="stageBg"
+                                   v-if="lists.isPartIn"></div>
+                              <!-- 2.完成时显示 -->
+                              <div class="finishPage"
+                                   v-if='lists.stageTaskState==true&&lists.enabled===true'>
+                                <i class="iconfont icon-wancheng"></i>完成</div>
+                              <!-- 3.开启状态 显示内容 -->
+                              <div class="stageInfo cur"
+                                   v-if="lists.enabled ==true&&lists.stageTaskState==false">
                                 <span class="participantImg">
                                   <span class="img"
                                         v-for="(i,index) in lists.userList"
@@ -217,28 +218,37 @@
                                   </span>
                                 </span>
                                 <div class="participantMain">
-                                  <span class="pieChart"></span>
-                                  <span v-for='(li,index) of lists.startTime'
+                                  <!-- <span class="pieChart"></span> -->
+                                  <span v-for='(startime,index) of lists.startTime'
                                         :key="1+index">
-                                    <span v-if="true">{{li.year}}/</span>
-                                    <span> {{li.month}} {{li.hour}}:{{li.minute}} -</span>
+                                    <span v-if="!startime.year==nowYear">{{startime.year}}/</span>
+                                    <span> {{startime.month}}/{{startime.day}} {{startime.hour}}:{{startime.minute}} -</span>
                                   </span>
-                                  <span v-for='(li,index) of lists.endTime'
+                                  <span v-for='(end,index) of lists.endTime'
                                         :key="2+index">
-                                    <span v-if="true">{{li.year}}/</span>
-                                    <span> {{li.month}} {{li.hour}}:{{li.minute}} -</span>
+                                    <span v-if="!end.year==nowYear">{{end.year}}/</span>
+                                    <span> {{end.month}}/ {{end.day}} {{end.hour}}:{{end.minute}}</span>
                                   </span>
                                   <i class="iconfont icon-wenjian1"
                                      v-if="lists.fileCont!=0||lists.fileCont!=''">{{lists.fileCont}}</i>
                                 </div>
                               </div>
-                              <div class="stageHover">
+                              <!-- 4.关闭状态 不显示内容 -->
+                              <div v-if='lists.enabled===false'
+                                   class="closePage">
+                                <span class="closeLine"></span>
+                              </div>
+
+                              <!-- hover显示状态 =====================================================================-->
+                              <!--1. 参与与不参与 都显示详细内容  -->
+                              <div class="stageHover"
+                                   v-if="lists.stageTaskState===false&&lists.enabled===true||lists.enabled===''">
                                 <el-tooltip class="item"
                                             effect="dark"
                                             content="参与任务"
-                                            @click.native="enter()"
+                                            @click.native="partIn(item,lists)"
                                             placement="top-start"
-                                            v-if="lists.enabled">
+                                            v-if="!lists.isPartIn">
                                   <el-button>
                                     <span class="iconBg">
                                       <i class="iconfont icon-jiaru-1"></i>
@@ -248,8 +258,9 @@
                                 <el-tooltip class="item"
                                             effect="dark"
                                             content="取消参与"
+                                            @click.native="cancelPartIn(item,lists)"
                                             placement="top-start"
-                                            v-if="lists.enabled">
+                                            v-if="lists.isPartIn">
                                   <el-button>
                                     <span class="iconBg">
                                       <i class="iconfont icon-tuichu-"></i>
@@ -259,23 +270,33 @@
                                 <el-tooltip class="item"
                                             effect="dark"
                                             content="进入详情"
-                                            @click.native="enter()"
+                                            @click.native="enterDetail(item,lists)"
                                             placement="top-start">
-                                  <el-button>
+                                  <el-button class="timeShow">
                                     <span class="iconBg">
                                       <i class="iconfont icon-xiangqing"></i>
                                     </span>
                                   </el-button>
                                 </el-tooltip>
+
                                 <el-tooltip class="item"
                                             effect="dark"
                                             content="添加时间"
                                             placement="top-start">
                                   <el-button>
-                                    <i class="iconfont icon-rili1 otherColor "></i>
+                                    <div class="calendar">
+                                      <el-date-picker v-model="value6"
+                                                      prefix-icon='iconfont icon-rili1'
+                                                      type="datetimerange"
+                                                      clearable
+                                                      @change="checkTime(item,lists,value6)"
+                                                      range-separator="至"
+                                                      start-placeholder="开始日期"
+                                                      end-placeholder="结束日期">
+                                      </el-date-picker>
+                                    </div>
                                   </el-button>
                                 </el-tooltip>
-
                                 <div class="people">
                                   <div class="people_header"
                                        v-for="(item, index) in taskPeopleList"
@@ -297,7 +318,7 @@
                                           class="icon_finish iconfont icon-xuanzhong"></span>
                                   </div>
                                   <div class="add_people_box"
-                                       @click.stop="addPeople">
+                                       @click.stop="addPeople(lists)">
                                     <el-tooltip class="item"
                                                 effect="dark"
                                                 content="添加成员"
@@ -312,13 +333,13 @@
                                     //    ></i>
                                      -->
                                     <el-collapse-transition>
-                                      <Participant v-if="addPeopleShow"
+                                      <Participant v-if="lists.addPopShow"
                                                    ref="addPeople"
                                                    id="addPeople"
                                                    :defaultKeys="defaultKeys"
-                                                   :userList="userList"
-                                                   @handleSure="addPeopleSure"
-                                                   @handleInvite="invitePeople" />
+                                                   :userList="userList" />
+                                      <!-- @handleSure="addPeopleSure"
+                                                   @handleInvite="invitePeople" -->
                                       <!-- :creatorId="creatorId" -->
                                     </el-collapse-transition>
                                   </div>
@@ -363,21 +384,43 @@
                                 </el-tooltip>
                                 <el-tooltip class="item"
                                             effect="dark"
-                                            content="关闭阶段"
+                                            :content="lists.userList.length?'已有内容无法关闭':'关闭阶段'"
+                                            @click.native="closeStage(item, lists)"
                                             placement="top-start">
                                   <el-button>
-                                    <i class="iconfont icon-jinzhi otherColor"></i>
+                                    <i class="iconfont icon-jinzhi otherColor "
+                                       :class="{'cur_dis':lists.userList.length}"></i>
                                   </el-button>
                                 </el-tooltip>
-                                <!-- <div class="block">
-                                  <el-date-picker v-model="value6"
-                                                  type="datetimerange"
-                                                  range-separator="至"
-                                                  start-placeholder="开始日期"
-                                                  end-placeholder="结束日期">
-                                  </el-date-picker>
-                                </div> -->
 
+                              </div>
+
+                              <div class="finishHover"
+                                   v-if="lists.stageTaskState===true&&lists.enabled===true">
+                                <el-tooltip class="item"
+                                            effect="dark"
+                                            content="进入详情"
+                                            @click.native="enterDetail(item,lists)"
+                                            placement="top-start">
+                                  <el-button class="timeShow">
+                                    <span class="iconBg">
+                                      <i class="iconfont icon-xiangqing"></i>
+                                    </span>
+                                  </el-button>
+                                </el-tooltip>
+                              </div>
+
+                              <div v-if="lists.enabled===false"
+                                   class="closeHover">
+                                <el-tooltip class="item"
+                                            effect="dark"
+                                            content="开启阶段"
+                                            @click.native="openStage(item, lists)"
+                                            placement="top-start">
+                                  <el-button>
+                                    <i class="iconfont icon-kaishi otherColor "></i>
+                                  </el-button>
+                                </el-tooltip>
                               </div>
 
                             </div>
@@ -486,7 +529,7 @@ export default {
       toLeadShow: false, //弹框 导入是否显示 
       popShow: false,// 弹框 阶段排序是否显示
       reminder2Flag: false, //确认删除弹框
-      errMessage: 'hahh',
+      errMessage: '',
       newStageName: '',
       buttonMes: '确认',
       itemInformationShow: false, //INFO是否显示
@@ -524,9 +567,12 @@ export default {
       delPartitionLists: [], //当前删除的分区
       delIndex: '', //当前删除的分区的index
       nowYear: '', //当前年
-
+      userList: [], //项目参与人员列表
       addPeopleShow: false, // 添加参与者是否显示
       fileProgressList: '',
+
+
+
       fileTypeImg: [
         {
           src: require("../../../assets/img/file_b/0.png")
@@ -571,48 +617,6 @@ export default {
 
   },
   computed: {
-
-    // 任务及阶段
-    taskListAndStage() {
-      let taskLists = [];
-      for (let list of this.partitionsList) {
-
-        for (let task of list.taskList) {
-          taskLists.push(task);
-          for (let item of task.stageTaskList) {
-            if (item.startTime) {
-              let time = item.startTime.split(' ');
-              time = time[0].split('/').concat(time[1].split(':'));
-              item.startTime = [
-                {                  year: time[0].substring(2, 4),
-                  month: time[1],
-                  day: time[2],
-                  hour: time[3],
-                  minute: time[4]
-                }
-              ]
-            }
-            if (item.endTime) {
-              let time = item.endTime.split(' ');
-              time = time[0].split('/').concat(time[1].split(':'));
-              item.endTime = [
-                {                  year: time[0].substring(2, 4),
-                  month: time[1],
-                  day: time[2],
-                  hour: time[3],
-                  minute: time[4]
-                }
-              ]
-            }
-          }
-        }
-      }
-      // console.log(taskList, 'stag/eLists')
-
-      console.log(this.partitionsList, taskLists)
-
-      return taskLists
-    }
   }
   ,
   methods: {
@@ -621,7 +625,6 @@ export default {
     // 取消
     mouseEnter(el, index) {
       this.mouseLeftIndex = index;
-
     },
     mouseTopEnter(el, index) {
       this.mouseTopIndex = index;
@@ -632,20 +635,81 @@ export default {
       this.inviteShow = true;
       this.inviteDefaultKeys = ids;
     },
+    // 任务片段操作
+    // 1.1. 参与任务
+    partIn(item, list) {
+      console.log(item, list)
+      let obj = { 'addVale': this.userPkid, 'delVale': '', 'stageId': list.stageId, 'taskId': item.taskId }
 
+      this.$HTTP('post', '/stageTask_user_update', obj).then(res => {
+        console.log(res)
+
+      })
+    },
+    // 1.2.取消参与
+    cancelPartIn(item, list) {
+      let obj = { 'addVale': '', 'delVale': this.userPkid, 'stageId': list.stageId, 'taskId': item.taskId }
+      this.$HTTP('post', '/stageTask_user_update', obj).then(res => {
+        console.log(res)
+      })
+    },
+
+    // 3.修改任务时间
+    checkTime(item, list, val) {
+      console.log(item, list, val)
+      // if(val){}
+      let data = {
+        'stageId': list.stageId,
+        'taskId': item.taskId,
+        'startTime': this.format(val[0], "yyyy-MM-dd HH:mm:ss"),
+        'endTime': this.format(val[1], "yyyy-MM-dd HH:mm:ss"),
+      }
+        ;
+      this.$HTTP('post', '/stageTask_date_update', data).then(res => {
+        console.log(res)
+      })
+    },
+    // 关闭阶段
+    closeStage(item, list) {
+      list.enabled = false;
+      this.partitionsList = [...this.partitionsList];
+
+      let data = {
+        'stageId': list.stageId,
+        'taskId': item.taskId,
+        'enabled': 0,
+      }
+
+      this.$HTTP('post', '/stageTask_IsOpen', data).then(res => {
+        console.log(list)
+      })
+    },
+    // 开启阶段
+    openStage(item, list) {
+      list.enabled = true;
+      this.partitionsList = [...this.partitionsList];
+
+      let data = {
+        'stageId': list.stageId,
+        'taskId': item.taskId,
+        'enabled': 1,
+      }
+      this.$HTTP('post', '/stageTask_IsOpen', data).then(res => {
+      })
+    },
     // 获取项目成员列表
-    getProjectUser() {
-      console.log('hdhdlf')
-      return
+    getProjectUser(item) {
+      item.addPopShow = true;
+      this.partitionsList = [...this.partitionsList];
       return new Promise((resolve, reject) => {
         let obj = {
           projectId: this.projectId,
           myUserId: this.userPkid
         }
-        this.$HTTP('post', '/project_userlist_get', obj).then(res => {
-          console.log('获取项目参与人员列表', res.result.userlist);
-          return
-          this.userList = res.result.userlist;
+        this.$HTTP('post', '/project_usersList_get', obj).then(res => {
+          this.userList = res.result;
+          console.log(res.result)
+          console.log(this.userList)
           resolve(this.userList)
         }).catch(err => {
           console.log(err);
@@ -663,15 +727,19 @@ export default {
       // return [1, 2]
       return arr;
     },
-    async addPeople() {
+    async addPeople(item) {
       try {
-        await this.getProjectUser();
-        this.addPeopleShow = true;;
+        await this.getProjectUser(item);
+
+        // this.addPeopleShow = true;;
       } catch (err) {
         console.log(err);
       }
       let clickHide = e => {
-        this.addPeopleShow = false; // 隐藏
+        item.addPopShow = false;
+        this.partitionsList = [...this.partitionsList];
+
+        // this.addPeopleShow = false; // 隐藏
         $(document).unbind("click", clickHide)
 
       };
@@ -680,6 +748,7 @@ export default {
 
     // 添加/删除人员成功
     addPeopleSure(data) {
+
       this.addPeopleShow = false; // 隐藏
       console.log('participant', data);
       // 发送请求
@@ -836,9 +905,19 @@ export default {
         this.popShow = true;
       }
     },
-    enter() {
-      console.log(12)
+
+    // 展开详情
+    enterDetail(item, lists) {
+      this.$router.push({
+        name: 'TaskDetail',
+        params: {
+          projectId: this.projectId,
+          stageId: lists.stageId,
+          taskId: item.taskId,
+        }
+      });
     },
+
     reminderCancel() {
       this.reminder2Flag = false;
     },
@@ -1086,7 +1165,6 @@ export default {
     getProjectAll() {
       let data = { project: this.projectId, 'myUserId': this.userPkid }
       this.$HTTP('post', '/project_get_info', data).then(res => {
-
         this.partitionsList = res.result;
         for (let list of this.partitionsList) {
           list.isnew = false;
@@ -1099,6 +1177,21 @@ export default {
               }
               this.stageTaskList = i.stageTaskList;
               for (let item of i.stageTaskList) {
+                item.addPopShow = false;
+                if (item.userList.length) {
+                  let indexs = item.userList.findIndex(res => {
+                    return res.userpkid == this.userPkid;
+                  })
+                  if (indexs !== -1) {
+                    item.isPartIn = true;
+                  } else {
+                    item.isPartIn = false;
+                  }
+                } else {
+                  item.isPartIn = false;
+                }
+
+
                 if (item.startTime) {
                   let time = item.startTime.split(' ');
                   time = time[0].split('/').concat(time[1].split(':'));
@@ -1123,6 +1216,9 @@ export default {
                     }
                   ]
                 }
+
+                console.log(item.endTime, '是瑟吉欧飞机了解到放了几fi')
+                // if()
               }
             }
           }
@@ -1130,15 +1226,14 @@ export default {
         console.log(this.partitionsList)
       })
     },
-
   },
   created() {
+    let nowTime = new Date();
+    this.nowYear = String(new Date().getFullYear()).slice(2, 4);
+
     this.getstageList(); //获取阶段列表 
     this.getProjectAll();
-    let nowTime = new Date();
-    this.nowYear = nowTime.getFullYear();
-    // this.nowYear=this.nowYear.split(2,3)
-    console.log(this.nowYear)
+
   },
   mounted() {
     let _ = this;
@@ -1168,7 +1263,7 @@ export default {
 .fade-leave-active {
   transition: opacity 0.1s;
 }
-.iconfont:hover {
+.iconfontH:hover {
   color: @mainColor !important;
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
@@ -1192,7 +1287,7 @@ export default {
   }
 }
 .hoverBg {
-  background: red !important;
+  background: #f2f2f2 !important;
 }
 .shade {
   position: fixed;
@@ -1377,7 +1472,7 @@ export default {
             flex-direction: row;
           }
           .stageRight {
-            padding-left:253px;
+            padding-left: 253px;
             display: flex;
             flex-direction: row;
           }
@@ -1486,10 +1581,22 @@ export default {
                 // z-index: 1;
                 // 关闭状态样式
                 .closePage {
-                  background: skyblue;
-                  height: 100%;
-                  line-height: 72px;
+                  height: 72px;
                   text-align: center;
+                  .closeLine {
+                    margin-top: 36px;
+                    display: inline-block;
+                    width: 40px;
+                    height: 1px;
+                    background: #f2f2f2;
+                  }
+                }
+                // 完成状态
+                .finishPage {
+                  height: 72px;
+                  text-align: center;
+                  line-height: 72px;
+                  color: #3684ff;
                 }
                 .stage {
                   position: relative;
@@ -1508,10 +1615,10 @@ export default {
                     display: inline-block;
                     height: 100%;
                     width: 100%;
-                    z-index: 3;
+                    z-index: 100;
                     padding: 25px 35px;
+                    display: none;
                     .box_sizing;
-                    // display: none;
                     .el-button {
                       background: none;
                       border: none;
@@ -1591,8 +1698,80 @@ export default {
                         }
                       }
                     }
+                    // 日历
+                    .calendar {
+                      .el-date-editor {
+                        width: 20px;
+                        border: none;
+                        input,
+                        span {
+                          display: none;
+                        }
+                      }
+                      i {
+                        color: #666666;
+                      }
+                    }
                   }
-
+                  .finishHover {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    display: inline-block;
+                    height: 100%;
+                    width: 100%;
+                    z-index: 100;
+                    background: #ffffff;
+                    text-align: center;
+                    display: none;
+                    .el-button {
+                      background: none;
+                      border: none;
+                      padding: 0;
+                      line-height: 72px;
+                      i {
+                        color: #fff;
+                        font-size: 14px;
+                      }
+                      .otherColor {
+                        color: #666666;
+                      }
+                    }
+                    .iconBg {
+                      display: inline-block;
+                      width: 24px;
+                      height: 24px;
+                      text-align: center;
+                      line-height: 24px;
+                      background: rgba(54, 132, 255, 1);
+                      border-radius: 4px;
+                    }
+                  }
+                  .closeHover {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    display: inline-block;
+                    height: 100%;
+                    width: 100%;
+                    z-index: 3;
+                    background: #ffffff;
+                    text-align: center;
+                    display: none;
+                    .el-button {
+                      background: none;
+                      border: none;
+                      padding: 0;
+                      line-height: 72px;
+                      i {
+                        color: #fff;
+                        font-size: 14px;
+                      }
+                      .otherColor {
+                        color: #666666;
+                      }
+                    }
+                  }
                   .stageInfo {
                     position: absolute;
                     padding: 7px 0;
@@ -1649,6 +1828,12 @@ export default {
                     display: block;
                     padding: 25px 35px;
                     .box_sizing;
+                  }
+                  .closeHover {
+                    display: block;
+                  }
+                  .finishHover {
+                    display: block;
                   }
                 }
               }
