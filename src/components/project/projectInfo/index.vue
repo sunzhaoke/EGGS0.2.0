@@ -100,7 +100,6 @@
               <div v-for="(element,index) in partitionsList"
                    :key="element.partitionId"
                    class="partitionsMain"
-                   @mouseenter="mouseEnter(element,index)"
                    :data-partitionid='element.partitionId'>
                 <transition name="fade">
                   <div class="partitionsAndStages"
@@ -108,7 +107,7 @@
                     <div ref='partitions'
                          class="cur partitionsLabel"
                          style="heigth:100px;"
-                         :class="{'partitionsLabelFixed':leftFixed,'hoverBg':mouseLeftIndex==index}"
+                         :class="{'partitionsLabelFixed':leftFixed}"
                          :style="'height:'+ ((element.taskList.length )* 72) +'px;'">
                       <span class="iconBox">
                         <span class="icon"
@@ -154,6 +153,7 @@
                       </div>
                     </span>
                     <draggable v-model="element.taskList"
+                               class="box"
                                :move='getdata2'
                                @update="datadragEnd2"
                                :options="{
@@ -168,9 +168,10 @@
                             v-if='item.taskId'
                             :key="item.taskId"
                             class="stageBox"
+                            @mouseenter="mouseEnter(element,index)"
                             :class="{'stageBoxFixed':leftFixed,'dragging':item.taskId!==''}">
                           <span class="stageLists cur"
-                                :class="{'leftTaskFixed':leftFixed}">
+                                :class="{'leftTaskFixed':leftFixed,'hoverBg':mouseLeftIndex==index}">
                             <span class="iconBox_">
                               <span class="icon"
                                     @click="move">
@@ -218,13 +219,18 @@
                                   </span>
                                 </span>
                                 <div class="participantMain">
-                                  <!-- <span class="pieChart"></span> -->
-                                  <span v-for='(startime,index) of lists.startTime'
+                                  <span class="pieChart">
+                                    <span class="pie1"></span>
+                                    <span class="pie2"></span>
+                                    <span class="pie3"></span>
+                                    <span class="pie4"></span>
+                                  </span>
+                                  <span v-for='(startime,index) of lists.startTimeArr'
                                         :key="1+index">
                                     <span v-if="!startime.year==nowYear">{{startime.year}}/</span>
                                     <span> {{startime.month}}/{{startime.day}} {{startime.hour}}:{{startime.minute}} -</span>
                                   </span>
-                                  <span v-for='(end,index) of lists.endTime'
+                                  <span v-for='(end,index) of lists.endTimeArr'
                                         :key="2+index">
                                     <span v-if="!end.year==nowYear">{{end.year}}/</span>
                                     <span> {{end.month}}/ {{end.day}} {{end.hour}}:{{end.minute}}</span>
@@ -298,27 +304,8 @@
                                   </el-button>
                                 </el-tooltip>
                                 <div class="people">
-                                  <div class="people_header"
-                                       v-for="(item, index) in taskPeopleList"
-                                       :key="item.userId"
-                                       @mouseenter="peopleEnter(item)"
-                                       @mouseleave="peopleLeave(item)">
-                                    <img class="header"
-                                         :src="item.image"
-                                         alt="">
-                                    <el-tooltip v-show="item.hovers"
-                                                class="item"
-                                                effect="dark"
-                                                :content="(item.nickname ? item.nickname : item.userName) + (item.finish ? '：已完成' : '')"
-                                                placement="top">
-                                      <span class="del_peop iconfont icon-close"
-                                            @click="delPeople(item, index)"></span>
-                                    </el-tooltip>
-                                    <span v-if="item.finish"
-                                          class="icon_finish iconfont icon-xuanzhong"></span>
-                                  </div>
                                   <div class="add_people_box"
-                                       @click.stop="addPeople(lists)">
+                                       @click.stop="addPeople(item,lists)">
                                     <el-tooltip class="item"
                                                 effect="dark"
                                                 content="添加成员"
@@ -327,20 +314,16 @@
                                         <i class="iconfont icon-tianjiarenyuan otherColor"></i>
                                       </el-button>
                                     </el-tooltip>
-
-                                    <!-- // <i class="iconfont icon-jia1 add_people"
-                                    //    :class="addPeopleShow ? 'add_people_show' : ''"
-                                    //    ></i>
-                                     -->
                                     <el-collapse-transition>
                                       <Participant v-if="lists.addPopShow"
                                                    ref="addPeople"
                                                    id="addPeople"
+                                                   :creatorId="userPkid"
                                                    :defaultKeys="defaultKeys"
-                                                   :userList="userList" />
-                                      <!-- @handleSure="addPeopleSure"
-                                                   @handleInvite="invitePeople" -->
-                                      <!-- :creatorId="creatorId" -->
+                                                   :userList="userList"
+                                                   @handleSure="addPeopleSure"
+                                                   @handleInvite="invitePeople" />
+
                                     </el-collapse-transition>
                                   </div>
                                 </div>
@@ -494,6 +477,12 @@
       <ToLead v-if="toLeadShow"
               @closePop='closePop'></ToLead>
     </transition>
+    <!-- 添加人员 -->
+    <transition name="fade1">
+      <add-people v-if="inviteShow"
+                  :defaultTreeKeys="inviteDefaultKeys"
+                  @handleCancel="cancelAddPeople" />
+    </transition>
   </div>
 </template>
 <script>
@@ -503,10 +492,12 @@ import ShadePop from "../common/shadePop";
 import ToLead from "./common/toLead";
 import Participant from "./common/participant";
 import UploadProgress from "../../common/uploadProgress";
+import AddPeople from "../../common/addPeople";
 
 import Reminder2 from "../../common/reminder2";
 // import { searchList } from './data.js';/ 
 import draggable from "vuedraggable";
+import { WSAESOCKTNOSUPPORT } from 'constants';
 
 export default {
   components: {
@@ -517,7 +508,7 @@ export default {
     ToLead,
     Participant,
     UploadProgress,
-
+    AddPeople
   },
   data() {
     return {
@@ -550,6 +541,10 @@ export default {
       starFlag: true,
       detailsShow: false,
       taskId: '',
+
+      nowTaskId: '', //当前点击的 id
+      nowStageId: '', //当前点击的 id
+
       searchLists: [],
       searchValue: '',
       //  表格选项
@@ -570,7 +565,9 @@ export default {
       userList: [], //项目参与人员列表
       addPeopleShow: false, // 添加参与者是否显示
       fileProgressList: '',
+      inviteShow: false, // 邀请添加人员
 
+      defaultKeys: [], //默认添加的人员
 
 
       fileTypeImg: [
@@ -617,6 +614,17 @@ export default {
 
   },
   computed: {
+    // defaultKeys() {
+    //   let arr = [];
+    //   console.log(this.taskPeopleList)
+    //   if (this.taskPeopleList) {
+    //     for (let x of this.taskPeopleList) {
+    //       arr.push(x.userpkid);
+    //     }
+    //   }
+
+    //   return arr;
+    // }
   }
   ,
   methods: {
@@ -631,15 +639,29 @@ export default {
     },
     // 点击邀请好友
     invitePeople(ids) {
-      this.addPeopleShow = false;
+      // this.addPeopleShow = false;
       this.inviteShow = true;
       this.inviteDefaultKeys = ids;
+    },
+
+    // 取消添加人员/邀请人员中发生变化事发送请求
+    cancelAddPeople(obj) {
+      if (obj) {
+        (obj.invite === false) && (this.inviteShow = false);
+        // 发送请求，taskPeopleList发生变化
+        console.log("add-people", obj);
+        this.addPeopleSure(Object.assign(obj, { add: obj.addIds, del: [] }));
+
+      } else {
+        this.inviteShow = false;
+      }
     },
     // 任务片段操作
     // 1.1. 参与任务
     partIn(item, list) {
       console.log(item, list)
-      let obj = { 'addVale': this.userPkid, 'delVale': '', 'stageId': list.stageId, 'taskId': item.taskId }
+
+      let obj = { 'addVale': this.userPkid, 'delVale': '', 'stageId': list.stageId, 'taskId': item.taskId, 'myUserId':  this.userPkid }
 
       this.$HTTP('post', '/stageTask_user_update', obj).then(res => {
         console.log(res)
@@ -648,7 +670,7 @@ export default {
     },
     // 1.2.取消参与
     cancelPartIn(item, list) {
-      let obj = { 'addVale': '', 'delVale': this.userPkid, 'stageId': list.stageId, 'taskId': item.taskId }
+      let obj = { 'addVale': '', 'delVale': this.userPkid, 'stageId': list.stageId, 'taskId': item.taskId, 'myUserId':  this.userPkid }
       this.$HTTP('post', '/stageTask_user_update', obj).then(res => {
         console.log(res)
       })
@@ -657,6 +679,8 @@ export default {
     // 3.修改任务时间
     checkTime(item, list, val) {
       console.log(item, list, val)
+
+
       // if(val){}
       let data = {
         'stageId': list.stageId,
@@ -708,29 +732,32 @@ export default {
         }
         this.$HTTP('post', '/project_usersList_get', obj).then(res => {
           this.userList = res.result;
-          console.log(res.result)
-          console.log(this.userList)
           resolve(this.userList)
         }).catch(err => {
-          console.log(err);
           reject(err);
         });
       });
 
     },
-    // 点击添加人员
-    defaultKeys() {
-      let arr = [];
-      for (let x of this.taskPeopleList) {
-        arr.push(x.userId);
+
+
+    async addPeople(list, item, ) {
+      this.nowTaskId = list.taskId;
+      this.nowStageId = item.stageId;
+      this.taskPeopleList = item.userList;
+
+      if (this.taskPeopleList) {
+        for (let x of this.taskPeopleList) {
+          this.defaultKeys.push(x.userpkid);
+        }
       }
-      // return [1, 2]
-      return arr;
-    },
-    async addPeople(item) {
+
+
+
+
+      console.log(this.taskPeopleList)
       try {
         await this.getProjectUser(item);
-
         // this.addPeopleShow = true;;
       } catch (err) {
         console.log(err);
@@ -756,12 +783,13 @@ export default {
         let add = [...data.add];
         let del = [...data.del];
         let obj = {
-          taskId: this.taskId,
-          myUserId: this.userPkid,
-          addUserList: add.join(','),
-          dekUserList: del.join(','),
+          addVale: add.join(','),
+          delVale: del.join(','),
+          stageId: this.nowStageId,
+          taskId: this.nowTaskId,
         }
-        this.$HTTP('post', '/task_users_update', obj).then(res => {
+
+        this.$HTTP('post', '/stageTask_user_update', obj).then(res => {
           // 发送请求，taskPeopleList发生变化
           let arr = res.result;
           if (del) {
@@ -774,10 +802,8 @@ export default {
               }
             }
           }
-          this.taskPeopleList = this.taskPeopleList.concat(arr.taskUserList);
-
-          console.log('任务添加人员', res, this.taskPeopleList);
-
+          // this.taskPeopleList = this.taskPeopleList.concat(arr.taskUserList);
+          console.log('任务添加人员', res);
         }).catch(err => {
           console.log('任务添加人员失败', err);
         });
@@ -1177,6 +1203,8 @@ export default {
               }
               this.stageTaskList = i.stageTaskList;
               for (let item of i.stageTaskList) {
+
+                console.log(item, 'hahhha  ')
                 item.addPopShow = false;
                 if (item.userList.length) {
                   let indexs = item.userList.findIndex(res => {
@@ -1193,9 +1221,15 @@ export default {
 
 
                 if (item.startTime) {
+
+
+                  console.log(new Date(item.startTime) - new Date(), '时间差');
+
+                  console.log(new Date(item.endTime) - new Date(item.startTime), '时间差');
+
                   let time = item.startTime.split(' ');
                   time = time[0].split('/').concat(time[1].split(':'));
-                  item.startTime = [
+                  item.startTimeArr = [
                     {                      year: time[0].substring(2, 4),
                       month: time[1],
                       day: time[2],
@@ -1207,7 +1241,7 @@ export default {
                 if (item.endTime) {
                   let time = item.endTime.split(' ');
                   time = time[0].split('/').concat(time[1].split(':'));
-                  item.endTime = [
+                  item.endTimeArr = [
                     {                      year: time[0].substring(2, 4),
                       month: time[1],
                       day: time[2],
@@ -1217,7 +1251,7 @@ export default {
                   ]
                 }
 
-                console.log(item.endTime, '是瑟吉欧飞机了解到放了几fi')
+                // console.log(item.endTime, '是瑟吉欧飞机了解到放了几fi')
                 // if()
               }
             }
@@ -1801,11 +1835,98 @@ export default {
                     .participantMain {
                       color: #666666;
                       .pieChart {
-                        display: inline-block;
-                        width: 10px;
-                        height: 10px;
+                        display: block;
+                        width: 100px;
+                        height: 100px;
+                        background: skyblue;
+                        position: relative;
                         border-radius: 50%;
-                        background: yellow;
+                        overflow: hidden;
+                        .pie1 {
+                          position: absolute;
+                          left: 0px;
+                          top: 0px;
+                          display: block;
+                          width: 200px;
+                          height: 200px;
+                          background: yellow;
+                          transform: skewX(0deg);
+                          // transform:rotate(deg);
+                          transform-origin: 100% 100%; /*定义动画的旋转中心点*/
+                        }
+                        .pie2 {
+                          position: absolute;
+                          left: 50px;
+                          top: 0px;
+                          display: block;
+                          width: 50px;
+                          height: 50px;
+                          background: pink;
+                          transform: rotate(0deg);
+                          transform-origin: 0 100%; /*定义动画的旋转中心点*/
+                        }
+                        .pie3 {
+                          position: absolute;
+                          left: 0px;
+                          top: 50px;
+                          display: block;
+                          width: 50px;
+                          height: 50px;
+                          background: black;
+                          transform: rotate(0deg);
+                          transform-origin: 100% 100%; /*定义动画的旋转中心点*/
+                        }
+                        .pie4 {
+                          position: absolute;
+                          left: 0px;
+                          top: 50px;
+                          display: block;
+                          width: 50px;
+                          height: 50px;
+                          background: slateblue;
+                          transform: rotate(0deg);
+                          transform-origin: 100% 100%; /*定义动画的旋转中心点*/
+                        }
+
+                        // #3684FF
+                      }
+                      .wrapper {
+                        width: 300px;
+                        height: 100px;
+                        border: 2px dotted red;
+                        margin: 30px auto;
+                      }
+                      .wrapper div {
+                        width: 300px;
+                        height: 100px;
+                        line-height: 100px;
+                        text-align: center;
+                        color: #fff;
+                        background: orange;
+                        // -webkit-transform: skew(45deg);
+                        // -moz-transform: skew(45deg)  ;
+                        // transform: skew(45deg);
+                      }
+
+                      // .pieChart::before {
+                      //   content: "";
+                      //   display: block;
+                      //   margin-left: 50%;
+                      //   height: 100%;
+                      //   background: yellowgreen;
+                      //   border-radius: 0 100% 100% 0/50%;
+                      //   transform-origin: left;
+                      //   transform: rotate(108deg);
+                      // }
+                      @keyframes spin {
+                        to {
+                          transform: rotate(0.5turn);
+                        }
+                      }
+                      @keyframes bg {
+                        50% {
+                          background: #655;
+                        }
                       }
                       span {
                         font-size: 12px;
@@ -1898,9 +2019,7 @@ export default {
             }
           }
         }
-
         // .
-
         // 任务阶段 左侧2 列表样式
         .partitionsLabel {
           display: block;
@@ -1914,7 +2033,6 @@ export default {
           .box_sizing;
           text-align: center;
           position: relative;
-
           .unfold {
             position: absolute;
             left: 14px;
@@ -1940,20 +2058,17 @@ export default {
             }
           }
         }
-
         .partitionsLabel:hover {
           border: 1px solid #c4c4c4;
           .iconBox {
             display: block;
           }
         }
-
         // 任务阶段 定位样式
         .partitionsLabelFixed {
           z-index: 99;
           position: fixed;
         }
-
         .stageTittle {
           width: 55px;
           max-height: 57px;
@@ -1973,7 +2088,6 @@ export default {
       }
     }
   }
-
   .ghost_file {
     // 折叠样式
     .thumbnailList {

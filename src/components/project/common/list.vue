@@ -569,7 +569,6 @@ export default {
       }
     },
     enterTask(list) {
-
       localStorage.setItem('projectItem', JSON.stringify(list));
       this.$router.push("/project/projectInfo");
     },

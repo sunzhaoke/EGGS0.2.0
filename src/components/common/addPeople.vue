@@ -1,5 +1,5 @@
 <template>
-    <div class="add_people" @click.stop="() => {}">
+    <div class="add_people" @click.stop>
         <div class="popup">
             <div class="popup_box">
                 <div class="popup_top">
@@ -171,8 +171,8 @@ export default {
     // 确认
     addSure() {
       let obj = this.computedNum();
+      console.log(obj)
       let addIds = obj.ids;
-      console.log('obj', obj)
       if(addIds && addIds.length) {
       //   if(this.addIdsCopy.sort().join(',') == addIds.sort().join(',')) {
       //     this.$emit("handleCancel", undefined);
@@ -311,7 +311,7 @@ export default {
       if(ids.length) {
         return {ids: ids, arr: arr};
       }
-      return;
+      return {ids: ids, arr: arr};
       if(ids.sort().toString() === this.defaultTreeKeys.sort().toString()) {
         // 人员没用变动
         return null;
@@ -472,6 +472,7 @@ export default {
     },
   },
   async created() {
+    console.log('-----', this.defaultTreeKeys);
     try {
       await this.getList();
       await this.getUserList();

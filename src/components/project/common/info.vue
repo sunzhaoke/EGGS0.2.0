@@ -72,10 +72,10 @@
                   <span class="line"></span>
                   <span>
                     <span v-for='(item,index) in userList'
-                          :key="index">
-                      {{item}}
-                      <span class="addPhoto"
-                            v-if="!item.del || !item.del==true">
+                          :key="index"
+                          v-if="!item.del">
+                      {{item.del}}
+                      <span class="addPhoto">
                         <img :src="item.image"
                              alt="">
                         <i class="delBox"
@@ -92,6 +92,7 @@
                         v-if="classify!=='pigeonhole'||classify=='newInformation'">
                     <i class="iconfont icon-jia1"> </i>
                   </span>
+
                 </div>
               </li>
               <!-- 4.选择日期 -->
@@ -230,12 +231,9 @@ export default {
     cancelAddPeople(ids) {
       this.addPeopleShow = false;
       if (ids) {
-        // if()
         for (let item of ids.arr) {
           this.userList.push({ 'image': item.Images, 'userId': item.userid, 'realname': item.realname, 'add': true })
         }
-        console.log(this.userList, ' this.userList')
-        // this.userList = ids;
       }
     },
     //   点击描述
@@ -250,10 +248,15 @@ export default {
       this.addListShow = true;
       this.userLitsShow = true; //点击添加成员 显示列表显示；
       let userIds = [];
-      console.log(this.userList, 'ddddddddddddddddd');
+      // console.log(this.userList, 'ddddddddddddddddd');
       if (this.userList) {
         for (let item of this.userList) {
-          userIds.push(item.userId);
+
+          if (!item.del) {
+
+            userIds.push(item.userId);
+          } else {
+          }
         }
         this.addPeopleLists = userIds;
       }
@@ -261,19 +264,19 @@ export default {
     },
     // 删除添加人员
     delPeo(item, index) {
-
       // 如果是有默认属性
       if (item.default) {
-        // this.userList[index].del = true;
         item.del = true;
-        this.userList[index].del = true
-        console.log(this.userList[index])
-      } else if (item.add) {
+        this.userList = [...this.userList];
+      } else if (item.default && item.add) {
         this.$delete(item, "del", '')
       }
+      if (item.add) {
+        item.del = true;
+        item.add = false;
+        this.userList = [...this.userList];
+      }
       // this.$delete(this.data,"obj",value)
-
-
       // this.userList.splice(index, 1);
     },
     // 开始创建
@@ -290,9 +293,11 @@ export default {
       let userListIds = [];
       if (this.userList) {
         for (let item of this.userList) {
-          userListIds.push(item.userid);
+          userListIds.push(item.userId);
         }
       }
+      // console.log(userListIds,'userListIdsuserListIds',this.userList)
+      // return
       let data = {
         title: this.title,
         descn: this.descn,
@@ -303,7 +308,10 @@ export default {
       };
       this.$HTTP("post", "/project_add", data).then(res => {
         if (res.code == 200) {
-          this.closeNewPop();
+          // this.closeNewPop();
+          console.log(res.result)
+          localStorage.setItem('projectItem', JSON.stringify(res.result));
+          this.$router.push("/project/projectInfo");
           this.$message.success("项目创建成功");
         } else {
           this.closeNewPop();
@@ -339,7 +347,7 @@ export default {
         }
       });
     },
-  
+
     // 保存修改信息
     saveMain() {
       if (this.startTime) {
@@ -348,22 +356,29 @@ export default {
       if (this.endTime) {
         this.endTime = this.format(this.endTime, "yyyy-MM-dd HH:mm:ss");
       }
-      let userLists = [];
+      let AddUserList = [];
+      let DelUserList = [];
       if (this.userList) {
         for (let item of this.userList) {
-          userLists.push(item.userId)
+          if (item.add) {
+            AddUserList.push(item.userId);
+          }
+          if (item.del) {
+            DelUserList.push(item.userId);
+          }
         }
       }
+      console.log('AddUserList', AddUserList, 'DelUserList', DelUserList);
+
       let obj = {
         projectId: this.projectId,
         title: this.title,
         descn: this.descn,
-        userList: userLists.join(','),
+        AddUserList: AddUserList.join(','),
+        DelUserList: DelUserList.join(','),
         startTime: this.startTime,
         endTime: this.endTime,
         userId: this.userId,
-        AddUserList: '',
-        DelUserList: '',
       };
       this.$HTTP("post", "/project_update", obj).then(res => {
         this.$message("信息修改成功");
