@@ -10,21 +10,52 @@
                    @change="projectChange">
         </el-option>
       </el-select>
-      <i class="iconfont project_star"
-         :class="starFlag ? 'icon-star' : 'icon-shoucang'"></i>
+      <el-dropdown trigger="click"
+                   @click.native="add">
+        <span class="el-dropdown-link">
+          <i class="iconfont icon-tianjiarenyuan otherColor"></i>
+        </span>
+        <el-dropdown-menu slot="dropdown">
+          <Participant1 v-if="topAddPopShow"
+                        ref="addPeople"
+                        id="addPeople"
+                        :creatorId="userPkid"
+                        :defaultKeys="defaultKeys"
+                        :userList="userList"
+                        @handleSure="addPeopleSure"
+                        @handleInvite="invitePeople" />
+        </el-dropdown-menu>
+      </el-dropdown>
+
+      <i class="iconfont  icon-star"
+         :class="starFlag ? 'project_star' : ''"
+         @click="projectStart"></i>
       <i class="iconfont icon-shuxingliebiaoxiangqing"
          @click="itemInformationShow=true"></i>
 
       <div class="fr otherButton">
         <i class="iconfont icon-19daoru"
            @click="toLead()"></i>
-        <i class="iconfont icon-haoyou"></i>
+
+        <span class="el-dropdown-link">
+          <i class="iconfont icon-haoyou"></i>
+        </span>
+
         <el-dropdown @click.native.stop="parthCommand()">
           <span class="el-dropdown-link">
             <i class="iconfont icon-gengduo"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item @click.native="parthCommand('editStage')">编辑阶段</el-dropdown-item>
+            <el-dropdown-item v-if="projectItem.createrId==userPkid"
+                              @click.native="parthCommand('editStage')">编辑阶段</el-dropdown-item>
+            <el-dropdown-item v-else>
+              <el-tooltip class="item"
+                          effect="dark"
+                          content="您没有权限"
+                          placement="top-start">
+                <el-button>编辑阶段</el-button>
+              </el-tooltip>
+            </el-dropdown-item>
             <el-dropdown-item @click.native="parthCommand('share')">分享</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
@@ -37,34 +68,6 @@
                   v-model="searchValue"
                   @input="searchChange">
         </el-input>
-
-        <el-collapse-transition>
-          <div v-if="searchLists && searchLists.length"
-               class="search_list">
-            <ul class="search_list_ul">
-              <li class="search_list_li"
-                  v-for="(item, index) in searchLists"
-                  :key="index"
-                  @click="goTo(item)">
-                <img :src="item.Images"
-                     alt=""
-                     class="header">
-                <span class="title">{{item.titles}}</span>
-                <i class="iconfont icon-star"></i>
-                <button v-if="item.state === 1"
-                        class="task_state task_state1">已完成</button>
-                <button v-else-if="item.state === 2"
-                        class="task_state task_state2">今日截止</button>
-                <button v-else-if="item.state === 3"
-                        class="task_state task_state3">已超时99+天</button>
-                <button v-else
-                        class="task_state task_state4">11月12日截止</button>
-                <span v-if="item.fromParth"
-                      class="from_parth">{{item.fromParth}}</span>
-              </li>
-            </ul>
-          </div>
-        </el-collapse-transition>
       </div>
     </div>
     <div class="project_task_list fl"
@@ -91,40 +94,457 @@
         </div>
         <div class="mainContent"
              :class="{'mainContentFixed':isFixed}">
+          <!-- 未分区 -->
+          <div class="partitionsMain noPartitions"
+               :data-partitionid='noPartitions.partitionId'>
+            <transition name="fade">
+              <div class="partitionsAndStages"
+                   v-if="!noPartitions.autoExpand &&noPartitions.partitionId==0">
+                <div ref='partitions'
+                     class="partitionsLabel"
+                     :class="{'partitionsLabelFixed':leftFixed}"
+                     :style="'height:'+ ((noPartitions.taskList.length )* 72) +'px;'">
+                  <span class="iconBox">
+                    <el-tooltip class="item cur_dis"
+                                effect="dark"
+                                content="默认分区无法移动"
+                                placement="top-start">
+                      <span class="icon">
+                        <i class="iconfont icon-pailie"></i>
+                      </span>
+                    </el-tooltip>
+                    <el-tooltip class="item"
+                                effect="dark"
+                                content="添加"
+                                placement="top-start">
+                      <span class="icon"
+                            @click="addPartition(noPartitions,0,'noPartitions')">
+                        <i class="iconfont icon-jia1 cur"></i>
+                      </span>
+                    </el-tooltip>
+                    <el-tooltip class="item cur_dis"
+                                effect="dark"
+                                content="默认分区无法删除"
+                                placement="top-start">
+                      <span class="icon cur_dis">
+                        <i class="iconfont icon-delete cur"></i>
+                      </span>
+                    </el-tooltip>
+                  </span>
+                  <i class="iconfont cur unfold"
+                     :class="!noPartitions.autoExpand?'icon-unfold':'icon-packup'"
+                     @click="goFlod(noPartitions)"></i>
+                  <div class="stageTittle">{{noPartitions.partitionTitle}}</div>
+                </div>
+                <!-- 空白占位 -->
+                <li v-if="noPartitions.isBlank"
+                    class="stageBox">
+                  <span class="stageLists">
+                    <textarea class="stageName"
+                              style="resize:none"
+                              v-model="noPartitions.newStageName"
+                              @blur="newStageBlur(noPartitions,noPartitions.newStageName)">
+                    </textarea>
+                  </span>
+                  <div class="stageListsBox">
+                    <div v-for="(list,index) in stageList"
+                         :key="list.pkid"
+                         class="stage"></div>
+                  </div>
+                </li>
+
+                <draggable v-model="noPartitions.taskList"
+                           class="box"
+                           :move='getdata2'
+                           @start='taskMoveStart(noPartitions)'
+                           @end='taskMoveEnd(noPartitions)'
+                           @update="datadragEnd2"
+                           :options="{
+                                 group: 'file', 
+                                 ghostClass: 'ghost_file', 
+                                 dragClass: 'drag_file',
+                                 draggable: '.dragging',
+                                 handle:'.moveStageHandel'
+                                 }">
+                  <transition-group class="taskLists">
+                    <!-- 任务及阶段 -->
+                    <li v-for="(item,index) in noPartitions.taskList"
+                        v-if='item.taskId'
+                        :key="item.taskId"
+                        class="stageBox"
+                        @mouseenter="mouseEnter(item,index)"
+                        :class="{'stageBoxFixed':leftFixed,'dragging':item.taskId!==''}">
+                      <span class="stageLists cur"
+                            :class="{'leftTaskFixed':leftFixed,'hoverBg':mouseLeftIndex==item.taskId}">
+                        <span class="iconBox_">
+                          <el-tooltip class="item moveHandel"
+                                      effect="dark"
+                                      content="移动"
+                                      placement="top-start">
+                            <span class="icon moveStageHandel cur">
+                              <i class="iconfont icon-pailie"
+                                 @click="movePartitions(item)"></i>
+                            </span>
+                          </el-tooltip>
+                          <el-tooltip class="item"
+                                      effect="dark"
+                                      content="添加"
+                                      placement="top-start">
+                            <span class="icon"
+                                  @click="addStage(noPartitions.taskList,index,'noPartitions')">
+                              <i class="iconfont icon-jia1 cur"></i>
+                            </span>
+                          </el-tooltip>
+                          <el-tooltip class="item"
+                                      effect="dark"
+                                      content="删除"
+                                      placement="top-start">
+                            <span class="icon"
+                                  @click="delStage(item,noPartitions,index,'noPartitions')">
+                              <i class="iconfont icon-delete cur"></i>
+                            </span>
+                          </el-tooltip>
+                        </span>
+                        <textarea v-model="item.taskTitle"
+                                  class="stageName"
+                                  style="resize:none"
+                                  @blur="stageNameBlur(item.taskTitle,item,noPartitions,index)">
+                        </textarea>
+                      </span>
+                      <div class="stageListsBox"
+                           :class="{'stageListsBoxFixed':leftFixed}">
+                        <div class="stage cur"
+                             v-for="(lists,index) in item.stageTaskList"
+                             :key="index"
+                             @mouseenter='mouseTopEnter(item,index)'>
+                          <!-- 正常显示状态==================================================================== -->
+                          <!-- 1.我参与时 有背景 -->
+                          <div class="stageBg"
+                               v-if="lists.isPartIn"></div>
+                          <!-- 2.完成时显示 -->
+                          <div class="finishPage"
+                               v-if='lists.stageTaskState==true&&lists.enabled===true'>
+                            <i class="iconfont icon-wancheng"></i>完成</div>
+                          <!-- 3.开启状态 显示内容 -->
+                          <div class="stageInfo cur"
+                               v-if="lists.enabled ==true&&lists.stageTaskState==false">
+                            <div class="participantImg">
+                              <span class="img"
+                                    v-for="(i,index) in lists.userList"
+                                    :key="index">
+                                <img :src="i.userPic"
+                                     alt="">
+                              </span>
+                            </div>
+                            <div class="participantMain">
+                              <span class="pieChart"
+                                    v-if="lists.taskTime==0"></span>
+                              <svg viewBox="0 0 32 32"
+                                   v-if='lists.taskTime'>
+                                <circle r="16"
+                                        cx="16"
+                                        cy="16"
+                                        :style='{"stroke-dasharray":lists.ratio + " 100"}' />
+                              </svg>
+                              <span v-for='(startime,index) of lists.startTimeArr'
+                                    :key="1+index">
+                                <span v-if="!startime.year==nowYear">{{startime.year}}/</span>
+                                <span> {{startime.month}}/{{startime.day}} {{startime.hour}}:{{startime.minute}} -</span>
+                              </span>
+                              <span v-for='(end,index) of lists.endTimeArr'
+                                    :key="2+index">
+                                <span v-if="!end.year==nowYear">{{end.year}}/</span>
+                                <span> {{end.month}}/ {{end.day}} {{end.hour}}:{{end.minute}}</span>
+                              </span>
+                              <i class="iconfont icon-wenjian1"
+                                 v-if="lists.fileCont!=0||lists.fileCont!=''">{{lists.fileCont}}</i>
+                            </div>
+                          </div>
+                          <!-- 4.关闭状态 不显示内容 -->
+                          <div v-if='lists.enabled===false'
+                               class="closePage">
+                            <span class="closeLine"></span>
+                          </div>
+
+                          <!-- hover显示状态 =====================================================================-->
+                          <!--1. 参与与不参与 都显示详细内容  -->
+                          <div class="stageHover"
+                               v-if="lists.stageTaskState===false&&lists.enabled===true||lists.enabled===''">
+                            <el-tooltip class="item"
+                                        effect="dark"
+                                        content="参与任务"
+                                        @click.native="partIn(item,lists)"
+                                        placement="top-start"
+                                        v-if="!lists.isPartIn">
+                              <el-button>
+                                <span class="iconBg">
+                                  <i class="iconfont icon-jiaru-1"></i>
+                                </span>
+                              </el-button>
+                            </el-tooltip>
+                            <el-tooltip class="item"
+                                        effect="dark"
+                                        content="取消参与"
+                                        @click.native="cancelPartIn(item,lists)"
+                                        placement="top-start"
+                                        v-if="lists.isPartIn">
+                              <el-button>
+                                <span class="iconBg">
+                                  <i class="iconfont icon-tuichu-"></i>
+                                </span>
+                              </el-button>
+                            </el-tooltip>
+                            <el-tooltip class="item"
+                                        effect="dark"
+                                        content="进入详情"
+                                        @click.native="enterDetail(item,lists)"
+                                        placement="top-start">
+                              <el-button class="timeShow">
+                                <span class="iconBg">
+                                  <i class="iconfont icon-xiangqing"></i>
+                                </span>
+                              </el-button>
+                            </el-tooltip>
+
+                            <el-tooltip class="item"
+                                        effect="dark"
+                                        content="添加时间"
+                                        placement="top-start">
+                              <el-button>
+                                <div class="calendar">
+                                  <el-date-picker v-model="value6"
+                                                  prefix-icon='iconfont icon-rili1'
+                                                  type="datetimerange"
+                                                  clearable
+                                                  @change="checkTime(item,lists,value6)"
+                                                  range-separator="至"
+                                                  start-placeholder="开始日期"
+                                                  end-placeholder="结束日期">
+                                  </el-date-picker>
+                                </div>
+                              </el-button>
+                            </el-tooltip>
+                            <div class="people">
+                              <div class="add_people_box"
+                                   @click.stop="addPeople(item,lists)">
+                                <el-tooltip class="item"
+                                            effect="dark"
+                                            content="添加成员"
+                                            placement="top-start">
+                                  <el-button>
+                                    <i class="iconfont icon-tianjiarenyuan otherColor"></i>
+                                  </el-button>
+                                </el-tooltip>
+                                <el-collapse-transition>
+                                  <Participant v-if="lists.addPopShow"
+                                               ref="addPeople"
+                                               id="addPeople"
+                                               :creatorId="userPkid"
+                                               :defaultKeys="defaultKeys"
+                                               :userList="userList"
+                                               @handleSure="addPeopleSure"
+                                               @handleInvite="invitePeople" />
+                                </el-collapse-transition>
+                              </div>
+                            </div>
+                            <el-dropdown>
+                              <span class="el-dropdown-link">
+                                <el-tooltip class="item"
+                                            effect="dark"
+                                            content="上传文件"
+                                            placement="top-start">
+                                  <el-button>
+                                    <i class="iconfont icon-shangchuan otherColor"></i>
+                                  </el-button>
+                                </el-tooltip>
+                              </span>
+                              <el-dropdown-menu slot="dropdown">
+                                <el-dropdown-item>
+                                  <el-upload ref="demandUpload"
+                                             class="from_local dis-in-bl"
+                                             :action="'/ProjectFile.ashx?&myUserId='+userPkid+'&projectId='+item.taskId+'&stageTaskId='+lists.stageId+'&filePartitionId=0'"
+                                             :show-file-list="false"
+                                             :multiple="true"
+                                             :on-error="uploadError"
+                                             :on-success="uploadSuccess"
+                                             :on-progress="uploadProgress"
+                                             :limit="9"
+                                             :on-exceed="handleExceed"
+                                             :before-upload="beforeUpload">
+                                    <span class="upload_name">本地上传</span>
+                                  </el-upload>
+
+                                </el-dropdown-item>
+                                <el-dropdown-item>从个人文档上传</el-dropdown-item>
+                              </el-dropdown-menu>
+                            </el-dropdown>
+                            <el-tooltip class="item"
+                                        effect="dark"
+                                        content="上传文件"
+                                        placement="top-start">
+                              <el-button>
+                              </el-button>
+                            </el-tooltip>
+
+                            <el-tooltip class="item"
+                                        effect="dark"
+                                        :content="lists.userList.length?'已有内容无法关闭':'关闭阶段'"
+                                        @click.native="closeStage(item, lists)"
+                                        placement="top-start">
+                              <el-button>
+                                <i class="iconfont icon-jinzhi otherColor "
+                                   :class="{'cur_dis':lists.userList.length}"></i>
+                              </el-button>
+                            </el-tooltip>
+
+                          </div>
+
+                          <div class="finishHover"
+                               v-if="lists.stageTaskState===true&&lists.enabled===true">
+                            <el-tooltip class="item"
+                                        effect="dark"
+                                        content="进入详情"
+                                        @click.native="enterDetail(item,lists)"
+                                        placement="top-start">
+                              <el-button class="timeShow">
+                                <span class="iconBg">
+                                  <i class="iconfont icon-xiangqing"></i>
+                                </span>
+                              </el-button>
+                            </el-tooltip>
+                          </div>
+
+                          <div v-if="lists.enabled===false"
+                               class="closeHover">
+                            <el-tooltip class="item"
+                                        effect="dark"
+                                        content="开启阶段"
+                                        @click.native="openStage(item, lists)"
+                                        placement="top-start">
+                              <el-button>
+                                <i class="iconfont icon-kaishi otherColor "></i>
+                              </el-button>
+                            </el-tooltip>
+                          </div>
+
+                        </div>
+                      </div>
+                    </li>
+                  </transition-group>
+                </draggable>
+              </div>
+            </transition>
+            <!-- 缩略列表 -->
+            <div class="thumbnailList"
+                 v-if="noPartitions.autoExpand && noPartitions.partitionId==0">
+              <div class="iconBox_">
+                <el-tooltip class="item moveHandel"
+                            effect="dark"
+                            :content="noPartitions.partitionId==0?'默认分区无法移动':'移动'"
+                            placement="top-start">
+                  <span class="icon moveHandel"
+                        @click="move"
+                        :class="{'cur_dis':noPartitions.partitionId==0}">
+                    <i class="iconfont icon-pailie"
+                       :class="{'cur_dis':noPartitions.partitionId==0 ,'cur':noPartitions.partitionId!==0}"
+                       @click="movePartitions"></i>
+                  </span>
+                </el-tooltip>
+                <el-tooltip class="item"
+                            effect="dark"
+                            content="添加"
+                            placement="top-start">
+                  <span class="icon"
+                        @click="addPartition(noPartitions,0,'noPartitions')">
+                    <i class="iconfont icon-jia1 cur"></i>
+                  </span>
+                </el-tooltip>
+                <el-tooltip class="item"
+                            effect="dark"
+                            :content="noPartitions.partitionId==0?'默认分区无法删除':'删除'"
+                            placement="top-start">
+                  <span class="icon"
+                        @click="openDelPartition(noPartitions,index)"
+                        :class="{'cur_dis':noPartitions.partitionId==0}">
+                    <i class="iconfont icon-delete cur"
+                       :class="{'cur_dis':noPartitions.partitionId==0 ,'cur':noPartitions.partitionId!==0}"></i>
+                  </span>
+                </el-tooltip>
+              </div>
+              <li class="">
+                <transition name="flodRotate">
+                  <i class="iconfont"
+                     :class="!noPartitions.autoExpand ? 'icon-unfold':'icon-packup'"
+                     @click="goFlod(noPartitions)"></i>
+                </transition>
+                <span>
+                  {{noPartitions.partitionTitle}}
+                </span>
+              </li>
+            </div>
+          </div>
+
+          <!-- ================================================================== -->
+
+          <!-- 分区内容 -->
           <draggable v-model="partitionsList"
                      :move="getdata"
                      @update="datadragEnd"
                      @start='starDrag'
-                     :options="{ghostClass: 'ghost_file', dragClass: 'drag_file'}">
+                     :options="{ghostClass: 'ghost_file', dragClass: 'drag_file',handle:'.moveHandel'}">
             <transition-group class="hhah">
               <div v-for="(element,index) in partitionsList"
                    :key="element.partitionId"
                    class="partitionsMain"
-                   :data-partitionid='element.partitionId'>
+                   :data-partitionid='element.partitionId'
+                   v-if=" element.partitionId!==0">
                 <transition name="fade">
                   <div class="partitionsAndStages"
-                       v-if="!element.autoExpand">
+                       v-if="!element.autoExpand && element.partitionId!==0">
                     <div ref='partitions'
-                         class="cur partitionsLabel"
+                         class="partitionsLabel"
                          style="heigth:100px;"
                          :class="{'partitionsLabelFixed':leftFixed}"
                          :style="'height:'+ ((element.taskList.length )* 72) +'px;'">
                       <span class="iconBox">
-                        <span class="icon"
-                              @click="move"
-                              v-if="element.partitionId!==0">
-                          <i class="iconfont icon-pailie cur"
-                             @click="movePartitions"></i>
-                        </span>
-                        <span class="icon"
-                              @click="addPartition(element,index)">
-                          <i class="iconfont icon-jia1 cur"></i>
-                        </span>
-                        <span class="icon"
-                              @click="openDelPartition(element,index)"
-                              v-if="element.partitionId!==0">
-                          <i class="iconfont icon-delete cur"></i>
-                        </span>
+                        <!-- 移动分区 -->
+                        <el-tooltip class="item moveHandel"
+                                    effect="dark"
+                                    content="移动"
+                                    placement="top-start">
+                          <span class="icon moveHandel"
+                                @click="move">
+                            <i class="iconfont icon-pailie cur"
+                               @click="movePartitions"></i>
+                          </span>
+                        </el-tooltip>
+                        <!-- 添加分区 -->
+                        <el-tooltip class="item"
+                                    effect="dark"
+                                    content="添加"
+                                    placement="top-start">
+                          <span class="icon"
+                                @click="addPartition(element,index,'addPartition')">
+                            <i class="iconfont icon-jia1 cur"></i>
+                          </span>
+                        </el-tooltip>
+                        <!-- 删除分区 -->
+                        <el-tooltip class="item"
+                                    effect="dark"
+                                    :content="element.partitionUserId==userPkid ? '删除':'删除(您没有权限)'"
+                                    placement="top-start">
+                          <span class="icon"
+                                v-if="element.partitionUserId==userPkid"
+                                @click="openDelPartition(element,index)">
+                            <i class="iconfont icon-delete cur"></i>
+                          </span>
+                          <span class="icon"
+                                v-else>
+                            <i class="iconfont icon-delete cur"
+                               :class="{'cur_dis':element.partitionUserId!==userPkid}"></i>
+                          </span>
+                        </el-tooltip>
+
                       </span>
                       <i class="iconfont cur unfold"
                          :class="!element.autoExpand?'icon-unfold':'icon-packup'"
@@ -133,12 +553,13 @@
                                 class="stageTittle"
                                 v-model="element.partitionTitle"
                                 style="resize:none"
-                                @blur="stageBlur(element.partitionTitle,element,index)"></textarea>
-
+                                @keyup.enter='dse'
+                                @blur="partitionBlur(element.partitionTitle,element,index)"
+                                @focus="partitionFocus(element.partitionTitle,element,index)"></textarea>
                     </div>
                     <!-- 空白占位 -->
                     <span v-if="element.isBlank"
-                          class="stageBox">
+                          class="stageBox dragging">
                       <span class="stageLists">
                         <textarea class="stageName"
                                   style="resize:none"
@@ -160,37 +581,53 @@
                                  group: 'file', 
                                  ghostClass: 'ghost_file', 
                                  dragClass: 'drag_file',
-                                 draggable: '.dragging'
+                                 draggable: '.dragging',handle:'.moveStageHandel'
                                  }">
-                      <transition-group class="taskLists">
+                      <transition-group class="taskListsTwo">
                         <!-- 任务及阶段 -->
                         <li v-for="(item,index) in element.taskList"
                             v-if='item.taskId'
                             :key="item.taskId"
                             class="stageBox"
-                            @mouseenter="mouseEnter(element,index)"
+                            @mouseenter="mouseEnter(item,index)"
                             :class="{'stageBoxFixed':leftFixed,'dragging':item.taskId!==''}">
                           <span class="stageLists cur"
-                                :class="{'leftTaskFixed':leftFixed,'hoverBg':mouseLeftIndex==index}">
+                                :class="{'leftTaskFixed':leftFixed,'hoverBg':mouseLeftIndex==item.taskId}">
                             <span class="iconBox_">
-                              <span class="icon"
-                                    @click="move">
-                                <i class="iconfont icon-pailie cur"
-                                   @click="movePartitions"></i>
-                              </span>
-                              <span class="icon"
-                                    @click="addStage(element.taskList,index)">
-                                <i class="iconfont icon-jia1 cur"></i>
-                              </span>
-                              <span class="icon"
-                                    @click="delStage(element.taskList,index,item)">
-                                <i class="iconfont icon-delete cur"></i>
-                              </span>
+                              <el-tooltip class="item moveHandel"
+                                          effect="dark"
+                                          content="移动"
+                                          placement="top-start">
+                                <span class="icon moveStageHandel cur">
+                                  <i class="iconfont icon-pailie"
+                                     @click="movePartitions"></i>
+                                </span>
+                              </el-tooltip>
+
+                              <el-tooltip class="item"
+                                          effect="dark"
+                                          content="添加"
+                                          placement="top-start">
+                                <span class="icon"
+                                      @click="addStage(element.taskList,index,'Partitions')">
+                                  <i class="iconfont icon-jia1 cur"></i>
+                                </span>
+                              </el-tooltip>
+                              <el-tooltip class="item"
+                                          effect="dark"
+                                          content="删除"
+                                          placement="top-start">
+                                <span class="icon"
+                                      @click="delStage(item,element,index,'Partitions')">
+                                  <i class="iconfont icon-delete cur"></i>
+                                </span>
+                              </el-tooltip>
                             </span>
                             <textarea v-model="item.taskTitle"
                                       class="stageName"
                                       style="resize:none"
-                                      @blur="stageNameBlur(item.taskTitle,item,element,index)">
+                                      @blur="stageNameBlur(item.taskTitle,item,element,index)"
+                                      @focus="stageFocus(item.taskTitle,item,element,index)">
                             </textarea>
                           </span>
                           <div class="stageListsBox"
@@ -210,27 +647,32 @@
                               <!-- 3.开启状态 显示内容 -->
                               <div class="stageInfo cur"
                                    v-if="lists.enabled ==true&&lists.stageTaskState==false">
-                                <span class="participantImg">
+                                <div class="participantImg">
                                   <span class="img"
                                         v-for="(i,index) in lists.userList"
                                         :key="index">
                                     <img :src="i.userPic"
                                          alt="">
                                   </span>
-                                </span>
+                                </div>
                                 <div class="participantMain">
-                                  <span class="pieChart">
-                                    <span class="pie1"></span>
-                                    <span class="pie2"></span>
-                                    <span class="pie3"></span>
-                                    <span class="pie4"></span>
-                                  </span>
+                                  <span class="pieChart"
+                                        v-if="!lists.taskTime"></span>
+                                  <svg viewBox="0 0 32 32"
+                                       v-if='lists.taskTime'>
+                                    <circle r="16"
+                                            cx="16"
+                                            cy="16"
+                                            :style='{"stroke-dasharray":lists.ratio + " 100"}' />
+                                  </svg>
                                   <span v-for='(startime,index) of lists.startTimeArr'
+                                        :class="{'redCl':!lists.taskTime}"
                                         :key="1+index">
                                     <span v-if="!startime.year==nowYear">{{startime.year}}/</span>
                                     <span> {{startime.month}}/{{startime.day}} {{startime.hour}}:{{startime.minute}} -</span>
                                   </span>
                                   <span v-for='(end,index) of lists.endTimeArr'
+                                        :class="{'redCl':!lists.taskTime}"
                                         :key="2+index">
                                     <span v-if="!end.year==nowYear">{{end.year}}/</span>
                                     <span> {{end.month}}/ {{end.day}} {{end.hour}}:{{end.minute}}</span>
@@ -342,7 +784,7 @@
                                     <el-dropdown-item>
                                       <el-upload ref="demandUpload"
                                                  class="from_local dis-in-bl"
-                                                 :action="'/File_Upload.ashx?&projectId='+projectItem.projectid+'&taskId='+taskId+'&userId='+userPkid+'&replyId=-1'"
+                                                 :action="'/ProjectFile.ashx?&myUserId='+userPkid+'&projectId='+item.taskId+'&stageTaskId='+lists.stageId+'&filePartitionId=0'"
                                                  :show-file-list="false"
                                                  :multiple="true"
                                                  :on-error="uploadError"
@@ -415,23 +857,40 @@
                 </transition>
                 <!-- 缩略列表 -->
                 <div class="thumbnailList"
-                     v-if="element.autoExpand">
+                     v-if="element.autoExpand && element.partitionId!==0">
                   <div class="iconBox_">
-                    <span class="icon"
-                          @click="move"
-                          v-if="element.partitionId!==0">
-                      <i class="iconfont icon-pailie cur"
-                         @click="movePartitions"></i>
-                    </span>
-                    <span class="icon"
-                          @click="addPartition(element,index)">
-                      <i class="iconfont icon-jia1 cur"></i>
-                    </span>
-                    <span class="icon"
-                          @click="openDelPartition(element,index)"
-                          v-if="element.partitionId!==0">
-                      <i class="iconfont icon-delete cur"></i>
-                    </span>
+                    <el-tooltip class="item moveHandel"
+                                effect="dark"
+                                :content="element.partitionId==0?'默认分区无法移动':'移动'"
+                                placement="top-start">
+                      <span class="icon moveHandel"
+                            @click="move"
+                            :class="{'cur_dis':element.partitionId==0}">
+                        <i class="iconfont icon-pailie"
+                           :class="{'cur_dis':element.partitionId==0 ,'cur':element.partitionId!==0}"
+                           @click="movePartitions"></i>
+                      </span>
+                    </el-tooltip>
+                    <el-tooltip class="item"
+                                effect="dark"
+                                content="添加"
+                                placement="top-start">
+                      <span class="icon"
+                            @click="addPartition(element,index,'addPartition')">
+                        <i class="iconfont icon-jia1 cur"></i>
+                      </span>
+                    </el-tooltip>
+                    <el-tooltip class="item"
+                                effect="dark"
+                                :content="element.partitionId==0?'默认分区无法删除':'删除'"
+                                placement="top-start">
+                      <span class="icon"
+                            @click="openDelPartition(element,index)"
+                            :class="{'cur_dis':element.partitionId==0}">
+                        <i class="iconfont icon-delete cur"
+                           :class="{'cur_dis':element.partitionId==0 ,'cur':element.partitionId!==0}"></i>
+                      </span>
+                    </el-tooltip>
                   </div>
                   <li class="">
                     <transition name="flodRotate">
@@ -447,8 +906,6 @@
               </div>
             </transition-group>
           </draggable>
-          <div>
-          </div>
         </div>
       </div>
     </div>
@@ -490,14 +947,15 @@ import { mapMutations } from 'vuex';
 import Info from "../common/info";
 import ShadePop from "../common/shadePop";
 import ToLead from "./common/toLead";
-import Participant from "./common/participant";
+import Participant from "../common/participant";
+import Participant1 from "../common/participant1";
+
 import UploadProgress from "../../common/uploadProgress";
 import AddPeople from "../../common/addPeople";
 
 import Reminder2 from "../../common/reminder2";
-// import { searchList } from './data.js';/ 
 import draggable from "vuedraggable";
-import { WSAESOCKTNOSUPPORT } from 'constants';
+import { WSAESOCKTNOSUPPORT, POINT_CONVERSION_COMPRESSED } from 'constants';
 
 export default {
   components: {
@@ -507,14 +965,16 @@ export default {
     ShadePop,
     ToLead,
     Participant,
+    Participant1,
     UploadProgress,
     AddPeople
   },
   data() {
     return {
+      abg: '10 100',
       mouseLeftIndex: 0,
       mouseTopIndex: 0,
-
+      topAddPopShow: true, //顶部添加人员
       taskPeopleList: [],
       value6: '',
       toLeadShow: false, //弹框 导入是否显示 
@@ -530,22 +990,24 @@ export default {
       projectList: [
         {
           value: "选项1",
-          label: "Eggs0.1.1"
+          label: "Eggs0.1.1",
+          userPkid: 11
         },
         {
           value: "选项2",
-          label: "双皮奶"
+          label: "双皮奶",
+          userPkid: 22
+
         },
       ],
       selectedProject: "选项1",
-      starFlag: true,
+      starFlag: JSON.parse(localStorage.getItem('projectItem')).isStar,
       detailsShow: false,
       taskId: '',
 
       nowTaskId: '', //当前点击的 id
       nowStageId: '', //当前点击的 id
 
-      searchLists: [],
       searchValue: '',
       //  表格选项
       isFixed: false,
@@ -554,13 +1016,20 @@ export default {
       loginUser: JSON.parse(localStorage.getItem('staffInfo')), // 当前登录者的信息
       userPkid: JSON.parse(localStorage.getItem('staffInfo')).userPkid, // 当前登录者的ID
       stageList: [], //阶段设置
-      partitionsList: [],
+      partitionsList: [], // 所有内容列表
+      noPartitions: [], //未分区列表
       // 新建分区
       EmptyData: '',
       // 添加任务
       newTask: '',
       delPartitionLists: [], //当前删除的分区
       delIndex: '', //当前删除的分区的index
+
+      delStageLists: [], //当前删除的任务的集合 大
+      delNowStageLists: [], //当前删除的任务
+      delStageIndex: '', //当前删除的任务的index
+      delFlage: '', //删除对象
+
       nowYear: '', //当前年
       userList: [], //项目参与人员列表
       addPeopleShow: false, // 添加参与者是否显示
@@ -568,8 +1037,10 @@ export default {
       inviteShow: false, // 邀请添加人员
 
       defaultKeys: [], //默认添加的人员
-
-
+      isNewP: false,// 是否是新建分区
+      isNewS: false, // 是否是新建任务
+      nowPartitionsName: '',// 当前选择分区的名字
+      nowStageName: '',// 当前选择分区的名字
       fileTypeImg: [
         {
           src: require("../../../assets/img/file_b/0.png")
@@ -611,7 +1082,26 @@ export default {
     };
   },
   watch: {
-
+    noPartitions: {
+      deep: true,
+      handler(val, old) {
+        if (!val.taskList.length) {
+          val.isBlank = true;
+        } else {
+          val.isBlank = false;
+        }
+      }
+    },
+    partitionsList: {
+      deep: true,
+      handler(val, old) {
+        for (let i of val) {
+          if (!i.taskList.length) {
+            i.isBlank = true;
+          }
+        }
+      }
+    }
   },
   computed: {
     // defaultKeys() {
@@ -629,11 +1119,51 @@ export default {
   ,
   methods: {
     ...mapMutations(['DETAILS_CHANGE', 'TASKITEM_CHANGE', 'TASK_POSITION', 'PROJECT_CHANGE']),
-    // 展开详情
-    // 取消
-    mouseEnter(el, index) {
-      this.mouseLeftIndex = index;
+    async add(list) {
+
+      try {
+        await this.getProjectUsers();
+      } catch (err) {
+        console.log(err);
+      }
     },
+    // 获取项目成员列表
+    getProjectUsers() {
+      return new Promise((resolve, reject) => {
+        let obj = {
+          projectId: this.projectId,
+          myUserId: this.userPkid
+        }
+        this.$HTTP('post', '/project_usersList_get', obj).then(res => {
+          this.userList = res.result;
+          resolve(this.userList)
+        }).catch(err => {
+          reject(err);
+        });
+      });
+    },
+    //项目星标
+    dse(e) {
+      e.preventDefault();
+      return false;
+    },
+
+    projectStart() {
+      this.starFlag = !this.starFlag;
+      let obj = { 'projectId': this.projectId, 'userId': this.userPkid }
+      this.$HTTP('post', '/project_update_isStar', obj).then(res => {
+
+        // localStorage.setItem('projectItem', this.starFlag);
+      })
+    },
+    // 展开详情
+
+    // 取消
+    // 上下分区判断位置
+    mouseEnter(el, index) {
+      this.mouseLeftIndex = el.taskId;
+    },
+    // 左右阶段 定位判断
     mouseTopEnter(el, index) {
       this.mouseTopIndex = index;
     },
@@ -659,18 +1189,25 @@ export default {
     // 任务片段操作
     // 1.1. 参与任务
     partIn(item, list) {
-      console.log(item, list)
-
-      let obj = { 'addVale': this.userPkid, 'delVale': '', 'stageId': list.stageId, 'taskId': item.taskId, 'myUserId':  this.userPkid }
-
+      let obj = { 'addVale': this.userPkid, 'delVale': '', 'stageId': list.stageId, 'taskId': item.taskId, 'myUserId': this.userPkid }
       this.$HTTP('post', '/stageTask_user_update', obj).then(res => {
-        console.log(res)
-
+        this.enterDetail(item, list);
       })
     },
+
     // 1.2.取消参与
     cancelPartIn(item, list) {
-      let obj = { 'addVale': '', 'delVale': this.userPkid, 'stageId': list.stageId, 'taskId': item.taskId, 'myUserId':  this.userPkid }
+      console.log(list.userList, item);
+      let index = list.userList.findIndex(res => {
+        return res.userpkid == this.userPkid;
+      })
+      list.userList.splice(index, 1);
+      this.partitionsList = [...this.partitionsList];
+
+      list.isPartIn = false;
+      console.log(index)
+      return
+      let obj = { 'addVale': '', 'delVale': this.userPkid, 'stageId': list.stageId, 'taskId': item.taskId, 'myUserId': this.userPkid }
       this.$HTTP('post', '/stageTask_user_update', obj).then(res => {
         console.log(res)
       })
@@ -678,17 +1215,39 @@ export default {
 
     // 3.修改任务时间
     checkTime(item, list, val) {
-      console.log(item, list, val)
+      let starttime = this.format(val[0], "yyyy-MM-dd HH:mm:ss").split(' ');
+      let endTime = this.format(val[1], "yyyy-MM-dd HH:mm:ss").split(' ');
 
+      if (starttime && endTime) {
+        starttime = starttime[0].split('-').concat(starttime[1].split(':'));
+        endTime = endTime[0].split('-').concat(endTime[1].split(':'));
 
-      // if(val){}
+        list.startTimeArr = [
+          {
+            year: starttime[0].substring(2, 4),
+            month: starttime[1],
+            day: starttime[2],
+            hour: starttime[3],
+            minute: starttime[4]
+          }
+        ]
+        list.endTimeArr = [
+          {
+            year: endTime[0].substring(2, 4),
+            month: endTime[1],
+            day: endTime[2],
+            hour: endTime[3],
+            minute: endTime[4]
+          }
+        ]
+      }
+      this.partitionsList = [...this.partitionsList];
       let data = {
         'stageId': list.stageId,
         'taskId': item.taskId,
         'startTime': this.format(val[0], "yyyy-MM-dd HH:mm:ss"),
         'endTime': this.format(val[1], "yyyy-MM-dd HH:mm:ss"),
-      }
-        ;
+      };
       this.$HTTP('post', '/stageTask_date_update', data).then(res => {
         console.log(res)
       })
@@ -723,8 +1282,6 @@ export default {
     },
     // 获取项目成员列表
     getProjectUser(item) {
-      item.addPopShow = true;
-      this.partitionsList = [...this.partitionsList];
       return new Promise((resolve, reject) => {
         let obj = {
           projectId: this.projectId,
@@ -733,29 +1290,22 @@ export default {
         this.$HTTP('post', '/project_usersList_get', obj).then(res => {
           this.userList = res.result;
           resolve(this.userList)
+          if (this.taskPeopleList) {
+            for (let x of this.taskPeopleList) {
+              this.defaultKeys.push(x.userpkid);
+            }
+          }
+          item.addPopShow = true;
+          this.partitionsList = [...this.partitionsList];
         }).catch(err => {
           reject(err);
         });
       });
-
     },
-
-
     async addPeople(list, item, ) {
       this.nowTaskId = list.taskId;
       this.nowStageId = item.stageId;
       this.taskPeopleList = item.userList;
-
-      if (this.taskPeopleList) {
-        for (let x of this.taskPeopleList) {
-          this.defaultKeys.push(x.userpkid);
-        }
-      }
-
-
-
-
-      console.log(this.taskPeopleList)
       try {
         await this.getProjectUser(item);
         // this.addPeopleShow = true;;
@@ -765,17 +1315,14 @@ export default {
       let clickHide = e => {
         item.addPopShow = false;
         this.partitionsList = [...this.partitionsList];
-
         // this.addPeopleShow = false; // 隐藏
         $(document).unbind("click", clickHide)
-
       };
       $(document).bind("click", clickHide)
     },
 
     // 添加/删除人员成功
     addPeopleSure(data) {
-
       this.addPeopleShow = false; // 隐藏
       console.log('participant', data);
       // 发送请求
@@ -787,8 +1334,8 @@ export default {
           delVale: del.join(','),
           stageId: this.nowStageId,
           taskId: this.nowTaskId,
+          'myUserId': this.userPkid
         }
-
         this.$HTTP('post', '/stageTask_user_update', obj).then(res => {
           // 发送请求，taskPeopleList发生变化
           let arr = res.result;
@@ -817,6 +1364,8 @@ export default {
 
     // 文件上传失败
     uploadError(err, file) {
+      console.log(err)
+      return
       let ids = this.fileProgressList.findIndex(ele => {
         return ele.uid === file.uid;
       });
@@ -826,6 +1375,8 @@ export default {
     },
     // 文件上传成功
     uploadSuccess(res, _file) {
+
+      return
       let file = Object.assign({}, _file.response.result);
       // let type = file.name.split(".")[1];
       // this.$set(file, "FileTypeNum", this.getFlieTyle(file.FileType));
@@ -853,6 +1404,7 @@ export default {
     // 文件上传前
     beforeUpload(file) {
       // 先判断有没有重复
+      return
       let index = this.demandFile.findIndex(ele => {
         return ele.name == file.name;
       });
@@ -885,6 +1437,7 @@ export default {
 
     // 文件上传中
     uploadProgress(event, file, fileList) {
+      return
       let percents = parseInt(event.percent);
       let ids = this.fileProgressList.findIndex(ele => {
         return ele.uid === file.uid;
@@ -943,19 +1496,26 @@ export default {
         }
       });
     },
-
+    // 取消确认
     reminderCancel() {
       this.reminder2Flag = false;
     },
     //  确认
     reminderSure() {
-      this.delPartition(this.delPartitionLists, this.delIndex);
+      console.log(this.delFlage)
+      // return
+      if (this.delFlage == 'stage') {
+        this.okdelStage(this.delStageLists, this.delNowStageLists, this.delStageIndex);
+      } else {
+        this.delPartition(this.delPartitionLists, this.delIndex);
+      }
       // this.partitionsList.splice(index, 1);
     },
     // 新建任务光标离开
     newStageBlur(el, title) {
-      console.log(el.taskList == true, title, el.isnew);
-
+      if (!title) {
+        return
+      }
       if (el.isnew === false) {
         // 旧的 空的
         if (title == '') {
@@ -973,11 +1533,7 @@ export default {
       // this.PROJECT_CHANGE(val);
     },
     searchChange(val) {
-      if (val) {
-        this.searchLists = [...searchList];
-      } else {
-        this.searchLists = [];
-      }
+
     },
 
     goTo(item) {
@@ -989,14 +1545,64 @@ export default {
     closeInfo() {
       this.itemInformationShow = false;
     },
-    // 添加分区
-    addPartition(el, index) {
-      this.partitionsList.splice(index + 1, 0, this.EmptyData);
-      this.$nextTick(res => {
-        $('.hhah').children().eq(index + 1).find('.stageTittle').focus()
-      })
-    },
 
+    // 未分区
+    // 1.添加分区操作
+    // 添加分区
+    addPartition(el, index, name) {
+      this.isNewP = true;
+      this.EmptyData.partitionTitle = '';
+      if (name == 'addPartition') {
+        console.log('分区内容', index)
+        this.partitionsList.splice(index + 1, 0, this.EmptyData);
+        this.$nextTick(res => {
+          $('.hhah').children().eq(index).find('.stageTittle').focus();
+          this.EmptyData.partitionId = -1
+        })
+      } else {
+        this.partitionsList.splice(0, 0, this.EmptyData);
+        this.$nextTick(res => {
+          $('.hhah').children().eq(0).find('.stageTittle').focus();
+          this.EmptyData.partitionId = -1
+        })
+      }
+    },
+    // 分区失去焦点 
+    partitionBlur(name, el, index) {
+      // 先判断 是否是新建项目
+      if (this.isNewP) {
+        if (name) {
+          let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, title: name }
+          this.$HTTP('post', '/partition_add', obj).then(res => {
+            res.result.isBlank = true;
+            res.result.isnew = false;
+            this.isNewP = false;
+            this.partitionsList.splice(index, 1, res.result);
+          })
+        } else {
+          this.isNewP = false;
+          this.partitionsList.splice(index, 1);
+        }
+      } else {
+        if (this.nowPartitionsName !== name) {
+          this.modifyPartitionName(el.partitionId, name);
+        }
+        return
+      }
+      // 判断 名字是否需要修改 
+    },
+    // 分区获取焦点
+    partitionFocus(name, el, index) {
+      // 1.判断是不是新创建的 
+      // 2.新创建 走创建
+      // 3.不是 保存原本值 、判断值改变
+      if (!this.isNewP) {
+        this.nowPartitionsName = name;
+        // console.log(this.isNewP, '不是新创建的', nowStageName)
+      } else {
+        // console.log(this.isNewP, '新创建的')
+      }
+    },
     // 删除分区弹框打开
     openDelPartition(element, index) {
       this.delPartitionLists = element;
@@ -1006,14 +1612,14 @@ export default {
     },
     // 删除分区 操作
     delPartition(element, index) {
-
       // 判断如果有list列表
-      if (element.taskList == '') {
+      if (!element.taskList.length) {
         this.partitionsList.splice(index, 1);
       } else {
         let taskIds = [];
         for (let list of element.taskList) {
           // taskId=='' 时 说明没有任务 可以直接删除 不用移动
+          this.noPartitions.taskList.push(list)
           if (list.taskId !== '') {
             taskIds.push(list.taskId);
           }
@@ -1026,46 +1632,25 @@ export default {
       let obj = { 'partitionId': element.partitionId }
       this.$HTTP('post', '/partition_delete', obj).then(res => {
         this.reminder2Flag = false;
-
       })
     },
-    // 分区移动
+    // 分区移动 start
     getdata(evt) {
       // console.log(evt.draggedContext.element.id)
     },
-    // 分区移动
+    // 分区移动 end
     datadragEnd(evt) {
-
       let obj = { partitionId: evt.item.dataset.partitionid, isSort: evt.newIndex }
       this.$HTTP('post', '/partition_update_isSort', obj).then(res => {
       })
       // console.log('拖动后的索引 :' + evt.newIndex)
     },
-    // 添加分区 判断是否有内容
-    stageBlur(name, el, index) {
-      // 旧的
-      if (el.isnew === false) {
-        // 旧的 空的
-        if (name == '') {
-          return
-        } else {
-          // 判断 名字是否需要修改 
-          this.modifyPartitionName(el.partitionId, name);
-        }
-        // 新建的
-      } else {
-        if (name == '') {
-          this.partitionsList.splice(index, 1);
-        } else {
-          let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, title: name }
-          this.$HTTP('post', '/partition_add', obj).then(res => {
-            this.EmptyData.partitionId = res.result.partitionId;
-          })
-        }
-      }
-    },
 
-    // 修改分区名字
+    // 分区 值改变
+    stageChange(name, el, index) {
+      console.log(name)
+    },
+    // 分区 修改名字
     modifyPartitionName(partitionId, title) {
       let data = { 'partitionId': partitionId, 'title': title }
       this.$HTTP('post', '/partition_update', data).then(res => {
@@ -1073,6 +1658,61 @@ export default {
       })
     },
 
+    // 任务操作
+    // 1.添加任务
+    addStage(el, index, name) {
+      if (name == 'Partitions') {
+        this.newTask.taskTitle = '';
+        this.isNewS = true;
+        el.splice(index + 1, 0, this.newTask);
+        this.$nextTick(res => {
+          $('.taskListsTwo').children().eq(index + 1).find('.stageName').focus();
+        })
+      } else {
+        this.newTask.taskTitle = '';
+        this.isNewS = true;
+        el.splice(index + 1, 0, this.newTask);
+        this.$nextTick(res => {
+          $('.taskLists').children().eq(index + 1).find('.stageName').focus();
+        })
+      }
+    },
+    // 添加任务 失焦判断
+    stageNameBlur(name, item, el, index) {
+      console.log(name, item, el, index);
+      // 先判断 是否是新建阶段
+      if (this.isNewS) {
+        if (name) {
+          let obj = {
+            'myUserId': this.userPkid,
+            'projectId': this.projectId,
+            'partitionId': el.partitionId,
+            'title': name,
+            'iSort': index          }
+          this.$HTTP('post', '/task_add', obj).then(res => {
+            el.taskList.splice(index, 1, res.result);
+            res.result.isnew = false;
+            this.isNewS = false;
+          })
+        } else {
+          this.isNewS = false;
+          el.taskList.splice(index, 1);
+        }
+      } else {
+        if (this.nowStageName !== name) {
+          this.ModifyTaskName(item.taskId, name);
+        }
+        return
+      }
+    },
+    // 添加任务 获取焦点
+    stageFocus(name, item, el, index) {
+      console.log(this.isNewS, name);
+      if (!this.isNewS) {
+        this.nowStageName = name;
+      } else {
+      }
+    },
     // 修改任务名字
     ModifyTaskName(taskId, title) {
       let data = { 'taskId': taskId, 'title': title }
@@ -1080,40 +1720,29 @@ export default {
         console.log(res)
       })
     },
-    // 添加任务
-    addStage(el, index) {
-      el.splice(index + 1, 0, this.newTask)
-      this.$nextTick(res => {
-        $('.taskLists').children().eq(index + 1).find('.stageName').focus()
-      })
-    },
-    // 添加项目 光标离开判断
-    stageNameBlur(name, item, el, index) {
-      if (item.isnew === false) {
-        // 旧的 空的
-        if (name == '') {
-          return
-        } else {
-          // 判断 名字是否需要修改 
-          this.ModifyTaskName(item.taskId, name);
-        }
-        // 新建的
-      } else {
-        if (name == '' || name == undefined) {
-          el.taskList.splice(index, 1);
-        } else {
-          let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, partitionId: el.partitionId, 'title': name, 'iSort': index }
-          this.$HTTP('post', '/task_add', obj).then(res => {
-          })
-        }
-      }
-    },
     // 删除任务
-    delStage(el, index, item) {
-      el.splice(index, 1)
-      let obj = { 'taskId': item.taskId }
+    delStage(el, item, index, name) {
+      // 您确认删除该任务？
+      // 删除后文件内容也会被删除
+      this.delStageLists = item; //当前删除的任务
+      this.delNowStageLists = el; //当前删除的任务
+      this.delStageIndex = index; //当前删除的任务的index
+      this.delFlage = 'stage'; //删除对象
+      console.log(this.delStageLists, this.delNowStageLists)
+      // return
+      this.reminder2Flag = true;
+      this.errMessage = ' 您确认删除该任务？删除后文件内容也会被删除';
+    },
+    // 确认删除任务
+    okdelStage(item, el, index) {
+      let obj = { 'taskId': el.taskId };
       this.$HTTP('post', '/task_del', obj).then(res => {
-
+        this.delFlage == '';
+        this.reminder2Flag = false;
+        item.taskList.splice(index, 1);
+        if (item.taskList.length <= 1) {
+          item.isBlank = true;
+        }
       })
     },
 
@@ -1122,8 +1751,8 @@ export default {
         item.autoExpand = true;
       }
     },
-    movePartitions() {
-      console.log('ceshi ')
+    movePartitions(item) {
+      console.log('ceshi ', item);
     },
 
     move() { },
@@ -1159,13 +1788,22 @@ export default {
         this.leftFixed = false;
       }
     },
-
-
-
+    // 任务 移动前的操作
+    taskMoveStart(list) {
+      console.log('chufale触发了', list);
+    },
+    // 任务 移动到的操作
+    taskMoveEnd(list) {
+      // if (list.taskList.length <= 1) {
+      //   list.isBlank = true;
+      // }
+      console.log(list, '结束后的list')
+    },
     getdata2(evt) {
       evt.preventDefault();
-      console.log(evt.draggedContext.element.id, 'element.id')
+      // console.log(evt.draggedContext.element.id, 'element.id')
     },
+
     datadragEnd2(evt) {
       console.log('拖动前的索引 :' + evt.oldIndex)
       console.log('拖动后的索引 :' + evt.newIndex)
@@ -1197,14 +1835,12 @@ export default {
           if (list.taskList !== '') {
             for (let i of list.taskList) {
               i.isnews = false;
-              if (i.taskId === '') {
+              if (i.taskId == '') {
                 list.isBlank = true;
-                list.taskList.splice(i, 1)
+                list.taskList.splice(i, 1);
               }
               this.stageTaskList = i.stageTaskList;
               for (let item of i.stageTaskList) {
-
-                console.log(item, 'hahhha  ')
                 item.addPopShow = false;
                 if (item.userList.length) {
                   let indexs = item.userList.findIndex(res => {
@@ -1218,15 +1854,20 @@ export default {
                 } else {
                   item.isPartIn = false;
                 }
-
+                //  0超期  1没超期 
+                if (item.endTime) {
+                  // 超期了
+                  if (new Date(item.endTime) - new Date() <= 0) {
+                    item.taskTime = 0;
+                  } else {
+                    item.taskTime = 1;
+                    let ratio = (new Date() - new Date(item.startTime)) / (new Date(item.endTime) - new Date(item.startTime));
+                    parseInt(ratio)
+                    item.ratio = parseInt(ratio * 100);
+                  }
+                }
 
                 if (item.startTime) {
-
-
-                  console.log(new Date(item.startTime) - new Date(), '时间差');
-
-                  console.log(new Date(item.endTime) - new Date(item.startTime), '时间差');
-
                   let time = item.startTime.split(' ');
                   time = time[0].split('/').concat(time[1].split(':'));
                   item.startTimeArr = [
@@ -1250,24 +1891,33 @@ export default {
                     }
                   ]
                 }
-
-                // console.log(item.endTime, '是瑟吉欧飞机了解到放了几fi')
-                // if()
               }
             }
           }
         }
         console.log(this.partitionsList)
+        this.noPartitions = this.partitionsList[0];
+        // this.partitionsList.splice(0, 1)
+      })
+    },
+    // 获取项目参与人员列表
+    getProjectUserList() {
+      let obj = {
+        projectId: this.projectId,
+        myUserId: this.userPkid
+      }
+      this.$HTTP('post', '/project_usersList_get', obj).then(res => {
+        this.userList = res.result;
       })
     },
   },
   created() {
     let nowTime = new Date();
     this.nowYear = String(new Date().getFullYear()).slice(2, 4);
-
+    // console.log
     this.getstageList(); //获取阶段列表 
     this.getProjectAll();
-
+    this.getProjectUserList();
   },
   mounted() {
     let _ = this;
@@ -1292,7 +1942,11 @@ export default {
 <style lang="less">
 @import "../../../assets/css/base.less";
 // @import "vue-easytable/libs/themes-base/index.css";
-
+.el-button {
+  border: none !important;
+  background: none;
+  padding: 0;
+}
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.1s;
@@ -1335,7 +1989,6 @@ export default {
   height: 100%;
   // height: calc(~ '100% - 50px');
   overflow: hidden;
-
   .project_task_top {
     width: 100%;
     height: 50px;
@@ -1343,6 +1996,10 @@ export default {
     border-bottom: 1px solid @bg-f2f2f2;
     padding: 0 25px;
     .box_sizing;
+    .add_people_box {
+      position: relative;
+      top: 20px;
+    }
     .iconfont {
       padding: 5px;
       &:not(.project_star) {
@@ -1363,91 +2020,15 @@ export default {
         }
       }
     }
-    .project_search {
-      position: relative;
-      .el-input {
-        width: 290px;
-      }
-      .search_list {
-        position: absolute;
-        top: 42px;
-        left: 0;
-        width: 520px;
-        max-height: 330px;
-        overflow: auto;
-        border: 1px solid #e5e5e5;
-        background: #fff;
-        .border_radius(@br: 4px;);
-        z-index: 10;
 
-        .search_list_ul {
-          .search_list_li {
-            height: 40px;
-            line-height: 40px;
-            overflow: hidden;
-            .cur;
-            img,
-            span,
-            button,
-            .iconfont {
-              vertical-align: middle;
-            }
-            img {
-              margin-left: 25px;
-            }
-
-            .title {
-              .dis-in-bl;
-              margin-left: 10px;
-              width: 160px;
-              .word_over;
-            }
-
-            .icon-star {
-              margin-left: 22px;
-              color: @starColor;
-            }
-            .task_state {
-              font-size: 12px;
-              padding: 0 !important;
-              width: 90px;
-              text-align: center;
-              margin: 0 7px;
-              margin-left: 24px;
-            }
-            .task_state1 {
-              .main_button_unfixed(#169a19, #ECFFED, #ECFFED);
-            }
-            .task_state2 {
-              .main_button_unfixed(#EA3F33, #F7F7F7, #F7F7F7);
-            }
-            .task_state3 {
-              .main_button_unfixed(#EA3F33, #FFE8E6, #FFE8E6);
-            }
-            .task_state4 {
-              .main_button_unfixed(#999999, #F7F7F7, #F7F7F7);
-            }
-
-            .from_parth {
-              .dis-in-bl;
-              margin-left: 10px;
-              width: 95px;
-              font-weight: bold;
-              .word_over;
-            }
-
-            &:hover {
-              background: @bg-f2f2f2;
-            }
-          }
-        }
-      }
-    }
     .otherButton {
       height: 50px;
       line-height: 50px;
       vertical-align: middle;
       margin-left: 10px;
+      .add_people_box {
+        position: relative;
+      }
       .el-row {
         height: 30px;
         display: inline-block;
@@ -1540,6 +2121,7 @@ export default {
         flex-direction: column;
         z-index: 1;
         //1. 每行内容 包含分区（任务 阶段）
+
         .partitionsMain {
           display: flex;
           flex-direction: row;
@@ -1564,10 +2146,12 @@ export default {
                 text-align: center;
                 position: relative;
                 .stageName {
-                  padding: 20px 0;
+                  height: 50%;
                   width: 100px;
                   border: none;
+                  margin-top: 22px;
                   .box_sizing;
+                  overflow: hidden;
                 }
                 .iconBox_ {
                   position: absolute;
@@ -1607,6 +2191,7 @@ export default {
                 border-bottom: 1px solid #eeeeee;
                 .box_sizing;
                 background: #fff;
+                position: relative;
               }
               // 阶段（内容）样式
               .stageListsBox {
@@ -1633,7 +2218,7 @@ export default {
                   color: #3684ff;
                 }
                 .stage {
-                  position: relative;
+                  // position: relative;
                   .stageBg {
                     position: absolute;
                     display: inline-block;
@@ -1654,9 +2239,6 @@ export default {
                     display: none;
                     .box_sizing;
                     .el-button {
-                      background: none;
-                      border: none;
-                      padding: 0;
                       i {
                         color: #fff;
                         font-size: 14px;
@@ -1759,9 +2341,6 @@ export default {
                     text-align: center;
                     display: none;
                     .el-button {
-                      background: none;
-                      border: none;
-                      padding: 0;
                       line-height: 72px;
                       i {
                         color: #fff;
@@ -1793,9 +2372,6 @@ export default {
                     text-align: center;
                     display: none;
                     .el-button {
-                      background: none;
-                      border: none;
-                      padding: 0;
                       line-height: 72px;
                       i {
                         color: #fff;
@@ -1808,17 +2384,16 @@ export default {
                   }
                   .stageInfo {
                     position: absolute;
-                    padding: 7px 0;
                     .box_sizing;
-                    top: 10px;
                     display: inline-block;
-                    height: 52px;
+                    height: 72px;
                     z-index: 2;
                     width: 100%;
                     text-align: center;
-
                     .participantImg {
+                      max-width: 155px;
                       height: 20px;
+                      margin: 17px auto;
                       .img {
                         display: inline-block;
                         width: 20px;
@@ -1833,62 +2408,35 @@ export default {
                       }
                     }
                     .participantMain {
+                      position: absolute;
+                      bottom: 15px;
+                      width: 100%;
+                      // margin: 0 auto;
                       color: #666666;
+                      // 饼状图样式
+                      svg {
+                        width: 10px;
+                        height: 10px;
+                        transform: rotate(-90deg);
+                        border-radius: 50%;
+                      }
+                      circle {
+                        fill: #eeeeee;
+                        stroke: #3684ff;
+                        stroke-width: 32;
+                        // stroke-dasharray: 38 100; /* for 38% */
+                      }
+                      .redCl {
+                        color: red;
+                      }
                       .pieChart {
-                        display: block;
-                        width: 100px;
-                        height: 100px;
-                        background: skyblue;
+                        display: inline-block;
+                        width: 10px;
+                        height: 10px;
+                        background: red;
                         position: relative;
                         border-radius: 50%;
                         overflow: hidden;
-                        .pie1 {
-                          position: absolute;
-                          left: 0px;
-                          top: 0px;
-                          display: block;
-                          width: 200px;
-                          height: 200px;
-                          background: yellow;
-                          transform: skewX(0deg);
-                          // transform:rotate(deg);
-                          transform-origin: 100% 100%; /*定义动画的旋转中心点*/
-                        }
-                        .pie2 {
-                          position: absolute;
-                          left: 50px;
-                          top: 0px;
-                          display: block;
-                          width: 50px;
-                          height: 50px;
-                          background: pink;
-                          transform: rotate(0deg);
-                          transform-origin: 0 100%; /*定义动画的旋转中心点*/
-                        }
-                        .pie3 {
-                          position: absolute;
-                          left: 0px;
-                          top: 50px;
-                          display: block;
-                          width: 50px;
-                          height: 50px;
-                          background: black;
-                          transform: rotate(0deg);
-                          transform-origin: 100% 100%; /*定义动画的旋转中心点*/
-                        }
-                        .pie4 {
-                          position: absolute;
-                          left: 0px;
-                          top: 50px;
-                          display: block;
-                          width: 50px;
-                          height: 50px;
-                          background: slateblue;
-                          transform: rotate(0deg);
-                          transform-origin: 100% 100%; /*定义动画的旋转中心点*/
-                        }
-
-                        // #3684FF
                       }
                       .wrapper {
                         width: 300px;
@@ -2019,6 +2567,7 @@ export default {
             }
           }
         }
+
         // .
         // 任务阶段 左侧2 列表样式
         .partitionsLabel {
@@ -2070,17 +2619,19 @@ export default {
           position: fixed;
         }
         .stageTittle {
-          width: 55px;
-          max-height: 57px;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 3;
-          overflow: hidden;
+          width: 56px;
+          max-height: 50%;
+          // line-height: 1.5;
           position: absolute;
-          right: 14px;
-          top: 50%;
-          margin-top: -10px;
+          top: calc(50% + 4px);
+          left: calc(50% + 7px);
+          transform: translate(-50%, -50%);
           border: none;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
           i {
             position: absolute;
           }
@@ -2096,7 +2647,7 @@ export default {
     }
   }
   .drag_file {
-    // background: pink !important;
+    background: pink !important;
     .thumbnailList {
       background: -webkit-linear-gradient(
         #ffffff,

@@ -15,3 +15,6 @@ export const TASK_INDEX = 'TASK_INDEX';
 export const TASKTIME_CHANGE = 'TASKTIME_CHANGE';
 export const PROJECT_CHANGE = 'PROJECT_CHANGE';
 export const TASKDELCHANGE = 'TASKDELCHANGE';
+
+// new_yun
+export const CHECKEDLIST_CHANGE = 'CHECKEDLIST_CHANGE';

@@ -21,7 +21,7 @@ target:'http://eggs.apexgame.cn/',
 logLevel:'debug', 
 changeOrigin:true
       }, 
-'/File_Upload.ashx': {
+'/ProjectFile.ashx': {
 target:'http://eggs.apexgame.cn/',
 logLevel:'debug', 
 changeOrigin:true

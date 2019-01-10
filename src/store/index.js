@@ -26,6 +26,9 @@ const state =  {
 
     projectItem: null, // 当前选择的项目
 
+    // new_yun
+    checkedFileList: [],
+
 }
 
 

@@ -14,7 +14,7 @@
                         @dblclick='dbRedact()'
                         @click="addStage(list)">
                         <span class="title"
-                              :contenteditable='isCont'
+                              :contenteditable='true'
                               :v-bind="list.title"
                               @keyup="changeValue"
                               @blur="newStageBlur(list.title,list)">{{list.title}}</span>
@@ -26,9 +26,11 @@
                             <i class="iconfont icon-guanbijiantou"></i>
                         </span>
                     </li>
+                    <li class="userDefined fl cur"
+                        @click="addList">自定义</li>
                 </ul>
-                <div class="userDefined cur"
-                     @click="addList">自定义</div>
+                <!-- <div class="userDefined cur"
+                     >自定义</div> -->
             </div>
 
             <div class="selective">
@@ -56,13 +58,13 @@
                     </draggable>
                 </div>
             </div>
-            <div class="bottomButton">
+            <!-- <div class="bottomButton">
                 <div class="buttonBox fr">
                     <button class="cancel"
                             @click="cancel">取消</button>
                     <button class="main_button_bg">确认</button>
                 </div>
-            </div>
+            </div> -->
         </div>
 
     </div>
@@ -73,7 +75,7 @@ import draggable from "vuedraggable";
 export default {
     data() {
         return {
-            isCont: true,
+            isCont: false,
             stageLists: [], // 默认列表
             newButton: { title: '', pkid: -1, enabled: false },
             newStageVal: '',
@@ -89,7 +91,12 @@ export default {
         },
         // 添加标签
         addStage(list) {
-            list.enabled = !list.enabled
+            if (list.Count) {
+                this.$message('当前阶段已有内容，不可删除，您可以更改名称');
+                return false;
+            } else {
+                list.enabled = !list.enabled
+            }
         },
         dbRedact() {
             this.isCont = true;
@@ -97,36 +104,36 @@ export default {
 
         // 删除阶段标签
         delStage(list, index) {
-
-            this.stageLists.splice(index, 1);
-            let data = { stageId: list.pkid }
-            this.$HTTP('post', '/stage_delete', data).then(res => {
-                console.log(res)
-            })
+            console.log(list);
+            if (list.Count) {
+                this.$message('当前阶段已有内容，不可删除，您可以更改名称');
+                return false;
+            } else {
+                this.stageLists.splice(index, 1);
+                let data = { stageId: list.pkid }
+                this.$HTTP('post', '/stage_delete', data).then(res => {
+                    console.log(res)
+                })
+            }
         },
         // 创建标签失焦
         newStageBlur(title, list) {
-            this.isCont = true;
-            // title = this.newStageVal;
+            this.isCont = false;
             if (list.isNew == false) {
                 console.log('不是新建')
                 return
-
-                if (title == '') {
-                    this.stageLists.pop();
-                }
             } else {
                 title = this.newStageVal;
                 if (title == '') {
                     this.stageLists.pop();
-                    console.log('新建 ')
+                    console.log('新建 ');
                 } else {
-                    console.log(title, '新建 有名字')
                     list.enabled = true;
-                    // list.title = this.newStageVal;
                     let data = { 'myUserId': this.userPkid, 'projectId': this.projectId, 'title': title }
                     this.$HTTP('post', '/stage_add', data).then(res => {
-                        console.log(res)
+                        this.stageLists.pop();
+                        this.stageLists.push(res.result);
+                        console.log(res.result)
 
                     })
                 }
@@ -138,7 +145,8 @@ export default {
             this.stageLists.push(this.newButton);
             this.$nextTick(res => {
                 this.isCont = true;
-                $('.labelLists').find('.stageL:last-child').find('.title').focus();
+                
+                $('.labelLists').find('.stageL:last').find('.title').focus();
             })
         },
         // 值改变
@@ -156,15 +164,13 @@ export default {
         },
         // 删除选择的列表
         delCheck(li, index) {
-            li.enabled = !li.enabled;
-            console.log(index)
-            this.stageLists[index].enabled = false;
-
-            return
-            this.checkStageList.splice(index, 1)
-            let id = this.stageLists.findIndex(res => {
-                return li.id == res.id;
-            })
+            if (li.Count) {
+                this.$message('当前阶段已有内容，不可删除，您可以更改名称');
+                return false;
+            } else {
+                li.enabled = !li.enabled;
+                this.stageLists[index].enabled = false;
+            }
         },
         closePop() {
             this.$emit('closePop');
@@ -172,9 +178,8 @@ export default {
         getStageLists() {
             let data = { 'projectId': this.projectId }
             this.$HTTP('post', '/stageCount_list_get', data).then(res => {
-                console.log(this.stageLists)
-
                 this.stageLists = res.result;
+                console.log(res.result)
                 for (let list of this.stageLists) {
                     list.isNew = false;
                 }
@@ -204,7 +209,7 @@ export default {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);   
+    transform: translate(-50%, -50%);
     .titleTop {
       height: 44px;
       line-height: 44px;
@@ -297,8 +302,10 @@ export default {
     }
     .selective {
       padding: 25px 0;
+      max-height: 300px;
+      overflow: scroll;
       .box_sizing;
-      border-bottom: 1px solid rgba(242, 242, 242, 1);
+      //   border-bott/om: 1px solid rgba(242, 242, 242, 1);
       p {
         font-weight: bold;
         color: rgba(51, 51, 51, 1);
@@ -340,19 +347,19 @@ export default {
         }
       }
     }
-    .bottomButton {
-      width: 100%;
-      height: 70px;
-      padding: 0 25px;
-      position: absolute;
-      bottom: 0;
-      .box_sizing;
-      .cancel {
-        width: 68px;
-        color: #999999;
-        line-height: 70px;
-      }
-    }
+    // .bottomButton {
+    //   width: 100%;
+    //   height: 70px;
+    //   padding: 0 25px;
+    //   position: absolute;
+    //   bottom: 0;
+    //   .box_sizing;
+    //   .cancel {
+    //     width: 68px;
+    //     color: #999999;
+    //     line-height: 70px;
+    //   }
+    // }
   }
 }
 </style>

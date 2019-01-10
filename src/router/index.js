@@ -23,6 +23,9 @@ import Workbench from '@/components/workbench';
 import PersonalDocuments from '@/components/personalDocuments'
 import ProjectInfo from '@/components/project/ProjectInfo';
 
+// 项目中的任务详情
+import TaskDetail from '@/components/project/taskDetail';
+
 
 import Friend from '@/components/friend';
 
@@ -48,6 +51,11 @@ export default new Router({
             path:'/project/projectInfo',
             name:'ProjectInfo',
             component:  ProjectInfo ,
+        },
+        {
+            path:'/project/taskDetail',
+            name:'TaskDetail',
+            component:  TaskDetail ,
         },
         {
             path:'/personalDocuments',

@@ -42,6 +42,7 @@
                           :class="descnFocus?'describePitchOn':'describe'"
                           v-if="classify=='newInformation'"
                           v-model='descn'
+                          ref="describeFocus"
                           style="resize:none"
                           @focus="descnInputFocus"
                           @blur="descnInputBlur"></textarea>
@@ -64,18 +65,18 @@
                       :class="{'addbold':addListShow}">添加成员</span>
                 <span v-else
                       class="addbold">添加成员</span>
-                <div class="addList"
+                <div class="addList clearfix"
                      v-if="userLitsShow || classify!=='newInformation'">
                   <span class="oneself">
                     <img :src="oneSelfImg">
                   </span>
                   <span class="line"></span>
-                  <span>
-                    <span v-for='(item,index) in userList'
-                          :key="index"
-                          v-if="!item.del">
-                      {{item.del}}
-                      <span class="addPhoto">
+                  <span class="userImgBox clearfix">
+                    <div v-for='(item,index) in userList'
+                         :key="index"
+                         v-if="!item.del"
+                         class="userImg fl clearfix">
+                      <span class="addPhoto fl">
                         <img :src="item.image"
                              alt="">
                         <i class="delBox"
@@ -84,15 +85,13 @@
                            v-if="classify!=='pigeonhole'||classify=='newInformation'"
                            @click="delPeo(item,index)"></i>
                       </span>
-                    </span>
+                    </div>
+                    <div class="addPhotoIcon fl"
+                         @click="addPeo"
+                         v-if="classify!=='pigeonhole'||classify=='newInformation'">
+                      <i class="iconfont icon-jia1"> </i>
+                    </div>
                   </span>
-
-                  <span class="addPhotoIcon"
-                        @click="addPeo"
-                        v-if="classify!=='pigeonhole'||classify=='newInformation'">
-                    <i class="iconfont icon-jia1"> </i>
-                  </span>
-
                 </div>
               </li>
               <!-- 4.选择日期 -->
@@ -241,6 +240,12 @@ export default {
       this.textShow = true;
       this.describeShow = true;
       this.descnFocus = true;
+
+      this.$nextTick(res => {
+        this.$refs.describeFocus.focus()
+
+      })
+
     },
     // 添加成员
     addPeo() {
@@ -492,6 +497,7 @@ export default {
         .titleInput {
           width: 319px;
           height: 30px;
+          line-height: 1.7;
           color: #333333;
           font-weight: bold;
           .box_sizing;
@@ -560,75 +566,75 @@ export default {
           color: #333333;
           font-weight: bold;
         }
-        .addList {
-          margin-top: 14px;
-          width: 322px;
-          float: right;
+        .userImgBox {
+          max-width: 278px;
+          max-height: 56px;
+          position: absolute;
+          left: 40px;
+          top: 0;
+          overflow: auto;
           span {
-            margin-left: 5px;
-            display: inline-block;
+            margin: 0;
           }
-          .oneself {
+
+          .userImg {
             width: 20px;
             height: 20px;
-            overflow: hidden;
-            border-radius: 3px;
-            img {
+            &:not(:first-child) {
+              margin-left: 8px;
+              margin-bottom: 8px;
+              // border: 1px solid #ffffff;
+            }
+            &:nth-child(10n + 1) {
+              margin: 0;
+            }
+            .addPhoto {
               display: inline-block;
-              width: 100%;
-              height: 100%;
-            }
-          }
-          .line {
-            height: 10px;
-            width: 1px;
-            background: #f2f2f2;
-            display: inline-block;
-            margin-bottom: 5px;
-          }
-          .addPhoto {
-            width: 20px;
-            height: 20px;
-            text-align: center;
-            line-height: 20px;
-            border-radius: 3px;
-            position: relative;
-            overflow: hidden;
-            i {
-              position: absolute;
-              left: 2px;
-              color: rgba(255, 255, 255, 0);
-            }
-            img {
               width: 20px;
               height: 20px;
-              position: absolute;
-              background: slateblue;
-              left: 0;
+              text-align: center;
+              line-height: 20px;
+              border-radius: 3px;
+              position: relative;
+              overflow: hidden;
+              i {
+                position: absolute;
+                left: 2px;
+                color: rgba(255, 255, 255, 0);
+              }
+              img {
+                width: 20px;
+                height: 20px;
+                position: absolute;
+                background: slateblue;
+                left: 0;
+              }
+              .delBox {
+                display: block;
+                position: absolute;
+                background: rgba(51, 51, 51, 0);
+                width: 100%;
+                height: 100%;
+                left: 0;
+                top: 0;
+              }
             }
-            .delBox {
-              display: block;
-              position: absolute;
-              background: rgba(51, 51, 51, 0);
-              width: 100%;
-              height: 100%;
-              left: 0;
-              top: 0;
-            }
-          }
-          .addPhoto:hover {
-            i {
-              color: rgba(255, 255, 255, 1);
-              transition: all 0.3s linear;
-            }
-            .delBox {
-              background: rgba(51, 51, 51, 0.7);
-              transition: all 0.3s linear;
+            .addPhoto:hover {
+              i {
+                color: rgba(255, 255, 255, 1);
+                transition: all 0.3s linear;
+              }
+              .delBox {
+                background: rgba(51, 51, 51, 0.7);
+                transition: all 0.3s linear;
+              }
             }
           }
           .addPhotoIcon {
+            margin-left: 8px;
             width: 20px;
             height: 20px;
+            display: inline-block;
             text-align: center;
             line-height: 20px;
             border-radius: 3px;
@@ -641,6 +647,40 @@ export default {
               font-size: 10px;
               color: rgba(255, 255, 255, 1);
             }
+          }
+        }
+        .addList {
+          margin-top: 14px;
+          margin-left: 32px;
+          width: 322px;
+          min-height: 32px;
+          position: relative;
+          span {
+            margin: 0;
+          }
+          .oneself {
+            width: 20px;
+            height: 20px;
+            overflow: hidden;
+            border-radius: 3px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            img {
+              display: inline-block;
+              width: 100%;
+              height: 100%;
+            }
+          }
+          .line {
+            height: 10px;
+            width: 1px;
+            background: #f2f2f2;
+            display: inline-block;
+            margin-bottom: 5px;
+            position: absolute;
+            left: 30px;
+            top: 5px;
           }
         }
       }

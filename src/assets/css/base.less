@@ -801,7 +801,7 @@ not supported by any browser */
   position: fixed;
   right: 0;
   bottom:  0;
-  width: 600px;
+  width: 390px;
   min-height: 100px;
   .border_radius(@br: 2px);
   background-color: #fff;
@@ -814,7 +814,6 @@ not supported by any browser */
     top: 16px;
     font-size:  16px;
     color: @grayNight;
-    font-weight: bold;
     .cur;
   }
 
@@ -827,7 +826,7 @@ not supported by any browser */
   }
   .upload_progress_ul {
     width: 100%;
-    max-height: 310px;
+    max-height: 210px;
     overflow: auto;
     padding: 10px 24px;
     .box_sizing;
@@ -859,12 +858,12 @@ not supported by any browser */
       .upload_progress_name {
         display: inline-block;
         vertical-align: top;
-        max-width: calc(~'100% - 140px');
+        max-width: calc(~'100% - 180px');
         .word_over;
         height: 20px;
         line-height: 20px;
-        margin-top: 10px;
-        margin-left: 10px;
+        margin-top: 6px;
+        margin-left: 8px;
 
       }
 
@@ -875,8 +874,8 @@ not supported by any browser */
         margin-top: 10px;
         position: absolute;
         left: 44px;
-        top: 16px;
-        margin-left: 10px;
+        top: 12px;
+        margin-left: 8px;
         .el-progress--line {
           width: calc(~'100% - 25px');
           display: inline-block;
@@ -892,13 +891,25 @@ not supported by any browser */
 
       }
 
+      .upload_progress_error {
+        width: calc(~'100% - 60px');
+        height: 20px;
+        line-height: 20px;
+        margin-top: 7px;
+        position: absolute;
+        left: 44px;
+        top: 16px;
+        margin-left: 8px;
+        font-size: 12px;
+        color: #EA3F33;
+      }
       .upload_progress_size {
         font-size: 12px;
         color: @grayNight;
         display: inline-block;
         height: 20px;
         line-height: 20px;
-        margin-top: 10px;
+        margin-top: 6px;
         margin-right: 20px;
         float: right;
       }
@@ -908,7 +919,7 @@ not supported by any browser */
         top: 0px;
         right: 6px;
         color: @grayNight;
-        font-size: 16px;
+        font-size: 12px;
         height: 42px;
         line-height: 42px;
         display: inline;
