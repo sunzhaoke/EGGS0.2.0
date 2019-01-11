@@ -11,26 +11,23 @@
                     <li class="stageL fl cur"
                         v-for=" (list,index) in stageLists"
                         :key="index"
-                        @dblclick='dbRedact()'
-                        @click="addStage(list)">
-                        <span class="title"
-                              :contenteditable='true'
-                              :v-bind="list.title"
-                              @keyup="changeValue"
-                              @blur="newStageBlur(list.title,list)">{{list.title}}</span>
+                        @click.stop="addStage(list)">
+                        <input class="title"
+                               v-model="list.title"
+                               :disabled="list.isRedact"
+                               @change="stageChange(list.title)"
+                               @blur.stop="newStageBlur(list.title,list)" />
+                        <i class="iconfont icon-bianji"
+                           @click.stop="redactStage(list,index)"></i>
+                        <i class="iconfont icon-close-"
+                           v-if="!list.enabled"
+                           @click.stop="delStage(list,index)"></i>
                         <i v-if='list.enabled'
                            class="iconfont icon-wancheng_huaban"></i>
-                        <span class="close"
-                              v-if="!list.enabled"
-                              @click.stop="delStage(list,index)">
-                            <i class="iconfont icon-guanbijiantou"></i>
-                        </span>
                     </li>
                     <li class="userDefined fl cur"
                         @click="addList">自定义</li>
                 </ul>
-                <!-- <div class="userDefined cur"
-                     >自定义</div> -->
             </div>
 
             <div class="selective">
@@ -38,7 +35,10 @@
                 <div>
                     <draggable v-model="stageLists"
                                @update="datadragEnd"
-                               @start='starDrag'>
+                               @start='starDrag'
+                               :options="{
+                                 handle:'.icon-yidong'
+                                 }">
                         <transition-group>
                             <div class="stageListCheck"
                                  v-for="(li,index) in stageLists"
@@ -47,11 +47,13 @@
                                  :data-partitionid='li.pkid'>
                                 <div>
                                     <i class="iconfont icon-yidong cur"></i>
-                                    <span> {{li.title}}</span>
-                                    <span class="close"
+                                    <span class="stageName cur"> {{li.title}}</span>
+                                    <i class="iconfont icon-close-"
+                                       @click="delCheck(li,index)"></i>
+                                    <!-- <span class="close"
                                           @click="delCheck(li,index)">
                                         <i class="iconfont icon-guanbijiantou"></i>
-                                    </span>
+                                    </span> -->
                                 </div>
                             </div>
                         </transition-group>
@@ -75,19 +77,28 @@ import draggable from "vuedraggable";
 export default {
     data() {
         return {
-            isCont: false,
             stageLists: [], // 默认列表
-            newButton: { title: '', pkid: -1, enabled: false },
+            newButton: { title: '', pkid: -1, enabled: false, isRedact: false },
             newStageVal: '',
+            oldStageVal: '',
         }
     },
     components: {
         draggable,
     },
+    watch: {
+
+    },
     props: ['projectId', 'userPkid'],
     methods: {
-        changeValue(e) {
-            this.newStageVal = $(e.target).text();
+        //编辑阶段
+        redactStage(list, index) {
+            this.oldStageVal = list.title; //保存旧值
+            list.isRedact = false;
+            this.stageLists = [...this.stageLists];
+            this.$nextTick(res => {
+                $('.labelLists').find('.stageL').find('.title').eq(index).focus()
+            })
         },
         // 添加标签
         addStage(list) {
@@ -98,13 +109,8 @@ export default {
                 list.enabled = !list.enabled
             }
         },
-        dbRedact() {
-            this.isCont = true;
-        },
-
         // 删除阶段标签
         delStage(list, index) {
-            console.log(list);
             if (list.Count) {
                 this.$message('当前阶段已有内容，不可删除，您可以更改名称');
                 return false;
@@ -118,41 +124,52 @@ export default {
         },
         // 创建标签失焦
         newStageBlur(title, list) {
-            this.isCont = false;
+            // if (title == '') {
+            //     title = this.oldStageVal;
+            //     console.log(title, this.oldStageVal)
+            //     this.stageLists = [...this.stageLists];
+            //     this.$message('阶段名称不能为空')
+            // }
             if (list.isNew == false) {
-                console.log('不是新建')
-                return
+
+                if (title == this.oldStageVal) {
+                    return
+                } else {
+                    console.log(title)
+                    let obj = { stageId: list.pkid, title: title }
+                    this.$HTTP('post', '/stage_update', obj).then(res => {
+                    })
+                }
             } else {
-                title = this.newStageVal;
                 if (title == '') {
                     this.stageLists.pop();
-                    console.log('新建 ');
                 } else {
                     list.enabled = true;
                     let data = { 'myUserId': this.userPkid, 'projectId': this.projectId, 'title': title }
                     this.$HTTP('post', '/stage_add', data).then(res => {
+                        res.result.isRedact = true;
                         this.stageLists.pop();
                         this.stageLists.push(res.result);
-                        console.log(res.result)
-
                     })
                 }
             }
+            list.enabled = true;
+            this.stageLists = [...this.stageLists];
+        },
+        stageChange(val) {
+            console.log(val)
         },
         // 添加自定义阶段
         addList() {
-            this.newButton.title = ''
+            // this.stageLists.push(res.result);
+            this.newButton.title = '';
+            this.newButton.isRedact = false;
             this.stageLists.push(this.newButton);
             this.$nextTick(res => {
-                this.isCont = true;
-                
                 $('.labelLists').find('.stageL:last').find('.title').focus();
             })
         },
-        // 值改变
-        valueChange(list) {
-            list.enabled = !list.enabled;
-        },
+
         starDrag(e) {
             console.log(e)
         },
@@ -179,9 +196,9 @@ export default {
             let data = { 'projectId': this.projectId }
             this.$HTTP('post', '/stageCount_list_get', data).then(res => {
                 this.stageLists = res.result;
-                console.log(res.result)
                 for (let list of this.stageLists) {
                     list.isNew = false;
+                    list.isRedact = true;
                 }
             })
         },
@@ -266,36 +283,31 @@ export default {
             -webkit-box-orient: vertical;
             word-break: break-all;
           }
+          i {
+            width: 14px;
+            height: 14px;
+            position: absolute;
+            right: 5px;
+            top: 13px;
+            font-size: 14px;
+            display: none;
+          }
+          .icon-bianji {
+            left: 5px;
+            top: 13px;
+          }
           .icon-wancheng_huaban {
             position: absolute;
             right: 5px;
             top: 11px;
             color: @mainColor;
             font-size: 14px;
-          }
-          .close {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            background: #e0e0e0;
-            color: #ffffff;
-            line-height: 10px;
-            text-align: center;
-            border-radius: 50%;
-            position: absolute;
-            left: 6px;
-            top: 12px;
-            display: none;
-            i {
-              font-size: 10px;
-            }
-            .icon-guanbijiantou {
-            }
+            display: block;
           }
         }
         .stageL:hover {
-          .close {
-            display: inline-block;
+          i {
+            display: block;
           }
         }
       }
@@ -314,7 +326,7 @@ export default {
       }
       .stageListCheck {
         display: inline-block;
-        min-width: 105px;
+        width: 105px;
         border-radius: 4px;
         height: 37px;
         padding: 10px;
@@ -323,26 +335,35 @@ export default {
         border: 1px solid rgba(54, 132, 255, 1);
         margin-left: 23px;
         margin-bottom: 16px;
-        .close {
+        .stageName {
           display: inline-block;
-          width: 14px;
-          height: 14px;
-          background: #e0e0e0;
-          color: #ffffff;
-          line-height: 10px;
+          width: 100%;
+          height: 100%;
+          padding: 0 10px;
+          .box_sizing;
           text-align: center;
-          border-radius: 50%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          word-break: break-all;
+          //   margin: 0 auto;
+        }
+        i {
           position: absolute;
-          right: 6px;
+          right: 5px;
           top: 12px;
+          font-size: 14px;
           display: none;
-          i {
-            font-size: 10px;
-          }
+        }
+        .icon-yidong {
+          left: 5px;
+          top: 13px;
         }
       }
       .stageListCheck:hover {
-        .close {
+        i {
           display: block;
         }
       }

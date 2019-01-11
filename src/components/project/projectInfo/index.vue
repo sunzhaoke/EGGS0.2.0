@@ -10,22 +10,6 @@
                    @change="projectChange">
         </el-option>
       </el-select>
-      <el-dropdown trigger="click"
-                   @click.native="add">
-        <span class="el-dropdown-link">
-          <i class="iconfont icon-tianjiarenyuan otherColor"></i>
-        </span>
-        <el-dropdown-menu slot="dropdown">
-          <Participant1 v-if="topAddPopShow"
-                        ref="addPeople"
-                        id="addPeople"
-                        :creatorId="userPkid"
-                        :defaultKeys="defaultKeys"
-                        :userList="userList"
-                        @handleSure="addPeopleSure"
-                        @handleInvite="invitePeople" />
-        </el-dropdown-menu>
-      </el-dropdown>
 
       <i class="iconfont  icon-star"
          :class="starFlag ? 'project_star' : ''"
@@ -36,17 +20,42 @@
       <div class="fr otherButton">
         <i class="iconfont icon-19daoru"
            @click="toLead()"></i>
+        <el-dropdown>
+          <span class="el-dropdown-link">
+            <i class="iconfont icon-haoyou"></i>
+          </span>
+          <el-dropdown-menu slot="dropdown">
+            <input type="text"
+                   placeholder="搜索">
+            <div class="projectUserLists">
+              <p class="projecttTitle">项目成员列表</p>
+              <draggable v-model="userList"
+                         @start='userListMove'
+                         :options="{
+                                group:{name: 'article',pull:'clone'},
+                                 dragClass: 'drag_userImg',
+                                 }">
+                <el-dropdown-item v-for="(list,index) in userList"
+                                  :key="index"
+                                  :data-pkid='list.userId'>
+                  <img :src="list.userPic"
+                       class=""> {{list.userId}}
 
-        <span class="el-dropdown-link">
-          <i class="iconfont icon-haoyou"></i>
-        </span>
+                  <span> {{list.nickName ||list.userName}}</span>
+                </el-dropdown-item>
+
+              </draggable>
+              <div class="inviteButton"> 邀请好友</div>
+            </div>
+          </el-dropdown-menu>
+        </el-dropdown>
 
         <el-dropdown @click.native.stop="parthCommand()">
           <span class="el-dropdown-link">
             <i class="iconfont icon-gengduo"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item v-if="projectItem.createrId==userPkid"
+            <el-dropdown-item v-if="projectItem.creater.createrId==userPkid"
                               @click.native="parthCommand('editStage')">编辑阶段</el-dropdown-item>
             <el-dropdown-item v-else>
               <el-tooltip class="item"
@@ -229,13 +238,20 @@
                           <div class="stageInfo cur"
                                v-if="lists.enabled ==true&&lists.stageTaskState==false">
                             <div class="participantImg">
-                              <span class="img"
-                                    v-for="(i,index) in lists.userList"
-                                    :key="index">
-                                <img :src="i.userPic"
-                                     alt="">
-                              </span>
+                              <draggable :list=" lists.userList"
+                                         :options="{group:'article', disabled: false}">
+                                <span class="img"
+                                      v-for="(i,index) in lists.userList"
+                                      :key="index"
+                                      v-if="index<5">
+                                  <img :src="i.userPic"
+                                       alt="">
+                                </span>
+                                <span class="numsInfo"
+                                      v-if="lists.userList.length > 5">+{{lists.userList.length-5}}人</span>
+                              </draggable>
                             </div>
+
                             <div class="participantMain">
                               <span class="pieChart"
                                     v-if="lists.taskTime==0"></span>
@@ -362,7 +378,7 @@
                                 <el-dropdown-item>
                                   <el-upload ref="demandUpload"
                                              class="from_local dis-in-bl"
-                                             :action="'/ProjectFile.ashx?&myUserId='+userPkid+'&projectId='+item.taskId+'&stageTaskId='+lists.stageId+'&filePartitionId=0'"
+                                             :action="'/ProjectFile.ashx?&myUserId='+userPkid+'&projectId='+item.taskId+'&stageTaskId='+lists.stageTaskId+'&filePartitionId=0'"
                                              :show-file-list="false"
                                              :multiple="true"
                                              :on-error="uploadError"
@@ -378,14 +394,6 @@
                                 <el-dropdown-item>从个人文档上传</el-dropdown-item>
                               </el-dropdown-menu>
                             </el-dropdown>
-                            <el-tooltip class="item"
-                                        effect="dark"
-                                        content="上传文件"
-                                        placement="top-start">
-                              <el-button>
-                              </el-button>
-                            </el-tooltip>
-
                             <el-tooltip class="item"
                                         effect="dark"
                                         :content="lists.userList.length?'已有内容无法关闭':'关闭阶段'"
@@ -426,7 +434,6 @@
                               </el-button>
                             </el-tooltip>
                           </div>
-
                         </div>
                       </div>
                     </li>
@@ -648,16 +655,23 @@
                               <div class="stageInfo cur"
                                    v-if="lists.enabled ==true&&lists.stageTaskState==false">
                                 <div class="participantImg">
-                                  <span class="img"
-                                        v-for="(i,index) in lists.userList"
-                                        :key="index">
-                                    <img :src="i.userPic"
-                                         alt="">
-                                  </span>
+                                  <draggable :list=" lists.userList"
+                                             :options="{group:'article', disabled: false}">
+                                    <span class="img"
+                                          v-for="(i,index) in lists.userList"
+                                          :key="index"
+                                          v-if="index <5">
+                                      <img :src="i.userPic"
+                                           alt="">
+                                      <span class="numsInfo"
+                                            v-if="lists.userList.length>5">+{{lists.userList.length-5}}人</span>
+                                    </span>
+                                  </draggable>
                                 </div>
+
                                 <div class="participantMain">
                                   <span class="pieChart"
-                                        v-if="!lists.taskTime"></span>
+                                        v-if="lists.taskTime==0"></span>
                                   <svg viewBox="0 0 32 32"
                                        v-if='lists.taskTime'>
                                     <circle r="16"
@@ -800,13 +814,7 @@
                                     <el-dropdown-item>从个人文档上传</el-dropdown-item>
                                   </el-dropdown-menu>
                                 </el-dropdown>
-                                <el-tooltip class="item"
-                                            effect="dark"
-                                            content="上传文件"
-                                            placement="top-start">
-                                  <el-button>
-                                  </el-button>
-                                </el-tooltip>
+
                                 <el-tooltip class="item"
                                             effect="dark"
                                             :content="lists.userList.length?'已有内容无法关闭':'关闭阶段'"
@@ -1104,6 +1112,7 @@ export default {
     }
   },
   computed: {
+
     // defaultKeys() {
     //   let arr = [];
     //   console.log(this.taskPeopleList)
@@ -1119,8 +1128,14 @@ export default {
   ,
   methods: {
     ...mapMutations(['DETAILS_CHANGE', 'TASKITEM_CHANGE', 'TASK_POSITION', 'PROJECT_CHANGE']),
-    async add(list) {
+    // 项目列表人员拖拽 放下
+    userListMove(evt) {
+      console.log('zhixing', evt.item.dataset.pkid);
+      
+      console.log('zhixing', evt.relatedContext);
 
+    },
+    async add(list) {
       try {
         await this.getProjectUsers();
       } catch (err) {
@@ -1152,7 +1167,6 @@ export default {
       this.starFlag = !this.starFlag;
       let obj = { 'projectId': this.projectId, 'userId': this.userPkid }
       this.$HTTP('post', '/project_update_isStar', obj).then(res => {
-
         // localStorage.setItem('projectItem', this.starFlag);
       })
     },
@@ -1908,6 +1922,8 @@ export default {
       }
       this.$HTTP('post', '/project_usersList_get', obj).then(res => {
         this.userList = res.result;
+        console.log(this.userList)
+
       })
     },
   },
@@ -1942,10 +1958,21 @@ export default {
 <style lang="less">
 @import "../../../assets/css/base.less";
 // @import "vue-easytable/libs/themes-base/index.css";
+.drag_userImg {
+  img {
+    width: 18px;
+    height: 18px;
+  }
+}
 .el-button {
   border: none !important;
   background: none;
   padding: 0;
+}
+.el-button:focus,
+.el-button:hover {
+  color: red !important;
+  background-color: #ffffff !important;
 }
 .fade-enter-active,
 .fade-leave-active {
@@ -1962,6 +1989,26 @@ export default {
 }
 .flodRotate-leave-active {
   animation: bounce-in 0.5s reverse;
+}
+// 拖拽项目人员列表
+.projectUserLists {
+  border-bottom: 1px solid #e5e5e5;
+  border-top: 1px solid #e5e5e5;
+  .projecttTitle {
+    line-height: 30px;
+    margin-left: 14px;
+    font-weight: bold;
+  }
+  img {
+    width: 18px;
+    height: 18px;
+    border-radius: 2px;
+    vertical-align: middle;
+  }
+}
+.inviteButton {
+  line-height: 50px;
+  margin-left: 14px;
 }
 @keyframes bounce-in {
   0% {
@@ -2026,6 +2073,7 @@ export default {
       line-height: 50px;
       vertical-align: middle;
       margin-left: 10px;
+
       .add_people_box {
         position: relative;
       }
@@ -2235,7 +2283,7 @@ export default {
                     height: 100%;
                     width: 100%;
                     z-index: 100;
-                    padding: 25px 35px;
+                    padding: 15px 35px;
                     display: none;
                     .box_sizing;
                     .el-button {
@@ -2350,6 +2398,10 @@ export default {
                         color: #666666;
                       }
                     }
+                    .el-button:hover {
+                      background: none;
+                    }
+
                     .iconBg {
                       display: inline-block;
                       width: 24px;
@@ -2371,6 +2423,7 @@ export default {
                     background: #ffffff;
                     text-align: center;
                     display: none;
+
                     .el-button {
                       line-height: 72px;
                       i {
@@ -2394,6 +2447,13 @@ export default {
                       max-width: 155px;
                       height: 20px;
                       margin: 17px auto;
+                      position: relative;
+                      .numsInfo {
+                        position: absolute;
+                        top: 0;
+                        right: -20px;
+                        color: #999999;
+                      }
                       .img {
                         display: inline-block;
                         width: 20px;
@@ -2451,30 +2511,6 @@ export default {
                         text-align: center;
                         color: #fff;
                         background: orange;
-                        // -webkit-transform: skew(45deg);
-                        // -moz-transform: skew(45deg)  ;
-                        // transform: skew(45deg);
-                      }
-
-                      // .pieChart::before {
-                      //   content: "";
-                      //   display: block;
-                      //   margin-left: 50%;
-                      //   height: 100%;
-                      //   background: yellowgreen;
-                      //   border-radius: 0 100% 100% 0/50%;
-                      //   transform-origin: left;
-                      //   transform: rotate(108deg);
-                      // }
-                      @keyframes spin {
-                        to {
-                          transform: rotate(0.5turn);
-                        }
-                      }
-                      @keyframes bg {
-                        50% {
-                          background: #655;
-                        }
                       }
                       span {
                         font-size: 12px;
@@ -2495,7 +2531,7 @@ export default {
                     border: 1px solid #c4c4c4;
                     z-index: 3;
                     display: block;
-                    padding: 25px 35px;
+                    padding: 15px 35px;
                     .box_sizing;
                   }
                   .closeHover {

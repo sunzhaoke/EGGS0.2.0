@@ -4,13 +4,12 @@
       <top-bar></top-bar>
     </div>
     <div class="mainBox">
-      <router-link to="project/projectManage"
+      <router-link to="/project"
                    class="next cur">退出个人中心</router-link>
       <el-tabs v-model="activeName"
                @tab-click="handleClick">
         <el-tab-pane label="用户管理"
                      name="first">
-
           <div class="myMain">
             <div class="hintBox"
                  v-if="!emails">
