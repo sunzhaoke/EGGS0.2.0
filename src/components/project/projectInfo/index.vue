@@ -25,12 +25,18 @@
             <i class="iconfont icon-haoyou"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <input type="text"
-                   placeholder="搜索">
+            <div class="searchUser">
+              <i class="iconfont icon-sousuo"></i>
+              <input type="text"
+                     placeholder="搜索">
+            </div>
+
             <div class="projectUserLists">
               <p class="projecttTitle">项目成员列表</p>
               <draggable v-model="userList"
                          @start='userListMove'
+                         @choose='userListChoose'
+                         class="userlist"
                          :options="{
                                 group:{name: 'article',pull:'clone'},
                                  dragClass: 'drag_userImg',
@@ -45,7 +51,7 @@
                 </el-dropdown-item>
 
               </draggable>
-              <div class="inviteButton"> 邀请好友</div>
+              <div class="inviteButton cur">邀请好友</div>
             </div>
           </el-dropdown-menu>
         </el-dropdown>
@@ -55,7 +61,7 @@
             <i class="iconfont icon-gengduo"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item v-if="projectItem.creater.createrId==userPkid"
+            <el-dropdown-item v-if="projectItem.creater.createrId ==userPkid"
                               @click.native="parthCommand('editStage')">编辑阶段</el-dropdown-item>
             <el-dropdown-item v-else>
               <el-tooltip class="item"
@@ -238,8 +244,10 @@
                           <div class="stageInfo cur"
                                v-if="lists.enabled ==true&&lists.stageTaskState==false">
                             <div class="participantImg">
+                              {{lists.isRepeat}}
                               <draggable :list=" lists.userList"
-                                         :options="{group:'article', disabled: false}">
+                                         :class="{'red':!lists.isRepeat}"
+                                         :options="{group:!lists.isRepeat?'article':'', disabled: false}">
                                 <span class="img"
                                       v-for="(i,index) in lists.userList"
                                       :key="index"
@@ -656,7 +664,7 @@
                                    v-if="lists.enabled ==true&&lists.stageTaskState==false">
                                 <div class="participantImg">
                                   <draggable :list=" lists.userList"
-                                             :options="{group:'article', disabled: false}">
+                                             :options="{group:{'article':lists.isRepeat}, disabled: false}">
                                     <span class="img"
                                           v-for="(i,index) in lists.userList"
                                           :key="index"
@@ -917,6 +925,9 @@
         </div>
       </div>
     </div>
+    <!-- <div class="guide">
+
+    </div> -->
     <transition name="fade1">
       <Info v-if="itemInformationShow"
             @closePop='closeInfo'
@@ -980,8 +991,8 @@ export default {
   data() {
     return {
       abg: '10 100',
-      mouseLeftIndex: 0,
-      mouseTopIndex: 0,
+      mouseLeftIndex: -1,
+      mouseTopIndex: -1,
       topAddPopShow: true, //顶部添加人员
       taskPeopleList: [],
       value6: '',
@@ -1112,27 +1123,69 @@ export default {
     }
   },
   computed: {
-
-    // defaultKeys() {
-    //   let arr = [];
-    //   console.log(this.taskPeopleList)
-    //   if (this.taskPeopleList) {
-    //     for (let x of this.taskPeopleList) {
-    //       arr.push(x.userpkid);
-    //     }
-    //   }
-
-    //   return arr;
-    // }
   }
   ,
   methods: {
     ...mapMutations(['DETAILS_CHANGE', 'TASKITEM_CHANGE', 'TASK_POSITION', 'PROJECT_CHANGE']),
     // 项目列表人员拖拽 放下
     userListMove(evt) {
-      console.log('zhixing', evt.item.dataset.pkid);
-      
-      console.log('zhixing', evt.relatedContext);
+      // console.log(2)
+      // let userId = evt.item.dataset.pkid;
+      // for (let list of this.noPartitions.taskList) {
+      //   for (let i of list.stageTaskList) {
+      //     let index = i.userList.findIndex(res => {
+      //       return res.userpkid == userId;
+      //     });
+      //     if (index !== -1) {
+      //       list.stageTaskList[index].isRepeat = false;
+      //       console.log(i, index)
+      //       // i[index].isRepeat = true;
+      //     }
+      //   }
+      //   // console.log(list)
+      // }
+      // for (let item of this.partitionsList) {
+      //   for (let list of item.taskList) {
+      //     for (let i of list.stageTaskList) {
+      //       let index = i.userList.findIndex(res => {
+      //         return res.userpkid == userId;
+      //       });
+      //       if (index !== -1) {
+      //         i.isRepeat = true;
+      //       }
+      //     }
+      //     // console.log(list)
+      //   }
+      // }
+    },
+    userListChoose(evt) {
+      // console.log(this.noPartitions)
+      // return
+      let userId = evt.item.dataset.pkid;
+      for (let list of this.noPartitions.taskList) {
+        for (let i of list.stageTaskList) {
+          for (let j of i.userList) {
+            if (j.userId == userId) {
+              i.isRepeat = true;
+            } else {
+              i.isRepeat = false;
+              console.log(i)
+            }
+          }
+          // console.log(i, '所有阶段')
+          // let index = i.userList.findIndex(res => {
+          //   return res.userpkid == userId;
+          // });
+          // if (index !== -1) {
+          //   list.stageTaskList[index].isRepeat = true;
+          // } else {
+          //   i.isRepeat = false;
+          // }
+        }
+      }
+      this.noPartitions.taskList = [...this.noPartitions.taskList];
+
+      // console.log(this.noPartitions)
 
     },
     async add(list) {
@@ -1157,11 +1210,11 @@ export default {
         });
       });
     },
-    //项目星标
     dse(e) {
       e.preventDefault();
       return false;
     },
+    //项目星标
 
     projectStart() {
       this.starFlag = !this.starFlag;
@@ -1203,7 +1256,7 @@ export default {
     // 任务片段操作
     // 1.1. 参与任务
     partIn(item, list) {
-      let obj = { 'addVale': this.userPkid, 'delVale': '', 'stageId': list.stageId, 'taskId': item.taskId, 'myUserId': this.userPkid }
+      let obj = { 'addVale': this.userPkid, 'delVale': '', 'stageId': list.stageId, 'taskId': item.taskId, 'myUserId': this.userPkid, 'projectId': this.projectId }
       this.$HTTP('post', '/stageTask_user_update', obj).then(res => {
         this.enterDetail(item, list);
       })
@@ -1217,11 +1270,8 @@ export default {
       })
       list.userList.splice(index, 1);
       this.partitionsList = [...this.partitionsList];
-
       list.isPartIn = false;
-      console.log(index)
-      return
-      let obj = { 'addVale': '', 'delVale': this.userPkid, 'stageId': list.stageId, 'taskId': item.taskId, 'myUserId': this.userPkid }
+      let obj = { 'addVale': '', 'delVale': this.userPkid, 'stageId': list.stageId, 'taskId': item.taskId, 'myUserId': this.userPkid, 'projectId': this.projectId }
       this.$HTTP('post', '/stageTask_user_update', obj).then(res => {
         console.log(res)
       })
@@ -1266,7 +1316,7 @@ export default {
         console.log(res)
       })
     },
-    // 关闭阶段
+    // 5.1关闭阶段
     closeStage(item, list) {
       list.enabled = false;
       this.partitionsList = [...this.partitionsList];
@@ -1281,7 +1331,7 @@ export default {
         console.log(list)
       })
     },
-    // 开启阶段
+    // 5.2开启阶段
     openStage(item, list) {
       list.enabled = true;
       this.partitionsList = [...this.partitionsList];
@@ -1348,7 +1398,8 @@ export default {
           delVale: del.join(','),
           stageId: this.nowStageId,
           taskId: this.nowTaskId,
-          'myUserId': this.userPkid
+          'myUserId': this.userPkid,
+          'projectId': this.projectId
         }
         this.$HTTP('post', '/stageTask_user_update', obj).then(res => {
           // 发送请求，taskPeopleList发生变化
@@ -1482,12 +1533,12 @@ export default {
     },
 
     // ======================================================
-
+    // 导入功能
     toLead() {
       console.log('hah')
       this.toLeadShow = true
     },
-    // 关闭弹框
+    // 关闭弹框 导入功能
     closePop() {
       this.popShow = false;
       this.toLeadShow = false;
@@ -1516,11 +1567,9 @@ export default {
     },
     //  确认
     reminderSure() {
-      console.log(this.delFlage)
-      // return
       if (this.delFlage == 'stage') {
         this.okdelStage(this.delStageLists, this.delNowStageLists, this.delStageIndex);
-      } else {
+      } else if (this.delFlage == 'project') {
         this.delPartition(this.delPartitionLists, this.delIndex);
       }
       // this.partitionsList.splice(index, 1);
@@ -1546,14 +1595,12 @@ export default {
     projectChange(val) {
       // this.PROJECT_CHANGE(val);
     },
+    // 搜索功能
     searchChange(val) {
 
     },
 
-    goTo(item) {
-      this.searchChange('');
-      this.TASK_POSITION(item.id);
-    },
+
 
     // 关闭
     closeInfo() {
@@ -1564,30 +1611,32 @@ export default {
     // 1.添加分区操作
     // 添加分区
     addPartition(el, index, name) {
-      this.isNewP = true;
-      this.EmptyData.partitionTitle = '';
-      if (name == 'addPartition') {
-        console.log('分区内容', index)
-        this.partitionsList.splice(index + 1, 0, this.EmptyData);
-        this.$nextTick(res => {
-          $('.hhah').children().eq(index).find('.stageTittle').focus();
-          this.EmptyData.partitionId = -1
-        })
-      } else {
-        this.partitionsList.splice(0, 0, this.EmptyData);
-        this.$nextTick(res => {
-          $('.hhah').children().eq(0).find('.stageTittle').focus();
-          this.EmptyData.partitionId = -1
-        })
-      }
+      var t = setTimeout(res => {
+        this.isNewP = true;
+        this.EmptyData.partitionTitle = '';
+        if (name == 'addPartition') {
+          console.log('分区内容', index)
+          this.partitionsList.splice(index + 1, 0, this.EmptyData);
+          this.$nextTick(res => {
+            $('.hhah').children().eq(index).find('.stageTittle').focus();
+            this.EmptyData.partitionId = -1
+          })
+        } else {
+          this.partitionsList.splice(0, 0, this.EmptyData);
+          this.$nextTick(res => {
+            $('.hhah').children().eq(0).find('.stageTittle').focus();
+            this.EmptyData.partitionId = -1
+          })
+        }
+      }, 800);
     },
     // 分区失去焦点 
     partitionBlur(name, el, index) {
       // 先判断 是否是新建项目
       if (this.isNewP) {
         if (name) {
-          let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, title: name }
-          this.$HTTP('post', '/partition_add', obj).then(res => {
+          let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, title: name, 'iSort': index + 1 }
+          this.$HTTP('post', '/partition_iSort_add', obj).then(res => {
             res.result.isBlank = true;
             res.result.isnew = false;
             this.isNewP = false;
@@ -1601,7 +1650,6 @@ export default {
         if (this.nowPartitionsName !== name) {
           this.modifyPartitionName(el.partitionId, name);
         }
-        return
       }
       // 判断 名字是否需要修改 
     },
@@ -1623,6 +1671,7 @@ export default {
       this.delIndex = index;
       this.errMessage = '您确认删除该分区？删除后，分区内的任务将移入到未分区内';
       this.reminder2Flag = true;
+      this.delFlage = 'project'; //删除对象
     },
     // 删除分区 操作
     delPartition(element, index) {
@@ -1675,21 +1724,24 @@ export default {
     // 任务操作
     // 1.添加任务
     addStage(el, index, name) {
-      if (name == 'Partitions') {
-        this.newTask.taskTitle = '';
-        this.isNewS = true;
-        el.splice(index + 1, 0, this.newTask);
-        this.$nextTick(res => {
-          $('.taskListsTwo').children().eq(index + 1).find('.stageName').focus();
-        })
-      } else {
-        this.newTask.taskTitle = '';
-        this.isNewS = true;
-        el.splice(index + 1, 0, this.newTask);
-        this.$nextTick(res => {
-          $('.taskLists').children().eq(index + 1).find('.stageName').focus();
-        })
-      }
+      let t = setTimeout(() => {
+        if (name == 'Partitions') {
+          this.newTask.taskTitle = '';
+          this.isNewS = true;
+          el.splice(index + 1, 0, this.newTask);
+          this.$nextTick(res => {
+            $('.taskListsTwo').children().eq(index + 1).find('.stageName').focus();
+          })
+        } else {
+          this.newTask.taskTitle = '';
+          this.isNewS = true;
+          el.splice(index + 1, 0, this.newTask);
+          this.$nextTick(res => {
+            $('.taskLists').children().eq(index + 1).find('.stageName').focus();
+          })
+        }
+      }, 600);
+
     },
     // 添加任务 失焦判断
     stageNameBlur(name, item, el, index) {
@@ -1770,7 +1822,6 @@ export default {
     },
 
     move() { },
-
     startDrag(data) {
       console.log('startDrag: ', data)
     },
@@ -1779,7 +1830,6 @@ export default {
     },
     goFlod(el) {
       el.autoExpand = !el.autoExpand;
-
       let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, 'partitionId': el.partitionId, 'isState': el.autoExpand }
       this.$HTTP('post', '/partition_operation', obj).then(res => {
 
@@ -1824,7 +1874,7 @@ export default {
     },
     // 获取阶段列表
     getstageList() {
-      let data = { 'projectId': this.projectId, 'state': 0 };
+      let data = { 'projectId': this.projectId, 'state': 1 };
       this.$HTTP('post', '/stage_list_get', data).then(res => {
         this.stageList = res.result;
         let newList = [];
@@ -1856,6 +1906,7 @@ export default {
               this.stageTaskList = i.stageTaskList;
               for (let item of i.stageTaskList) {
                 item.addPopShow = false;
+                item.isRepeat = false;
                 if (item.userList.length) {
                   let indexs = item.userList.findIndex(res => {
                     return res.userpkid == this.userPkid;
@@ -1964,10 +2015,19 @@ export default {
     height: 18px;
   }
 }
+// 引导页面
+.guide {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+}
 .el-button {
   border: none !important;
   background: none;
-  padding: 0;
+  padding: 0 !important;
 }
 .el-button:focus,
 .el-button:hover {
@@ -1990,26 +2050,45 @@ export default {
 .flodRotate-leave-active {
   animation: bounce-in 0.5s reverse;
 }
-// 拖拽项目人员列表
-.projectUserLists {
-  border-bottom: 1px solid #e5e5e5;
-  border-top: 1px solid #e5e5e5;
-  .projecttTitle {
-    line-height: 30px;
+.el-popper {
+  padding: 0;
+  .searchUser {
+    width: 100%;
+    height: 35px;
+    line-height: 35px;
+    padding-left: 15px;
+    .box_sizing;
+  }
+  .projectUserLists {
+    border-top: 1px solid #e5e5e5;
+
+    .projecttTitle {
+      line-height: 30px;
+      margin-left: 15px;
+      font-weight: bold;
+    }
+    .userlist {
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    img {
+      width: 18px;
+      height: 18px;
+      border-radius: 2px;
+      vertical-align: middle;
+    }
+    .el-dropdown-menu__item {
+      padding: 0 15px;
+    }
+  }
+  .inviteButton {
+    line-height: 50px;
     margin-left: 14px;
-    font-weight: bold;
-  }
-  img {
-    width: 18px;
-    height: 18px;
-    border-radius: 2px;
-    vertical-align: middle;
+    color: #3684ff;
   }
 }
-.inviteButton {
-  line-height: 50px;
-  margin-left: 14px;
-}
+// 拖拽项目人员列表
+
 @keyframes bounce-in {
   0% {
     transform: rotate(0deg);
@@ -2465,6 +2544,9 @@ export default {
                           width: 20px;
                           height: 20px;
                         }
+                      }
+                      .red {
+                        background: red;
                       }
                     }
                     .participantMain {

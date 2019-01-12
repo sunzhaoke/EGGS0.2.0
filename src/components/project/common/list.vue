@@ -167,7 +167,8 @@
         </div>
         <div class="card fl"
              v-for="(list,index) in joinedAddList"
-             :key="index">
+             :key="index"
+              @click="enterTask(list)">
           <h2>{{list.title}}</h2>
           <i class="iconfont icon-star fr"
              v-if="list.isStar"
@@ -569,6 +570,7 @@ export default {
       }
     },
     enterTask(list) {
+      // console.log
       localStorage.setItem('projectItem', JSON.stringify(list));
       this.$router.push("/project/projectInfo");
     },

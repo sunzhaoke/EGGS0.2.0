@@ -108,6 +108,10 @@ export default {
             } else {
                 list.enabled = !list.enabled
             }
+            let data = { 'stageId': list.pkid }
+            this.$HTTP('post', '/stage_update_state', data).then(res => {
+                console.log(res)
+            })
         },
         // 删除阶段标签
         delStage(list, index) {
@@ -181,6 +185,7 @@ export default {
         },
         // 删除选择的列表
         delCheck(li, index) {
+            console.log(li)
             if (li.Count) {
                 this.$message('当前阶段已有内容，不可删除，您可以更改名称');
                 return false;
@@ -188,6 +193,10 @@ export default {
                 li.enabled = !li.enabled;
                 this.stageLists[index].enabled = false;
             }
+            let data = { 'stageId': li.pkid }
+            this.$HTTP('post', '/stage_update_state', data).then(res => {
+                console.log(res)
+            })
         },
         closePop() {
             this.$emit('closePop');

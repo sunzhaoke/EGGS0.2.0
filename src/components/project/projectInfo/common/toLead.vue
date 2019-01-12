@@ -111,10 +111,7 @@ export default {
     background: rgba(255, 255, 255, 1);
     border-radius: 4px;
     position: absolute;
-    left: 50%;
-    margin-left: -400px;
-    top: 10px;
-    position: relative;
+    // transform: translateY(-50%);
     .titleTop {
       height: 44px;
       line-height: 44px;
@@ -130,7 +127,6 @@ export default {
     .mainBox {
       padding: 70px 83px 38px 83px;
       border-bottom: 1px solid rgba(242, 242, 242, 1);
-      
       span {
         display: inline-block;
         float: left;
@@ -159,9 +155,9 @@ export default {
       bottom: 0;
       .box_sizing;
     }
-    p{
-        text-align: center;
-        line-height: 1.5;
+    p {
+      text-align: center;
+      line-height: 1.5;
     }
   }
 }
