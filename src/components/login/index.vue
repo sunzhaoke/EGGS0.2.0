@@ -190,27 +190,20 @@ export default {
           .then(res => {
             if (res.code == 200) {
               if (this.myUserId) {
+                console.log(1)
                 this.$router.push({
                   path: "/project",
                   query: { myUserId: this.myUserId, type: this.type, id: this.id }
                 });
-                if (this.checked) {
-                  setCookie('RememberYourPassword', this.email, 30 * 24 * 60 * 60 * 1000)
-                  localStorage.setItem("staffInfo", JSON.stringify(res.result));
-                } else {
-                  setCookie('RememberYourPassword', this.email, 10)
-                  localStorage.setItem("staffInfo", JSON.stringify(res.result));
-                }
               } else {
                 this.$router.push({ path: "/project" });
-                if (this.checked) {
-                  setCookie('RememberYourPassword', this.email, 30 * 24 * 60 * 60 * 1000)
-                  localStorage.setItem("staffInfo", JSON.stringify(res.result));
-                } else {
-                  setCookie('RememberYourPassword', this.email, 10)
-                  localStorage.setItem("staffInfo", JSON.stringify(res.result));
-                }
               }
+              if (this.checked) {
+                setCookie('RememberYourPassword', this.email, 30 * 24 * 60 * 60 * 1000)
+              } else {
+                setCookie('RememberYourPassword', this.email, 1 * 24 * 60 * 60 * 1000)
+              }
+              localStorage.setItem("staffInfo", JSON.stringify(res.result));
             } else if (res.code == 3) {
               this.errorTitle = "该邮箱尚未注册,点击";
             } else {
@@ -227,15 +220,11 @@ export default {
   computed: {},
   created() {
     let staffInfo = localStorage.getItem('staffInfo');
-    console.log(staffInfo, getCookie('RememberYourPassword'))
     if (localStorage.getItem("registerEmail")) {
       this.email = localStorage.getItem("registerEmail");
     }
-
     let urls = decodeURI(window.location.href).split("?")[1];
     if (urls) {
-      console.log('meiy you ')
-
       let url = decodeURI(window.location.href)
         .split("?")[1]
         .split("&");
@@ -251,7 +240,6 @@ export default {
     }
   },
   mounted() {
-
   },
 
 };

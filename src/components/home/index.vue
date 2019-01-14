@@ -45,13 +45,12 @@ export default {
   },
   created() {
     let urls = decodeURI(window.location.href).split("?")[1];
-    let staffInfo = localStorage.getItem('staffInfo');
+    let staffInfo = JSON.parse(localStorage.getItem("staffInfo"));
     let RememberYourPassword = getCookie('RememberYourPassword');
     // 1.状态1 如果有自动登录并且保存数据
-    console.log(RememberYourPassword, '==================')
     if (staffInfo && getCookie('RememberYourPassword')) {
       // this.$router.push("/project");
-      this.userId = JSON.parse(localStorage.getItem("staffInfo")).userPkid;
+      this.userId = staffInfo.userPkid;
       // 2.有链接地址
     } else if (urls) {
       let url = decodeURI(window.location.href)
@@ -61,6 +60,7 @@ export default {
         let userId = url[0].split("=")[1];
         this.getInfo(userId);
       } else {
+        this.userId = staffInfo.userPkid;
         this.myUserId = url[0].split("=")[1];
         this.type = url[1].split("=")[1];
         this.id = url[2].split("=")[1];

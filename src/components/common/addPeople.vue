@@ -1,118 +1,144 @@
 <template>
-    <div class="add_people" @click.stop>
-        <div class="popup">
-            <div class="popup_box">
-                <div class="popup_top">
-                    <i v-if="!invite" class="iconfont icon-return fl" @click.stop="lastStep"></i>
-                    <span class="popup_title">{{addInvite ? '邀请新成员' : '好友列表'}}</span>
-                    <i class="iconfont icon-guanbijiantou fr" @click.stop="cancel"></i>
-                </div>
-                <!-- 添加人员 -->
-                <div v-if="!addInvite && !invite">
-                  <div v-if="treeList.length" class="popup_content">
-                    <ul class="three_parths">
-                        <li class="parths parths_one">
-                            <p class="parths_title">好友列表</p>
-                            <el-tree
-                                :data="treeList"
-                                show-checkbox
-                                node-key="pkid"
-                                ref="tree1"
-                                :default-expanded-keys="[treeList[0].pkid]"
-                                :default-checked-keys="defaultTreeKeys"
-                                :props="defaultProps"
-                                @check-change="treeCheckChange"
-                            >
-                            <span class="custom-tree-node" slot-scope="{ node, data }">
-                                <img class="el_tree_img" v-if="!data.groupName" :src="data.Images" /><span class="el_tree_name">{{ node.label }}</span>
-                            </span>
-                            </el-tree>
+  <div class="add_people"
+       @click.stop>
+    <div class="popup">
+      <div class="popup_box">
+        <div class="popup_top">
+          <i v-if="!invite"
+             class="iconfont icon-return fl"
+             @click.stop="lastStep"></i>
+          <span class="popup_title">{{addInvite ? '邀请新成员' : '好友列表'}}</span>
+          <i class="iconfont icon-guanbijiantou fr"
+             @click.stop="cancel"></i>
+        </div>
+        <!-- 添加人员 -->
+        <div v-if="!addInvite && !invite">
+          <div v-if="treeList.length"
+               class="popup_content">
+            <ul class="three_parths">
+              <li class="parths parths_one">
+                <p class="parths_title">好友列表</p>
+                <el-tree :data="treeList"
+                         show-checkbox
+                         node-key="pkid"
+                         ref="tree1"
+                         :default-expanded-keys="[treeList[0].pkid]"
+                         :default-checked-keys="defaultTreeKeys"
+                         :props="defaultProps"
+                         @check-change="treeCheckChange">
+                  <span class="custom-tree-node"
+                        slot-scope="{ node, data }">
+                    <img class="el_tree_img"
+                         v-if="!data.groupName"
+                         :src="data.Images" />
+                    <span class="el_tree_name">{{ node.label }}</span>
+                  </span>
+                </el-tree>
 
-                            
-                        </li>
-                        <li class="parths parths_two">
-                            <p class="parths_title">常用联系人</p>
-                            <ul class="parths_list" v-if="usedList.length">
-                                <li v-for="list in usedList" :key="list.userid">
-                                    <el-checkbox 
-                                      :disabled="list.disabled"
-                                      v-model="list.checked" 
-                                      @change="usedCheckChange(list)"></el-checkbox>
-                                    <img class="el_tree_img" :src="list.Images" />
-                                    <span class="el_tree_name">{{ list.realname }}</span>
-                                </li>
-                            </ul>
-                            <p class="no_body" v-else>暂无，可在好友管理中添加，系统也会自动生成</p>
-                        </li>
-                        <li class="parths parths_three">
-                            <p class="parths_title">已选列表</p>
-                            <ul class="parths_list">
-                                <li v-for="(list, index) in selectedList" :key="list.userid" v-if="list.checked && !list.disabled">
-                                    <img class="el_tree_img" :src="list.Images" />
-                                    <span class="el_tree_name">{{ list.realname }}</span>
-                                    <i class="iconfont icon-delete" @click="delCheckChange(list, index)"></i>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                  </div>
-                  <div v-else class="content_empty">
-                      <img src="../../assets/img/noBody.png" alt="">
-                      <p>您还没有好友，请点击<span @click="clickInvite">这里</span>邀请朋友加入吧！</p>
-                  </div>
-                  <div class="popup_bottom">
-                      <span class="invite" @click="clickInvite">邀请Ta加入</span>
-                      <button 
-                        class="fr sure" 
-                        :class="disabled ? 'main_button_disabled_bg' : 'main_button_bg'" 
-                        :disabled="disabled"
-                        @click.stop="addSure"
-                      >确定</button>
-                      <button class="main_button_color fr" @click.stop="cancel">取消</button>
-                  </div>
-                </div>
-                <!-- 邀请成员 -->
-                <ul v-else class="two_parths">
-                    <li class="parths parths_one fl">
-                        <p class="title">方式一：发送邮件邀请</p>
-                        <p class="desc">将发送邀请邮件至对方邮箱</p>
-                        <ul class="invite_list">
-                          <li v-for="(email, index) in emailList" :key="index">
-                            <input 
-                            class="invite_input" type="text" placeholder="请输入邮箱账号" 
-                            v-model="email.email"
-                            @focus="emailFocus(index)"
-                            @blur="emailBlur(email)"
-                            @input="emailInput(email)"
-                           />
-                           <span v-if="email.check" class="error">{{email.check}}</span>
-                          </li>
-                        
-                        </ul>
-                        <button class="main_button_color" @click="inviteButton">邀请</button>
-                    </li>
-                    <li class="parths parths_two fl">
-                        <p class="title">方式二：发送邀请链接</p>
-                        <p class="desc">可自行复制邀请文字和链接发送给对方</p>
-                        <p class="send_one">"{{userName}}"邀请您一起完成工作，详情点击</p>
-                        <textarea class="send_two" id="copyContent" spellcheck="false">https://www.teambition.com/project/5a9f58b19fae5163d29ed234/tasks/scrum/5a9f58b19fae5163d29ed236</textarea>
-                        <button class="main_button_color" @click="copyButton">一键复制</button>
-                    </li>
+              </li>
+              <li class="parths parths_two">
+                <p class="parths_title">常用联系人</p>
+                <ul class="parths_list"
+                    v-if="usedList.length">
+                  <li v-for="list in usedList"
+                      :key="list.userid">
+                    <el-checkbox :disabled="list.disabled"
+                                 v-model="list.checked"
+                                 @change="usedCheckChange(list)"></el-checkbox>
+                    <img class="el_tree_img"
+                         :src="list.Images" />
+                    <span class="el_tree_name">{{ list.realname }}</span>
+                  </li>
                 </ul>
-                
-            </div>
+                <p class="no_body"
+                   v-else>暂无，可在好友管理中添加，系统也会自动生成</p>
+              </li>
+              <li class="parths parths_three">
+                <p class="parths_title">已选列表</p>
+                <ul class="parths_list">
+                  <li v-for="(list, index) in selectedList"
+                      :key="list.userid"
+                      v-if="list.checked && !list.disabled">
+                    <img class="el_tree_img"
+                         :src="list.Images" />
+                    <span class="el_tree_name">{{ list.realname }}</span>
+                    <i class="iconfont icon-delete"
+                       @click="delCheckChange(list, index)"></i>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div v-else
+               class="content_empty">
+            <img src="../../assets/img/noBody.png"
+                 alt="">
+            <p>您还没有好友，请点击
+              <span @click="clickInvite">这里</span>邀请朋友加入吧！</p>
+          </div>
+          <div class="popup_bottom">
+            <span class="invite"
+                  @click="clickInvite">邀请Ta加入</span>
+            <button class="fr sure"
+                    :class="disabled ? 'main_button_disabled_bg' : 'main_button_bg'"
+                    :disabled="disabled"
+                    @click.stop="addSure">确定</button>
+            <button class="main_button_color fr"
+                    @click.stop="cancel">取消</button>
+          </div>
         </div>
-        
-        <!-- 温馨提示 -->
-        <div class="reminder1" id="remider1" v-if="reminderContent">
-          <p class="top">温馨提示</p>
-          <p class="content" >{{reminderContent}}</p>
-        </div>
-        
+        <!-- 邀请成员 -->
+        <ul v-else
+            class="two_parths">
+          <li class="parths parths_one fl">
+            <p class="title">方式一：发送邮件邀请</p>
+            <p class="desc">将发送邀请邮件至对方邮箱</p>
+            <ul class="invite_list">
+              <li v-for="(email, index) in emailList"
+                  :key="index">
+                <input class="invite_input"
+                       type="text"
+                       placeholder="请输入邮箱账号"
+                       v-model="email.email"
+                       @focus="emailFocus(index)"
+                       @blur="emailBlur(email)"
+                       @input="emailInput(email)" />
+                <span v-if="email.check"
+                      class="error">{{email.check}}</span>
+              </li>
+
+            </ul>
+            <button class="main_button_color"
+                    @click="inviteButton">邀请</button>
+          </li>
+          <li class="parths parths_two fl">
+            <p class="title">方式二：发送邀请链接</p>
+            <p class="desc">可自行复制邀请文字和链接发送给对方</p>
+            <p class="send_one">"{{userName}}"邀请您一起完成工作，详情点击</p>
+            <textarea class="send_two"
+                      id="copyContent"
+                      spellcheck="false">https://www.teambition.com/project/5a9f58b19fae5163d29ed234/tasks/scrum/5a9f58b19fae5163d29ed236</textarea>
+            <button class="main_button_color"
+                    @click="copyButton">一键复制</button>
+          </li>
+        </ul>
+
+      </div>
     </div>
+
+    <!-- 温馨提示 -->
+    <div class="reminder1"
+         id="remider1"
+         v-if="reminderContent">
+      <p class="top">温馨提示</p>
+      <p class="content">{{reminderContent}}</p>
+    </div>
+
+  </div>
 </template>
 <script>
 import { mapState, mapMutations, mapActions, mapGetters } from "vuex";
+import { join } from 'path';
 
 export default {
   props: ["defaultTreeKeys", "invite"],
@@ -150,7 +176,7 @@ export default {
           await this.getList();
           await this.getUserList();
           !this.invite && await this.setInitChecked(this.keysList);
-        }catch(err) {
+        } catch (err) {
           console.log(err);
         }
       } else {
@@ -173,22 +199,22 @@ export default {
       let obj = this.computedNum();
       console.log(obj)
       let addIds = obj.ids;
-      if(addIds && addIds.length) {
-      //   if(this.addIdsCopy.sort().join(',') == addIds.sort().join(',')) {
-      //     this.$emit("handleCancel", undefined);
-      //     return;
-      //  };
-        this.$emit("handleCancel", {addIds: addIds, arr: obj.arr, invite: false});
-      }else {
+      if (addIds && addIds.length) {
+        //   if(this.addIdsCopy.sort().join(',') == addIds.sort().join(',')) {
+        //     this.$emit("handleCancel", undefined);
+        //     return;
+        //  };
+        this.$emit("handleCancel", { addIds: addIds, arr: obj.arr, invite: false });
+      } else {
         this.$emit("handleCancel", undefined);
       }
-      
+
     },
 
     // 通过 node 设置
     setCheckedNodes(list) {
-      for(let i = 0; i < list.length; i++) {
-        if(!list[i].checked) {
+      for (let i = 0; i < list.length; i++) {
+        if (!list[i].checked) {
           list.splice(i, 1);
           i--;
         }
@@ -199,18 +225,18 @@ export default {
     // 初始化页面的时候常用列表和已选列表的状态
     setInitChecked(ids) {
       return new Promise((resolve, reject) => {
-        for(let x of ids) {
+        for (let x of ids) {
           x = Number(x);
-          for(let ele of this.usedList) {
-            if(x == ele.userid) {
+          for (let ele of this.usedList) {
+            if (x == ele.userid) {
               ele.checked = true;
               ele.disabled = true;
             }
           }
 
-          for(let a of this.treeList) {
-            for(let b of a.friendsList) {
-              if(b.userid == x) {
+          for (let a of this.treeList) {
+            for (let b of a.friendsList) {
+              if (b.userid == x) {
                 b.checked = true;
                 b.disabled = true;
                 this.selectedList.push(b);
@@ -223,14 +249,14 @@ export default {
         resolve(true);
       });
 
-      
+
     },
 
     // 点击好友列表
     treeCheckChange(item, state) {
       item.checked = state;
-      if(item.groupName) {
-      }else {
+      if (item.groupName) {
+      } else {
         this.checkedOne(item);
       }
     },
@@ -248,23 +274,23 @@ export default {
       this.checkedThree(item);
 
     },
-    
+
     // 点击好友列表检查
     checkedOne(item) {
-      let index1 = this.usedList.findIndex( ele => {
+      let index1 = this.usedList.findIndex(ele => {
         return ele.userid === item.userid;
       });
-      if(index1 != -1) {
+      if (index1 != -1) {
         this.usedList[index1].checked = item.checked;
       }
 
-      let index2 = this.selectedList.findIndex( ele => {
+      let index2 = this.selectedList.findIndex(ele => {
         return ele.userid === item.userid;
       });
-      if(index2 != -1) {
+      if (index2 != -1) {
         this.selectedList[index2].checked = item.checked;
-      }else {
-         this.selectedList.push(item);
+      } else {
+        this.selectedList.push(item);
       }
       this.usedList = this.usedList.concat();
       this.selectedList = this.selectedList.concat();
@@ -273,13 +299,13 @@ export default {
     // 点击常用联系人检查
     checkedTwo(item) {
 
-      let index2 = this.selectedList.findIndex( ele => {
+      let index2 = this.selectedList.findIndex(ele => {
         return ele.userid === item.userid;
       });
-      if(index2 != -1) {
+      if (index2 != -1) {
         this.selectedList[index2].checked = item.checked;
-      }else {
-         this.selectedList.push(item);
+      } else {
+        this.selectedList.push(item);
       }
       this.setCheckedNodes(this.selectedList);
       this.selectedList = this.selectedList.concat();
@@ -287,10 +313,10 @@ export default {
 
     // 点击已选列表检查
     checkedThree(item) {
-      let index1 = this.usedList.findIndex( ele => {
+      let index1 = this.usedList.findIndex(ele => {
         return ele.userid === item.userid;
       });
-      if(index1 != -1) {
+      if (index1 != -1) {
         this.usedList[index1].checked = item.checked;
       }
       this.setCheckedNodes(this.selectedList);
@@ -302,20 +328,20 @@ export default {
     computedNum() {
       let ids = [];
       let arr = [];
-      for(let x of this.selectedList) {
-        if(x.checked && !x.disabled) {
+      for (let x of this.selectedList) {
+        if (x.checked && !x.disabled) {
           ids.push(x.userid);
           arr.push(x);
         }
       }
-      if(ids.length) {
-        return {ids: ids, arr: arr};
+      if (ids.length) {
+        return { ids: ids, arr: arr };
       }
-      return {ids: ids, arr: arr};
-      if(ids.sort().toString() === this.defaultTreeKeys.sort().toString()) {
+      return { ids: ids, arr: arr };
+      if (ids.sort().toString() === this.defaultTreeKeys.sort().toString()) {
         // 人员没用变动
         return null;
-      }else {
+      } else {
         // 人员变动：添加/减少
         return ids;
 
@@ -327,14 +353,14 @@ export default {
       this.addInvite = true;
       let obj = this.computedNum();
       let addIds = obj.ids;
-      if(addIds && addIds.length) {
+      if (addIds && addIds.length) {
         this.addIdsCopy = addIds;
         this.treeList && this.reminders("已将修改后的人员加至项目中，前往邀请页面");
-        this.$emit("handleCancel", {addIds: addIds, arr: obj.arr, invite: true});
+        this.$emit("handleCancel", { addIds: addIds, arr: obj.arr, invite: true });
         this.keysList = this.keysList.concat(this.defaultTreeKeys);
         this.keysList = this.keysList.concat(addIds);
       }
-     
+
       // this.$emit("handleCancel", addIds);
 
     },
@@ -348,6 +374,7 @@ export default {
 
     // 添加邀请邮箱input失焦
     emailBlur(email) {
+      // console
       if (email.email === "") {
         return;
       }
@@ -361,12 +388,15 @@ export default {
       // 验证此邮箱是否已经是好友
       let obj = {
         userId: JSON.parse(localStorage.getItem('staffInfo')).userPkid,
-        email: email
+        email: email.email
       }
       this.$HTTP('post', '/user_friends_exists_email', obj).then(res => {
-        console.log('邮箱是否存在验证', res);
-        if(!res.result) {
-          email.check = "此邮箱已存在";
+        if (res.code == 200) {
+          email.check = "";
+        } else if (res.code == 1) {
+          email.check = "此邮箱未注册";
+        } else if (res.code == 2) {
+          email.check = "已经是您的好友";
         }
       }).catch(err => {
         console.log('请求失败', err);
@@ -391,18 +421,23 @@ export default {
           emails.push(ele.email);
         }
       }
-
       if (emails.length) {
         emails = [...new Set(emails)];
-        console.log(emails);
+        this.inviteJoin(emails,join(','))
         this.$emit('handleInvite', emails);
-        
         this.reminders("您的邀请已发送成功");
       } else {
         this.reminders("您还没有输入邀请邮箱");
       }
     },
+    // 邀请加入
+    inviteJoin(email) {
 
+      let data = { 'emailList': email, 'myUserId': this.userPkid, 'type': 0, 'id': '' }
+      this.$HTTP('post', '/user_invitationEmail', data).then(res => {
+        console.log(res)
+      })
+    },
     // 点击一键复制
     copyButton() {
       let linkCopy = document.getElementById("copyContent");
@@ -429,46 +464,46 @@ export default {
         let obj = {
           myUserId: this.userPkid
         }
-        this.$HTTP('post', '/user_friends_getlist', obj).then( res => {
-            this.treeList = [...res.result];
-            for(let x of this.treeList) {
-                x.realname = x.groupName;
-                x.friendsList.map(ele => {
-                    return (ele.checked = false) && (ele.disabled = true);
-                });
-            }
-            console.log('好友分组列表', this.treeList);
-            resolve(this.treeList);
-        }).catch( err => {
-            console.log('获取好友分组列表失败', err);
-            reject(err);
+        this.$HTTP('post', '/user_friends_getlist', obj).then(res => {
+          this.treeList = [...res.result];
+          for (let x of this.treeList) {
+            x.realname = x.groupName;
+            x.friendsList.map(ele => {
+              return (ele.checked = false) && (ele.disabled = true);
+            });
+          }
+          console.log('好友分组列表', this.treeList);
+          resolve(this.treeList);
+        }).catch(err => {
+          console.log('获取好友分组列表失败', err);
+          reject(err);
         });
       });
-        
+
     },
     // 获取常用联系人列表
     getUserList() {
       return new Promise((resolve, reject) => {
         this.usedList = [];
         this.usedList = [];
-         this.usedList.map(ele => {
-            return (ele.checked = false) && (ele.disabled = true);
-          });
+        this.usedList.map(ele => {
+          return (ele.checked = false) && (ele.disabled = true);
+        });
         resolve(this.usedList);
         return;
         let obj = {
-            myUserId: this.userId
+          myUserId: this.userId
         }
-        this.$HTTP('post', '/user_friends_getlist', obj).then( res => {
-            this.usedList = [...res.result];
-            console.log('常用联系人列表', this.usedList);
-            resolve(this.usedList);
-        }).catch( err => {
-            console.log('获取常用联系人列表失败', err);
-            reject(err);
+        this.$HTTP('post', '/user_friends_getlist', obj).then(res => {
+          this.usedList = [...res.result];
+          console.log('常用联系人列表', this.usedList);
+          resolve(this.usedList);
+        }).catch(err => {
+          console.log('获取常用联系人列表失败', err);
+          reject(err);
         });
       });
-        
+
     },
   },
   async created() {
@@ -477,7 +512,7 @@ export default {
       await this.getList();
       await this.getUserList();
       !this.invite && await this.setInitChecked(this.defaultTreeKeys);
-    }catch(err) {
+    } catch (err) {
       console.log(err);
     }
   }
@@ -574,8 +609,8 @@ export default {
         }
 
         .parths_two {
-           .el_tree_name {
-              width: 100px;
+          .el_tree_name {
+            width: 100px;
           }
         }
 
@@ -715,7 +750,7 @@ export default {
           .cur;
           .box_sizing;
           // .word_over2;
-         .wold_overN(2);
+          .wold_overN(2);
         }
         .send_two {
           display: block;

@@ -5,7 +5,7 @@
         <li class="list"
             v-for="(nav,index) in navList"
             :key="index"
-            :class="{'checkNav': menuSelected==nav.id }"
+            :class="{'checkNav': menuSelected== nav.id }"
             @click="checkNav(nav)">
           <i class="iconfont "
              :class="nav.name"></i>
@@ -25,14 +25,14 @@ export default {
           id: "01",
           name: "iconfont icon-gongzuotai",
           path: "/workbench",
-          menuSelected: true,
+          menuSelected: false,
           prompt: "工作台"
         },
         {
           id: "02",
           name: "iconfont icon-gongdan",
           path: "/project",
-          menuSelected: false,
+          menuSelected: true,
           prompt: "项目"
         },
         {
@@ -55,7 +55,9 @@ export default {
     },
 
   },
-  created() { },
+  created() {
+    this.menuSelected = '02';
+  },
   mounted() {
     // this.menuSelected = localStorage.getItem("menuSelected");
   }

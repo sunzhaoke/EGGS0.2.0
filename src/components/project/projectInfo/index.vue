@@ -569,7 +569,7 @@
                                 v-model="element.partitionTitle"
                                 style="resize:none"
                                 @keyup.enter='dse'
-                                @blur="partitionBlur(element.partitionTitle,element,index)"
+                                @blur="partitionBlur(element,index,element.partitionTitle)"
                                 @focus="partitionFocus(element.partitionTitle,element,index)"></textarea>
                     </div>
                     <!-- 空白占位 -->
@@ -1610,28 +1610,43 @@ export default {
     // 未分区
     // 1.添加分区操作
     // 添加分区
+    // el:大数组 index:位置 name:分区名字
+    async addPartition(el, index, name) {
+      try {
+        await this.getProjectUsers();
+      } catch (err) {
+        console.log(err);
+      }
+    },
+
     addPartition(el, index, name) {
-      var t = setTimeout(res => {
-        this.isNewP = true;
-        this.EmptyData.partitionTitle = '';
-        if (name == 'addPartition') {
-          console.log('分区内容', index)
-          this.partitionsList.splice(index + 1, 0, this.EmptyData);
-          this.$nextTick(res => {
-            $('.hhah').children().eq(index).find('.stageTittle').focus();
-            this.EmptyData.partitionId = -1
-          })
-        } else {
-          this.partitionsList.splice(0, 0, this.EmptyData);
-          this.$nextTick(res => {
-            $('.hhah').children().eq(0).find('.stageTittle').focus();
-            this.EmptyData.partitionId = -1
-          })
-        }
-      }, 800);
+      this.isNewP = true;
+
+      console.log(isNewP)
+      // var t = setTimeout(res => {
+      let indexs = this.partitionsList.findIndex(res => {
+        return res.partitionId == -1;
+      })
+      this.partitionsList.splice(indexs.splice, 1);
+      this.EmptyData.partitionTitle = '';
+      if (name == 'addPartition') {
+        // console.log('分区内容', index)
+        this.partitionsList.splice(index + 1, 0, this.EmptyData);
+        this.$nextTick(res => {
+          $('.hhah').children().eq(index).find('.stageTittle').focus();
+          this.EmptyData.partitionId = -1;
+        })
+      } else {
+        this.partitionsList.splice(0, 0, this.EmptyData);
+        this.$nextTick(res => {
+          $('.hhah').children().eq(0).find('.stageTittle').focus();
+          this.EmptyData.partitionId = -1;
+        })
+      }
+      // }, 800);
     },
     // 分区失去焦点 
-    partitionBlur(name, el, index) {
+    partitionBlur(el, index, name) {
       // 先判断 是否是新建项目
       if (this.isNewP) {
         if (name) {
