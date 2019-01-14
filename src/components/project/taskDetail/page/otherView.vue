@@ -72,7 +72,7 @@
 							<span class="file_title">{{file.FileName}}</span>
 						</div>
 						<div class="file_from every_common">
-							<span>{{file.UserName}}</span>
+							<span>{{file.nickName ? file.nickName : file.userName}}</span>
 						</div>
 						<div class="file_time every_common">
 							<span>{{file.formatTime}}</span>
@@ -103,7 +103,7 @@
               <span class="file_title">{{file.FileName}}</span>
             </div>
             <div class="file_from every_common">
-              <span>{{file.UserName}}</span>
+              <span>{{file.nickName ? file.nickName : file.userName}}</span>
             </div>
             <div class="file_time every_common">
               <span>{{file.formatTime}}</span>
@@ -130,29 +130,29 @@ export default {
     return {
       fileTypeImg: [
           {
-              src: require("../../../assets/img/file_m/0.png")
+              src: require("../../../../assets/img/file_m/0.png")
           }, {
-              src: require("../../../assets/img/file_m/1.png")
+              src: require("../../../../assets/img/file_m/1.png")
           }, {
-              src: require("../../../assets/img/file_m/2.png")
+              src: require("../../../../assets/img/file_m/2.png")
           }, {
-              src: require("../../../assets/img/file_m/3.png")
+              src: require("../../../../assets/img/file_m/3.png")
           }, {
-              src: require("../../../assets/img/file_m/4.png")
+              src: require("../../../../assets/img/file_m/4.png")
           }, {
-              src: require("../../../assets/img/file_m/5.png")
+              src: require("../../../../assets/img/file_m/5.png")
           }, {
-              src: require("../../../assets/img/file_m/6.png")
+              src: require("../../../../assets/img/file_m/6.png")
           }, {
-              src: require("../../../assets/img/file_m/7.png")
+              src: require("../../../../assets/img/file_m/7.png")
           }, {
-              src: require("../../../assets/img/file_m/8.png")
+              src: require("../../../../assets/img/file_m/8.png")
           }, {
-              src: require("../../../assets/img/file_m/9.png")
+              src: require("../../../../assets/img/file_m/9.png")
           }, {
-              src: require("../../../assets/img/file_m/10.png")
+              src: require("../../../../assets/img/file_m/10.png")
           }, {
-              src: require("../../../assets/img/file_m/11.png")
+              src: require("../../../../assets/img/file_m/11.png")
           },
       ], // 文件类型图片
       fileList: [], // 未分组文件列表
@@ -182,7 +182,22 @@ export default {
     selectedList(val) {
       this.CHECKEDLIST_CHANGE(val);
       // console.log(val);
-    }
+    },
+    fileList(val) {
+      this.FILELENGTH_CHANGE(val.length);
+    },
+    fileGroup: {
+      deep: true,
+      handler(list) {
+        let length = 0;
+        for(let x of list) {
+          for(let y of x.fileList) {
+            length++;
+          }
+        }
+        this.FILELENGTH_CHANGE(length);
+      }
+    },
     
   },
   computed: {
@@ -193,6 +208,8 @@ export default {
   methods: {
     ...mapMutations([
       'CHECKEDLIST_CHANGE',
+      'FILELENGTH_CHANGE'
+
     ]),
     // 文件选中状态改变
     checkboxChange(val, item, flag) {

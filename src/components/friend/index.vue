@@ -103,8 +103,8 @@
                                         >
                                     </el-checkbox>
                                     <img :src="ele.Images" alt="" class="header">
-                                    <span v-if="ele.nickname" class="names">{{ele.nickname}}<span class="names_real">({{ele.realname}})</span></span>
-                                    <span v-else class="names">{{ele.realname}}</span>
+                                    <span v-if="ele.nickName" class="names">{{ele.nickName}}<span class="names_real">({{ele.userName}})</span></span>
+                                    <span v-else class="names">{{ele.userName}}</span>
                                     <el-dropdown class="frined_more fr" @visible-change="visibleChange">
                                         <i class="iconfont icon-gengduo"></i>
                                         <el-dropdown-menu slot="dropdown" >
@@ -164,7 +164,7 @@
                             >
                             <div class="li_box">
                                 <img :src="item.Images" alt="" class="header">
-                                <span class="names">{{item.realname}}</span>
+                                <span class="names">{{item.userName}}</span>
                                 <i class="iconfont icon-close" @click="delUsed(index, item.pkid)"></i>
                             </div>
 
@@ -187,6 +187,7 @@
             :defaultTreeKeys="[]"
             @handleCancel="inviteCancel"
             @handleInvite="emailInvite"
+            :fromInfo="{fromType: 0, id: ''}"
         />
         </transition>
 
@@ -297,6 +298,7 @@ export default {
 
         // 发送又想邀请的回调函数
         emailInvite(list) {
+            return
             console.log('---emailInvite', list);
             let obj = {
                 emailList: list.join(','),
@@ -626,7 +628,7 @@ export default {
             let x = this.nowIndex;
             if(command == 'remarks') { // 备注姓名
                 this.remarskFlag = true;
-                this.inputValue = ele.nickname;
+                this.inputValue = ele.nickName;
 
             }else if(command == 'mvoe') { //移动分组
 
@@ -669,11 +671,11 @@ export default {
             this.remarskFlag = false;
             let obj = {
                 friendsId: this.friendList[x[0]].friendsList[x[1]].pkid,
-                nickname: val
+                nickName: val
             };
             this.$HTTP('post', '/user_friends_update_nickname', obj).then(res => {
                 console.log('修改备注名', res);
-                this.friendList[x[0]].friendsList[x[1]].nickname = val;
+                this.friendList[x[0]].friendsList[x[1]].nickName = val;
 
             }).catch( err => {
                 console.log('修改备注名失败', err);

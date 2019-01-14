@@ -30,7 +30,7 @@ export default {
       enterShow: true,
       name: 'zhaoke',
       userId: '',
-
+      myUserId: '',
     };
   },
   methods: {
@@ -41,8 +41,21 @@ export default {
       this.enterShow = false;
       let data = { 'userId': this.userId }
       this.$HTTP('post', '/user_update_isHomeVideo', data).then(res => {
-
       })
+    },
+    // 同意添加好友
+    agreeJoin(myUserId, friendsUserId) {
+      let obj = { myUserId: myUserId, friendsUserId: friendsUserId };
+      this.$HTTP('post', '/user_friends_add', obj).then(res => {
+        console.log(res)
+      })
+    },
+    // 获取个人信息
+    getInfo(userpkid) {
+      let data = { userPkid: userpkid };
+      this.$HTTP("post", "/user_get", data).then(res => {
+        localStorage.setItem("staffInfo", JSON.stringify(res.result));
+      });
     },
   },
 
@@ -51,6 +64,24 @@ export default {
     this.enterShow = staffInfo.isHomeVideo;
     this.name = staffInfo.realName;
     this.userId = staffInfo.userPkid;
+    let urls = decodeURI(window.location.href).split("?")[1];
+    if (urls) {
+      let url = decodeURI(window.location.href)
+        .split("?")[1]
+        .split("&");
+      if (url[0].split("=")[0] == 'userId') {
+        let userId = url[0].split("=")[1];
+        this.getInfo(userId);
+      } else {
+        this.userId = staffInfo.userPkid;
+        this.myUserId = url[0].split("=")[1];
+        this.type = url[1].split("=")[1];
+        this.id = url[2].split("=")[1];
+        if (this.userId !== this.myUserId) {
+          this.agreeJoin(this.userId, this.myUserId);
+        }
+      }
+    }
   }
 };
 </script>

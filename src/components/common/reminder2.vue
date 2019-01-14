@@ -8,8 +8,10 @@
                 <el-select v-if="selectLists.length"
                            v-model="values"
                            size="small"
+                           :multiple="multiples"
+                           collapse-tags
                            @change="selectChange"
-                           placeholder="请选择分组">
+                           :placeholder="selectPlaceholders">
                     <el-option v-for="item in selectLists"
                                :key="item.value"
                                :label="item.label == null ? '未分组' : item.label"
@@ -18,16 +20,28 @@
                     </el-option>
                 </el-select>
             </div>
+            
             <div class="reminder2_bottom">
                 <button class="but fl"
                         @click="cancel">取消</button>
-                <button v-if="selectLists.length && values === ''"
+                <template v-if='multiples'>
+                    <button v-if="selectLists.length && !values.length"
                         disabled
                         class="but but_right color_dis fl"
                         @click="sure">{{sureTexts ? sureTexts : '确认删除'}}</button>
-                <button v-else
-                        class="but but_right color_red fl"
+                    <button v-else
+                            class="but but_right color_main fl"
+                            @click="sure">{{sureTexts ? sureTexts : '确认删除'}}</button>
+                </template>
+                <template v-else>
+                    <button v-if="selectLists.length && values === ''"
+                        disabled
+                        class="but but_right color_dis fl"
                         @click="sure">{{sureTexts ? sureTexts : '确认删除'}}</button>
+                    <button v-else
+                            class="but but_right color_red fl"
+                            @click="sure">{{sureTexts ? sureTexts : '确认删除'}}</button>
+                </template>
             </div>
         </div>
         <div v-else
@@ -55,7 +69,7 @@
 </template>
 <script>
 export default {
-    props: ["type", "text", "inputValue", "selectList", "sureText"],
+    props: ["type", "text", "inputValue", "selectList", "sureText", "multiple", "selectPlaceholder"],
     data() {
         return {
             types: this.type ? this.type : '1',
@@ -63,6 +77,8 @@ export default {
             values: this.inputValue ? this.inputValue : '',
             selectLists: this.selectList ? this.selectList : [],
             sureTexts: this.sureText ? this.sureText : '',
+            multiples: this.multiple ? this.multiple : false,
+            selectPlaceholders: this.selectPlaceholder ? this.selectPlaceholder : '请选择分组',
         }
     },
     methods: {

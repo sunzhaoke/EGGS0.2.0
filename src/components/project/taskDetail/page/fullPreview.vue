@@ -40,13 +40,13 @@
                     </template>
                     <div v-if='!stage.enabled' class="file_group_empty">
                         <span class="empty_img">
-                            <img src="./style/file_empty.png" alt="">
+                            <img src="../style/file_empty.png" alt="">
                         </span>
                         <p>该阶段已关闭</p>
                     </div>
                     <div v-if='!stage.fileList.length && stage.enabled' class="file_group_empty">
                         <span class="empty_img">
-                            <img src="./style/file_empty.png" alt="">
+                            <img src="../style/file_empty.png" alt="">
                         </span>
                         <p>暂无文件</p>
                     </div>
@@ -62,29 +62,29 @@ export default {
         return {
             fileTypeImg: [
                 {
-                    src: require("../../../assets/img/file_m/0.png")
+                    src: require("../../../../assets/img/file_m/0.png")
                 }, {
-                    src: require("../../../assets/img/file_m/1.png")
+                    src: require("../../../../assets/img/file_m/1.png")
                 }, {
-                    src: require("../../../assets/img/file_m/2.png")
+                    src: require("../../../../assets/img/file_m/2.png")
                 }, {
-                    src: require("../../../assets/img/file_m/3.png")
+                    src: require("../../../../assets/img/file_m/3.png")
                 }, {
-                    src: require("../../../assets/img/file_m/4.png")
+                    src: require("../../../../assets/img/file_m/4.png")
                 }, {
-                    src: require("../../../assets/img/file_m/5.png")
+                    src: require("../../../../assets/img/file_m/5.png")
                 }, {
-                    src: require("../../../assets/img/file_m/6.png")
+                    src: require("../../../../assets/img/file_m/6.png")
                 }, {
-                    src: require("../../../assets/img/file_m/7.png")
+                    src: require("../../../../assets/img/file_m/7.png")
                 }, {
-                    src: require("../../../assets/img/file_m/8.png")
+                    src: require("../../../../assets/img/file_m/8.png")
                 }, {
-                    src: require("../../../assets/img/file_m/9.png")
+                    src: require("../../../../assets/img/file_m/9.png")
                 }, {
-                    src: require("../../../assets/img/file_m/10.png")
+                    src: require("../../../../assets/img/file_m/10.png")
                 }, {
-                    src: require("../../../assets/img/file_m/11.png")
+                    src: require("../../../../assets/img/file_m/11.png")
                 },
             ], // 文件类型图片
             fullPreview: {},

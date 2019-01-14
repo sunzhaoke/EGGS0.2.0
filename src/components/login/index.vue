@@ -96,7 +96,8 @@ export default {
       id: "",
       goUrl: "1111", //跳转url
       errorName: false, //账号 是否错误
-      errorPassWord: false  //密码 是否错误
+      errorPassWord: false,  //密码 是否错误
+      urls: decodeURI(window.location.href).split("?")[1],//
     };
   },
 
@@ -122,7 +123,20 @@ export default {
     //      点击注册 跳转注册页
     register() {
       setCookie("registerEmail", "");
-      this.$router.push("/register");
+      if (this.urls) {
+        let url = decodeURI(window.location.href)
+          .split("?")[1]
+          .split("&");
+        this.myUserId = url[0].split("=")[1];
+        this.type = url[1].split("=")[1];
+        this.id = url[2].split("=")[1]; 
+        this.$router.push({
+          path: "/register",
+          query: { myUserId: this.myUserId, type: this.type, id: this.id }
+        });
+      }else{
+        this.$router.push('/register')
+      }
     },
     //      点击忘记密码
     forgetPwd() {
@@ -215,7 +229,6 @@ export default {
           });
       }
     },
-
   },
   computed: {},
   created() {
@@ -224,7 +237,8 @@ export default {
       this.email = localStorage.getItem("registerEmail");
     }
     let urls = decodeURI(window.location.href).split("?")[1];
-    if (urls) {
+    if (urls && staffInfo) {
+      console.log('执行这个1')
       let url = decodeURI(window.location.href)
         .split("?")[1]
         .split("&");
@@ -235,8 +249,24 @@ export default {
         path: "/project",
         query: { myUserId: this.myUserId, type: this.type, id: this.id }
       });
-    } else if (staffInfo && getCookie('RememberYourPassword')) {
-      this.$router.push('/');
+    }
+    else if (urls) {
+      let url = decodeURI(window.location.href)
+        .split("?")[1]
+        .split("&");
+      this.myUserId = url[0].split("=")[1];
+      this.type = url[1].split("=")[1];
+      this.id = url[2].split("=")[1];
+      this.$router.push({
+        path: "/login",
+        query: { myUserId: this.myUserId, type: this.type, id: this.id }
+      });
+
+
+    }
+    else if (staffInfo && getCookie('RememberYourPassword')) {
+      console.log('执行这个3')
+      this.$router.push('/project');
     }
   },
   mounted() {

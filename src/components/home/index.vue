@@ -42,6 +42,7 @@ export default {
         console.log(res)
       })
     }
+
   },
   created() {
     let urls = decodeURI(window.location.href).split("?")[1];
@@ -53,14 +54,17 @@ export default {
       this.userId = staffInfo.userPkid;
       // 2.有链接地址
     } else if (urls) {
+        console.log(this.userId, this.myUserId,'0 kankan加好友没有')
       let url = decodeURI(window.location.href)
         .split("?")[1]
         .split("&");
       if (url[0].split("=")[0] == 'userId') {
+        console.log(this.userId, this.myUserId,'1 kankan加好友没有')
         let userId = url[0].split("=")[1];
         this.getInfo(userId);
       } else {
         this.userId = staffInfo.userPkid;
+        console.log(this.userId, this.myUserId,'2 kankan加好友没有')
         this.myUserId = url[0].split("=")[1];
         this.type = url[1].split("=")[1];
         this.id = url[2].split("=")[1];

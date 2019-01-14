@@ -24,8 +24,8 @@
                     <img class="header"
                          :src="item.userPic"
                          alt="">
-                    <span v-if="item.nickname"
-                          class="names">{{item.nickname}}</span>
+                    <span v-if="item.nickName"
+                          class="names">{{item.nickName}}</span>
                     <span v-else
                           class="names">{{item.userName}}</span>
                     <i v-if="item.checked"
@@ -84,7 +84,7 @@ export default {
         search(val) {
             let lists = [...this.listCopy];
             this.list = lists.filter(ele => {
-                return (ele.userName.indexOf(val) != -1 || ele.nickname.indexOf(val) != -1);
+                return (ele.userName.indexOf(val) != -1 || ele.nickName.indexOf(val) != -1);
             });
         },
         allChange(all) {
@@ -163,10 +163,10 @@ export default {
         // 获取项目的参与人员
         getProjectPeople() {
             this.list = [...this.userList];
-            let indexs = this.list.findIndex(ele => {
-                return ele.userId == this.creatorId;
-            });
-            (indexs != -1) && this.list.splice(indexs, 1);
+            // let indexs = this.list.findIndex(ele => {
+            //     return ele.userId == this.creatorId;
+            // });
+            // (indexs != -1) && this.list.splice(indexs, 1);
             this.list.map(ele => {
                 return ele.checked = false;
             });

@@ -196,22 +196,69 @@
          .demand_gain {
              color: @mainColor;
          }
+         .cur_dis {
+          cursor: not-allowed !important;
+          color: #E5E5E5;
+         }
       }
       .t_o_right {
           padding-right: 24px;
           color: @graySix;
+          .state_manage_yun {
+            display: inline-block;
+          }
           .market_state {
             font-size: 12px;
             .cur;
             .iconfont {
                 margin-right: 10px;
             }
+            .span_text {
+              color: @graySix;
+              font-size: 12px !important;
+            }
+            
             &:hover {
-                color: @mainColor;
-                .iconfont {
+                .iconfont, .span_text, .finish_text {
                     color: @mainColor;
                 }
             }
+          }
+          .case1 {
+            .icon-zhuangtaiguanli-1 {
+              color: #169A19;
+            }
+            .finish_text {
+              color: #169A19;
+            }
+            &:hover {
+              .icon-zhuangtaiguanli-1, .finish_text {
+                color: #169A19;
+              }
+            }
+          }
+          .case2 {
+            .icon-zhuangtaiguanli-1 {
+              color: #169A19;
+            }
+            .finish_text {
+              color: #169A19;
+              &:before {
+                content: "已完成";
+              }
+            }
+            &:hover {
+              color: @mainColor;
+              .iconfont {
+                  color: @mainColor;
+              }
+              .finish_text {
+                color: @mainColor;
+                &:before {
+                  content: "取消标记";
+                }
+            }
+          }
           }
           .iconfont {
             font-size: 16px;
@@ -231,6 +278,13 @@
                     color: @mainColor;
                 }
             }
+          }
+
+          .add_human {
+            position: relative;
+          }
+          .add_time {
+            position: relative;
           }
       }
     }
@@ -532,7 +586,7 @@
                   overflow: auto;
                   .parths_group {
                     width: 100%;
-                    padding: 24px;
+                    padding-top: 24px;
                     padding-bottom: 0;
 
                     .box_sizing;
@@ -543,6 +597,8 @@
                       margin-bottom: 8px;
                       height: 24px;
                       line-height: 24px;
+                      padding: 0 24px;
+                      .box_sizing;
                       .group_name {
                         font-weight: bold;
                         display: inline-block;
@@ -578,8 +634,13 @@
                         .every_file {
                           margin: 0 auto;
                           margin-bottom: 16px;
+                          float: none;
                          
                         }
+                    }
+                    .group_line {
+                      margin-left: 24px;
+                      width: calc(100% - 24px * 2);
                     }
                     .draggable {
                       min-height: 170px;
@@ -639,6 +700,25 @@
                         }
                       }
                     }
+                    .parths_empty {
+                      .draggable {
+                        position: relative;
+                        &::after {
+                          content: '该分组为空 您可以从其他分组拖拽或从本地上传';
+                          width: 150px;
+                          height: 32px;
+                          font-size: 12px;
+                          text-align: center;
+                          color: @grayNight;
+                          position: absolute;
+                          top: 50%;
+                          left: 50%;
+                          margin-top: - 16px;
+                          margin-left: -75px;
+                          z-index: 1;
+                        }
+                      }
+                    }
                   }
                   .group_line {
                     width: 100%;
@@ -657,6 +737,8 @@
                     padding-top: 0;
                     height: 32px;
                     line-height: 32px;
+                    padding-left: 24px;
+                    .box_sizing;
                     .icon-paixu, .group_name {
                       font-size: 14px;
                       color: @graySix;
@@ -707,11 +789,22 @@
                   .group_top .group_name {
                     max-width: 90% !important;
                   }
+                  .group_top {
+                    padding: 0 !important;
+                  }
                   .box_sizing;
                   .group_file {
                     .every_file {
                       margin: 8px 24px 8px 0 !important;
+                      float: left !important;
                     }
+                  }
+                  .group_line {
+                    margin-left: 0 !important;
+                    width: 100% !important;
+                  }
+                  .is_sort {
+                    padding: 0 !important;
                   }
               }
              
@@ -742,6 +835,24 @@
                 margin-top: 16px;
               }
             }
+            .file_empty_upload {
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              .el-upload {
+                width: 100%;
+                height: 100%;
+                .el-upload-dragger {
+                  width: 100%;
+                  height: 100%;
+                  border: 0 solid transparent;
+                }
+              }
+            }
+           
+
           }
 
         }

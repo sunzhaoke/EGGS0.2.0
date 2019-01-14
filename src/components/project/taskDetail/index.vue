@@ -2,15 +2,15 @@
     <div class='task_detail_yun'>
       <!-- 头部阶段 -->
       <div class="detail_top">
-          <div class="project_name">EGGS产品开发</div>
+          <div class="project_name">{{projectItem.title}}</div>
           <!-- state=1(一开始) state=2(一完成) state=3(一未开始) state=4(一进行中) state=5(一已超时) state=6(一已关闭)  -->
           <div class="stage_list">
             <el-tabs v-model="stageId" @tab-click="taskStageDetail(taskId, stageId)">
               <el-tab-pane 
                 v-for='stage in stageList'
-                :key='stage.stagePkid'
+                :key='stage.stageId'
                 :label="stage.stageTitle" 
-                :name="stage.stagePkid"
+                :name="stage.stageId"
                 >
                   <span slot="label">
                     <span class="round">
@@ -30,7 +30,7 @@
                 <span @click='fullPreview'>整体预览</span> 
             </div>
           </div>
-          <i class='iconfont icon-guanbijiantou'></i>
+          <i class='iconfont icon-guanbijiantou' @click='returnProject'></i>
       </div>
       <!-- 左侧目录 -->
       <div class="detail_left">
@@ -70,18 +70,45 @@
           <!-- 头部操作按钮 -->
           <div class="top_operate">
             <div class="t_o_left fl">
-              <span :class="demandOrGain ? '' : 'demand_gain'" @click="demandOrGainChange(false)">相关需求</span>
+              <el-tooltip v-if='!demandCount' effect="dark" content="暂无相关需求" placement="top" :open-delay="300">
+                <span class="cur_dis">相关需求</span>
+              </el-tooltip>
+              <span v-else :class="demandOrGain ? '' : 'demand_gain'" @click="demandOrGainChange(false)">相关需求</span>
               <span class="line"></span>
               <span :class="demandOrGain ? 'demand_gain' : ''" @click="demandOrGainChange(true)">成果文件</span>
             </div>
             <div class="t_o_right fr">
-              <span class="market_state">
-                <i class='iconfont icon-wancheng'></i>
-                状态标记
-              </span>
+              <!-- 状态管理 -->
+              <state-manage 
+                ref='stageManage'
+                v-if='stageInfo'
+                :info='stageInfo'
+                :ids='idList'
+              />
               <span class="line"></span>
-              <i class='iconfont icon-haoyou1'></i>
-              <i class='iconfont icon-rili1'></i>
+              <!-- 加人 -->
+              <span class="add_human" @click.stop='addHumanHandle'>
+                <el-tooltip effect="dark" content="添加成员" placement="top" :open-delay="300">
+                  <i class='iconfont icon-haoyou1'></i>
+                </el-tooltip>
+                <add-human
+                  v-if='addHumanShow'
+                  :defaultList='stageList'
+                  :ids='idList'
+                />
+              </span>
+              <!-- 加时间 -->
+              <span class="add_time" @click.stop='addTimeHandle'>
+                 <el-tooltip effect="dark" content="添加时间" placement="top" :open-delay="300">
+                  <i class='iconfont icon-rili1'></i>
+                </el-tooltip>
+                <add-time
+                  v-if='addTimeShow'
+                   :defaultList='stageList'
+                  :ids='idList'
+                />
+              </span>
+              
               <span class="line"></span>
               <span class="self_file" @click='personalFilesPull'>
                 <i class='iconfont icon-gerenwenjianjia'></i>
@@ -106,32 +133,48 @@
                 <div v-if='demandOrGain' id="operateFile" class="operate_file">
                   <div class="top_box">
                     <div class="left fl">
-                      <el-upload 
-                        :ref="filePartitionId === 0 ? 'fileUpload' : ''"
-                        class="upload_file"
-                        :action="'/ProjectFile.ashx?&myUserId='+userId+'&projectId='+projectId+'&stageTaskId='+stageTaskId+'&filePartitionId='+filePartitionId"
-                        :show-file-list="false"
-                        :multiple="true"
-                        :on-error="uploadError"
-                        :on-success="uploadSuccess"
-                        :on-progress="uploadProgress"
-                        :limit="9"
-                        :on-exceed="handleExceed"
-                        :before-upload="beforeUpload"
-                        >
-                      <i class='iconfont icon-shangchuan' @click="handleClickUpload(0)"></i>
-                      </el-upload>
-                    
-                      <i 
-                        class='iconfont icon-tianjiawenzi'
-                        @click.stop="inputTextShowToggle('left')"
-                        ></i>
-                      <span class="line"></span>
+                      <!-- 文件上传 -->
+                      <el-dropdown v-if='power' placement="bottom">
+                        <span class="el-dropdown-link">
+                          <i class='iconfont icon-shangchuan'></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                          <el-dropdown-item
+                            @click.native="handleClickUpload(0)"
+                          >
+                            <el-upload 
+                              :ref="filePartitionId === 0 ? 'fileUpload' : ''"
+                              class="upload_file"
+                              :action="'/ProjectFile.ashx?&myUserId='+userId+'&projectId='+projectId+'&stageTaskId='+stageTaskId+'&filePartitionId='+filePartitionId"
+                              :show-file-list="false"
+                              :multiple="true"
+                              :on-error="uploadError"
+                              :on-success="uploadSuccess"
+                              :on-progress="uploadProgress"
+                              :limit="9"
+                              :on-exceed="handleExceed"
+                              :before-upload="beforeUpload"
+                              >本地上传
+                              <!-- <span>本地上传</span> -->
+                            </el-upload>
+                          </el-dropdown-item>
+                          <el-dropdown-item>从个人文档上传</el-dropdown-item>
+                        </el-dropdown-menu>
+                      </el-dropdown>
+                      <!-- 添加文字 -->
+                      <el-tooltip v-if='power' effect="dark" content="添加文字" placement="top" :open-delay="300">
+                        <i 
+                          class='iconfont icon-tianjiawenzi'
+                          @click.stop="inputTextShowToggle('left')"
+                          ></i>
+                      </el-tooltip>
+                      <span v-if='power' class="line"></span>
+                      <!-- 文件选择 -->
                       <el-checkbox 
                         v-if='checkedFileList && checkedFileList.length' 
                         class="all_checked" 
                         v-model="fileCheckbox" 
-                        @change='fileCheckboxAll'
+                        @click.native='fileCheckboxAll'
                         >
                         已选<span class="mainColor">{{checkedFileList && checkedFileList.length}}</span>项
                       </el-checkbox>
@@ -139,16 +182,39 @@
                         v-else 
                         class="all_checked" 
                         v-model="fileCheckbox" 
-                        @change='fileCheckboxAll'>全选</el-checkbox>
+                        @click.native='fileCheckboxAll'>全选</el-checkbox>
                         <template v-if='checkedFileList && checkedFileList.length'>
-                          <i class="iconfont icon-xiazai"></i>
-                          <i class="iconfont icon-shoucang1"></i>
-                          <i class="iconfont icon-jihuayijiao"></i>
+                          <el-tooltip effect="dark" content="下载" placement="top" :open-delay="300">
+                            <i class="iconfont icon-xiazai" @click='multipleDownload'></i>
+                          </el-tooltip>
+                          <el-tooltip effect="dark" content="收藏" placement="top" :open-delay="300">
+                            <i class="iconfont icon-shoucang1"></i>
+                          </el-tooltip>
+                          <!-- 只有一个阶段的时候 -->
+                          <template v-if='power && stageList.length === 1'>
+                            <el-tooltip effect="dark" content="没有可移交的阶段" placement="top" :open-delay="300">
+                              <i class="iconfont icon-jihuayijiao cur_dis"></i>
+                            </el-tooltip>
+                          </template>
+                          <!-- 多个阶段 且选中的文件包含他人的文件的时候 -->
+                          <template v-else-if='power && stageList.length > 1 && !isOwnChecked'>
+                            <el-tooltip effect="dark" content="您只能移交自己的文件" placement="top" :open-delay="300">
+                              <i class="iconfont icon-jihuayijiao cur_dis"></i>
+                            </el-tooltip>
+                          </template>
+                           <!-- 多个阶段 且选中的文件不包含他人的文件的时候 -->
+                          <template v-else-if='power && stageList.length > 1'>
+                            <el-tooltip effect="dark" content="移交" placement="top" :open-delay="300">
+                              <i class="iconfont icon-jihuayijiao" @click='multipleTransfer'></i>
+                            </el-tooltip>
+                          </template>
                         </template>
                     </div>
+                    {{power}}
                     <div class="right fr">
+                      <!-- 分组管理 -->
                       <span class="">
-                        <el-dropdown class="fixed file_more">
+                        <el-dropdown v-if='power' class="fixed file_more">
                           <span class="el-dropdown-link"><i class='iconfont icon-fenzu1'></i>分组管理</span>
                           <el-dropdown-menu slot="dropdown">
                             <el-dropdown-item @click.native="groupCommand('create')">新建分组</el-dropdown-item>
@@ -156,12 +222,12 @@
                           </el-dropdown-menu>
                         </el-dropdown>
                       </span>
-                        <span class="toggle" @click='viewToggles'>
+                      <!-- 视图切换 -->
+                      <span class="toggle" @click='viewToggles'>
                         <i :class="viewToggle ? 'iconfont icon-liebiao' : 'iconfont icon-fenzu'"></i>
                         视图切换
                       </span>
                     </div>
-
                     <!-- 输入文字 -->
                     <div 
                       v-if='inputTextShow1'
@@ -227,9 +293,13 @@
                                       id="fileNameEdit"
                                       @blur="fileNameEditBlur($event, ele)"
                                       />
-                                    <img :src="ele.UserPic" alt="" class="from_header">
+                                      <el-tooltip effect="dark" :content="ele.nickName ? ele.nickName : ele.userName" placement="top" :open-delay="300">
+                                        <img :src="ele.UserPic" alt="" class="from_header">
+                                      </el-tooltip>
                                     <span class="file_message fr">
-                                      <i class='iconfont icon-pinglun'></i>
+                                      <el-tooltip effect="dark" content="评论" placement="top" :open-delay="300">
+                                        <i class='iconfont icon-pinglun'></i>
+                                      </el-tooltip>
                                         {{ele.Count}}
                                     </span>
                                     <span class="fixed file_checkbox" v-if='oneChecked || ele.hover'>
@@ -240,9 +310,14 @@
                                       <el-dropdown-menu slot="dropdown">
                                         <el-dropdown-item @click.native="fileCommand('download', index, ele, 0)">下载</el-dropdown-item>
                                         <el-dropdown-item @click.native="fileCommand('collect', index, ele, 0)">收藏</el-dropdown-item>
-                                        <el-dropdown-item @click.native="fileCommand('transfer', index, ele, 0)">移交</el-dropdown-item>
-                                        <el-dropdown-item @click.native="fileCommand('rename', index, ele, 0)">重命名</el-dropdown-item>
-                                        <el-dropdown-item @click.native="fileCommand('delete', index, ele, 0)">删除</el-dropdown-item>
+                                        <el-dropdown-item v-if='ele.isOwn && stageList.length === 1'>
+                                          <el-tooltip effect="dark" content="没有可移交的阶段" placement="top" :open-delay="300">
+                                            <span class="cur_dis">移交</span>
+                                          </el-tooltip>
+                                        </el-dropdown-item>
+                                        <el-dropdown-item v-if='ele.isOwn && stageList.length > 1' @click.native="fileCommand('transfer', index, ele, 0)">移交</el-dropdown-item>
+                                        <el-dropdown-item v-if='ele.isOwn' @click.native="fileCommand('rename', index, ele, 0)">重命名</el-dropdown-item>
+                                        <el-dropdown-item v-if='ele.isOwn' @click.native="fileCommand('delete', index, ele, 0)">删除</el-dropdown-item>
                                       </el-dropdown-menu>
                                     </el-dropdown>
                                   </div>
@@ -250,12 +325,35 @@
                               <div class="null"></div>
                           </draggable>
                       </div>
-                      <div v-else class="file_empty">
-                        <div class="empty_img">
-                          <img src="./style/file_empty.png" alt="">
-                        </div>
-                        <p class="title">文件拖到此区域即可上传，支持批量上传</p>
-                      </div>
+                      <template v-else>
+                        <el-upload
+                          v-if='power'
+                          class="file_empty_upload"
+                          drag
+                          :action="'/ProjectFile.ashx?&myUserId='+userId+'&projectId='+projectId+'&stageTaskId='+stageTaskId+'&filePartitionId='+filePartitionId"
+                          :show-file-list="false"
+                          :multiple="true"
+                          :on-error="uploadError"
+                          :on-success="uploadSuccess"
+                          :on-progress="uploadProgress"
+                          :limit="9"
+                          :on-exceed="handleExceed"
+                          :before-upload="beforeUpload"
+                          >
+                          <div class="file_empty">
+                            <div class="empty_img">
+                              <img src="./style/file_empty.png" alt="">
+                            </div>
+                            <p class="title">文件拖到此区域即可上传，支持批量上传</p>
+                          </div>
+                        </el-upload>
+                        <div class="file_empty" v-else>
+                            <div class="empty_img">
+                              <img src="./style/file_empty.png" alt="">
+                            </div>
+                            <p class="title">暂无文件</p>
+                          </div>
+                      </template>
                     </div>
                     <!-- 右侧分组 -->
                     <div id="rightBox" class="right_box">
@@ -298,13 +396,20 @@
                                   <div class="group_operate">
                                     <span 
                                       v-if='group.packUp' 
-                                      @click='groupExtendToggle(index)'
+                                      @click='groupExtendToggle(index, true)'
                                       class='mainColor_underline_text'
                                       >收起</span>{{group.packUp}}
-                                      <el-dropdown class="fixed file_more">
+                                      <el-dropdown 
+                                        v-if='power || group.fileList.length'
+                                        class="fixed file_more"
+                                        @visible-change="visibleChangeGroup($event, group)"
+                                        >
                                         <span class="el-dropdown-link"><i class='iconfont icon-gengduo1'></i></span>
                                         <el-dropdown-menu slot="dropdown">
-                                          <el-dropdown-item @click.native="fileGroupCommand('upload', index, group)">
+                                          <el-dropdown-item 
+                                             v-if='power'
+                                            @click.native="fileGroupCommand('upload', index, group)"
+                                            >
                                             <el-upload 
                                               :ref="filePartitionId === group.pkid ? 'fileUpload' : ''"
                                               class="upload_file"
@@ -321,11 +426,46 @@
                                               <span class="slot_title" @click="handleClickUpload(group.pkid)">上传</span>
                                             </el-upload>
                                           </el-dropdown-item>
-                                          <el-dropdown-item @click.native="fileGroupCommand('download', index, group)">下载</el-dropdown-item>
-                                          <el-dropdown-item @click.native="fileGroupCommand('collect', index, group)">收藏</el-dropdown-item>
-                                          <el-dropdown-item @click.native="fileGroupCommand('transfer', index, group)">整组移交</el-dropdown-item>
-                                          <el-dropdown-item @click.native="fileGroupCommand('rename', index, group)">重命名</el-dropdown-item>
-                                          <el-dropdown-item @click.native="fileGroupCommand('delete', index, group)">删除</el-dropdown-item>
+                                          <el-dropdown-item 
+                                            v-if='group.fileList.length' 
+                                            @click.native="fileGroupCommand('download', index, group)"
+                                            >下载</el-dropdown-item>
+                                          <el-dropdown-item 
+                                            v-if='group.fileList.length' 
+                                            @click.native="fileGroupCommand('collect', index, group)"
+                                            >收藏</el-dropdown-item>
+                                          <!-- 整组移交 只有一个阶段的时候 -->
+                                          <el-dropdown-item 
+                                            v-if='power && group.fileList.length && stageList.length === 1' 
+                                            @click.native="fileGroupCommand('transfer', index, group)"
+                                            >
+                                            <el-tooltip effect="dark" content="没有可移交的阶段" placement="top" :open-delay="300">
+                                              <span class='cur_dis'>整组移交</span>
+                                            </el-tooltip>
+                                          </el-dropdown-item>
+                                          <!-- 整组移交 只有自己的文件的时候 -->
+                                          <el-dropdown-item 
+                                            v-else-if='power && group.fileList.length && group.fileList.length && group.onlySelf' 
+                                            @click.native="fileGroupCommand('transfer', index, group)"
+                                            >
+                                            整组移交
+                                          </el-dropdown-item>
+                                          <!-- 整组移交 包含他人文件的时候 -->
+                                          <el-dropdown-item 
+                                            v-else-if='power && group.fileList.length && !group.onlySelf' 
+                                            >
+                                            <el-tooltip effect="dark" content="您只能移交自己的文件" placement="top" :open-delay="300">
+                                              <span class='cur_dis'>整组移交</span>
+                                            </el-tooltip>
+                                          </el-dropdown-item>
+                                          <el-dropdown-item 
+                                            v-if='power' 
+                                            @click.native="fileGroupCommand('rename', index, group)"
+                                            >重命名</el-dropdown-item>
+                                          <el-dropdown-item 
+                                            v-if='power' 
+                                            @click.native="fileGroupCommand('delete', index, group)"
+                                            >删除</el-dropdown-item>
                                         </el-dropdown-menu>
                                       </el-dropdown>
                                   </div>
@@ -353,34 +493,51 @@
                                   @start='dragStart($event, group.pkid)'
                                   @end='dragEnd'
                                   >
-                                  <div 
-                                    class="every_file fold_up"
-                                      v-if='item.overLength'
-                                    v-for="item in group.allList"
-                                    :key="item.FilePkid"
-                                    :groupid='group.pkid'
-                                    :id='item.FilePkid'
-                                    :filename='item.FileName'
-                                    @click='groupExtendToggle(index)'
-                                    >
-                                      <span class="file_pic">
-                                        <span
-                                          class="more" 
-                                          v-for='(pic, index) in item.UrlMin'
-                                          :key='index'
-                                          >
-                                            <img :src="pic" alt="
-                                          ">
+                                  <template v-if='group.fileList.length'>
+                                    <div 
+                                      class="every_file fold_up"
+                                      v-for="item in group.allList"
+                                      :key="item.FilePkid"
+                                      :groupid='group.pkid'
+                                      :id='item.FilePkid'
+                                      :filename='item.FileName'
+                                      @click='groupExtendToggle(index, item)'
+                                      >
+                                        <span class="file_pic">
+                                          <span
+                                            class="more" 
+                                            v-for='(pic, index) in item.UrlMin'
+                                            :key='index'
+                                            >
+                                              <img :src="pic" alt="
+                                            ">
+                                            <span class="none"></span>
+                                          </span>
+                                          <span class="more"><img class="more" src="./style/more.png" alt=""></span>
                                           <span class="none"></span>
                                         </span>
-                                        <span class="more"><img class="more" src="./style/more.png" alt=""></span>
-                                        <span class="none"></span>
-                                      </span>
-                                      <div class="file_info">
-                                        <p class="file_length"><span class="mainColor">{{group.fileList.length}}</span>个文件</p>
-                                      </div>
+                                        <div class="file_info">
+                                          <p class="file_length"><span class="mainColor">{{group.fileList.length}}</span>个文件</p>
+                                        </div>
 
-                                  </div>
+                                    </div>
+                                  </template>
+                                  <template v-else>
+                                    <div 
+                                      class="every_file fold_up"
+                                      :groupid='group.pkid'
+                                      @click='groupExtendToggle(index, true)'
+                                      >
+                                        <span class="file_pic">
+                                          <img src="./style/group_empty2.png" alt="">
+                                          <span class="none"></span>
+                                        </span>
+                                        <div class="file_info">
+                                          <p class="file_length">暂无文件</p>
+                                        </div>
+
+                                    </div>
+                                  </template>
                                   <div class="null"></div>
                                 </draggable>
                               </div>
@@ -415,7 +572,7 @@
                                       :groupid='group.pkid'
                                       :id='item.FilePkid'
                                       :filename='item.FileName'
-                                      @click='groupExtendToggle(index)'
+                                      @click='groupExtendToggle(index, item)'
                                       @mouseenter="enterFile(item)"
                                       @mouseleave="leaveFile(item)"
                                       >
@@ -457,9 +614,13 @@
                                             id="fileNameEdit"
                                             @blur="fileNameEditBlur($event, item)"
                                             />
-                                          <img :src="item.UserPic" alt="" class="from_header">
+                                          <el-tooltip effect="dark" :content="item.nickName ? item.nickName : item.userName" placement="top" :open-delay="300">
+                                            <img :src="item.UserPic" alt="" class="from_header">
+                                          </el-tooltip>
                                           <span class="file_message fr">
-                                            <i class='iconfont icon-pinglun'></i>
+                                            <el-tooltip effect="dark" content="评论" placement="top" :open-delay="300">
+                                              <i class='iconfont icon-pinglun'></i>
+                                            </el-tooltip>
                                             {{item.Count}}
                                           </span>
                                           <span class="fixed file_checkbox" v-if='oneChecked || item.hover'>
@@ -469,8 +630,15 @@
                                             <span class="el-dropdown-link"><i class='iconfont icon-gengduo'></i></span>
                                             <el-dropdown-menu slot="dropdown">
                                               <el-dropdown-item @click.native="fileCommand('download', index1, item, group.pkid, index)">下载</el-dropdown-item>
-                                              <el-dropdown-item @click.native="fileCommand('rename', index1, item, group.pkid, index)">重命名</el-dropdown-item>
-                                              <el-dropdown-item @click.native="fileCommand('delete', index1, item, group.pkid, index)">删除</el-dropdown-item>
+                                              <el-dropdown-item @click.native="fileCommand('collect', index1, item, group.pkid, index)">收藏</el-dropdown-item>
+                                              <el-dropdown-item v-if='item.isOwn && stageList.length === 1'>
+                                                <el-tooltip effect="dark" content="没有可移交的阶段" placement="top" :open-delay="300">
+                                                  <span class="cur_dis">移交</span>
+                                                </el-tooltip>
+                                              </el-dropdown-item>
+                                              <el-dropdown-item v-if='item.isOwn && stageList.length > 1' @click.native="fileCommand('transfer', index1, item, group.pkid, index)">移交</el-dropdown-item>
+                                              <el-dropdown-item v-if='item.isOwn' @click.native="fileCommand('rename', index1, item, group.pkid, index)">重命名</el-dropdown-item>
+                                              <el-dropdown-item v-if='item.isOwn' @click.native="fileCommand('delete', index1, item, group.pkid, index)">删除</el-dropdown-item>
                                             </el-dropdown-menu>
                                           </el-dropdown>
                                         </div>
@@ -486,7 +654,7 @@
                                 v-else-if='group.fileList'
                                 :key="group.pkid"
                                 class="group_file"
-                                :class="dragItem && dragItem.fromGroup ? (group.border ? (group.fileList.length ? 'group_border' : 'drag_in') : 'drag_dis') : ''"
+                                :class="dragItem && dragItem.fromGroup ? (group.border ? (group.fileList.length ? 'group_border' : 'drag_in') : 'drag_dis') : (group.fileList.length ? '' : 'parths_empty')"
                                 >
                                 <draggable
                                   class="draggable"
@@ -531,9 +699,13 @@
                                         id="fileNameEdit"
                                         @blur="fileNameEditBlur($event, item)"
                                         />
-                                      <img :src="item.UserPic" alt="" class="from_header">
+                                      <el-tooltip effect="dark" :content="item.nickName ? item.nickName : item.userName" placement="top" :open-delay="300">
+                                        <img :src="item.UserPic" alt="" class="from_header">
+                                      </el-tooltip>
                                       <span class="file_message fr">
-                                        <i class='iconfont icon-pinglun'></i>
+                                        <el-tooltip effect="dark" content="评论" placement="top" :open-delay="300">
+                                          <i class='iconfont icon-pinglun'></i>
+                                        </el-tooltip>
                                         {{item.Count}}
                                       </span>
                                       <span class="fixed file_checkbox" v-if='oneChecked || item.hover'>
@@ -543,8 +715,15 @@
                                         <span class="el-dropdown-link"><i class='iconfont icon-gengduo'></i></span>
                                         <el-dropdown-menu slot="dropdown">
                                           <el-dropdown-item @click.native="fileCommand('download', index1, item, group.pkid, index)">下载</el-dropdown-item>
-                                          <el-dropdown-item @click.native="fileCommand('rename', index1, item, group.pkid, index)">重命名</el-dropdown-item>
-                                          <el-dropdown-item @click.native="fileCommand('delete', index1, item, group.pkid, index)">删除</el-dropdown-item>
+                                          <el-dropdown-item @click.native="fileCommand('collect', index1, item, group.pkid, index)">收藏</el-dropdown-item>
+                                          <el-dropdown-item v-if='item.isOwn && stageList.length === 1'>
+                                            <el-tooltip effect="dark" content="没有可移交的阶段" placement="top" :open-delay="300">
+                                              <span class="cur_dis">移交</span>
+                                            </el-tooltip>
+                                          </el-dropdown-item>
+                                          <el-dropdown-item v-if='item.isOwn && stageList.length > 1' @click.native="fileCommand('transfer', index1, item, group.pkid, index)">移交</el-dropdown-item>
+                                          <el-dropdown-item v-if='item.isOwn' @click.native="fileCommand('rename', index1, item, group.pkid, index)">重命名</el-dropdown-item>
+                                          <el-dropdown-item v-if='item.isOwn' @click.native="fileCommand('delete', index1, item, group.pkid, index)">删除</el-dropdown-item>
                                         </el-dropdown-menu>
                                       </el-dropdown>
                                     </div>
@@ -558,14 +737,20 @@
                             </div>
                           </template>
                         </div>
-                        
-                        <div v-else class="file_empty">
-                          <div class="empty_img">
-                            <img src="./style/group_empty.png" alt="">
+                        <template v-else>
+                          <div v-if='power' class="file_empty">
+                            <div class="empty_img">
+                              <img src="./style/group_empty.png" alt="">
+                            </div>
+                            <p class="title">文件拖到此区域设置分组</p>
                           </div>
-                          <p class="title">文件拖到此区域设置分组</p>
-                        </div>
-
+                          <div v-else class="file_empty">
+                            <div class="empty_img">
+                              <img src="./style/group_empty.png" alt="">
+                            </div>
+                            <p class="title">暂无分组</p>
+                          </div>
+                        </template>
                         <div v-if='notGroupedList.length || parthsGroup.length' class="left_right_toggle" @click='leftRightToggle'>
                           <i 
                             class="iconfont icon-tubiaozhizuomoban"
@@ -584,21 +769,31 @@
                 </div>
                 <!-- 相关需求 -->
                 <div v-else id="operateFile" class="operate_file">
-                  <demand-view/>
+                  <demand-view
+                  :list='demandList'
+                  ref="demandView"
+                  />
                 </div>
                 <!-- 个人文档 -->
                 <div v-if="personalFilesShow" id="personalFiles" class="personal_files">
                   <div class="top_box">
                     <div class="left fl">
-                      <i class='iconfont icon-shangchuan'></i>
-                      <i 
-                        class='iconfont icon-tianjiawenzi'
-                        @click.stop="inputTextShowToggle()"
-                        ></i>
-                      <i 
-                        class='iconfont icon-xinjianfenzu'
-                        @click='newFolder'
-                        ></i>
+                      <el-tooltip effect="dark" content="上传" placement="top" :open-delay="300">
+                        <i class='iconfont icon-shangchuan'></i>
+                      </el-tooltip>
+                      <el-tooltip effect="dark" content="添加文字" placement="top" :open-delay="300">
+                        <i 
+                          class='iconfont icon-tianjiawenzi'
+                          @click.stop="inputTextShowToggle()"
+                          ></i>
+                      </el-tooltip>
+                      <el-tooltip effect="dark" content="新建文件夹" placement="top" :open-delay="300">
+                        <i 
+                          class='iconfont icon-xinjianfenzu'
+                          @click='newFolder'
+                          ></i>
+                      </el-tooltip>
+                      
                       <span class="line"></span>
                       <el-checkbox 
                         v-if='checkedListSelf.length' 
@@ -616,7 +811,7 @@
                           <i class="iconfont icon-delete"></i>
                         </template>
                     </div>
-                    <div class="right fr">
+                    <div class="right fr" v-if='false'>
                       <i class='iconfont icon-sousuo'></i>
                       <i class='iconfont icon-filter'></i>
                     </div>
@@ -758,6 +953,16 @@
       </div>
       <!-- 温馨提示2_删除分组的提示 -->
       <transition name="fade1">
+        <transfer-view
+          v-if='transferShow'
+          :selectList="transferStageList"
+          @handleCancle="transferCancel"
+          @handleSure="transferSure" 
+        />
+
+      </transition>
+      <!-- 温馨提示2_删除分组的提示 -->
+      <transition name="fade1">
         <Reminder2 v-if="delGroupFlag"
             :type="1"
             :text="reminderText"
@@ -772,7 +977,7 @@
             @handleCancle="delFileCancel"
             @handleSure="delFileSure" />
       </transition>
-          <!-- 文件上传进度条 -->
+      <!-- 文件上传进度条 -->
       <upload-progress v-if="uploadProgressFlag"
         :fileProgressList="fileProgressList"
         @closeProgress="closeProgress"
@@ -786,9 +991,13 @@ import Reminder2 from "../../common/reminder2";
 import UploadProgress from "../../common/uploadProgress";
 
 import draggable from "vuedraggable";
-import FullPreview from './fullPreview';
-import OtherView from './otherView';
-import DemandView from './demandView';
+import FullPreview from './page/fullPreview';
+import OtherView from './page/otherView';
+import DemandView from './page/demandView';
+import StateManage from './page/stateManage';
+import AddHuman from './page/addHuman';
+import AddTime from './page/addTime';
+import TransferView from './page/transferView';
 import { mapState, mapMutations } from 'vuex';
 export default {
   components: {
@@ -797,11 +1006,18 @@ export default {
     draggable,
     FullPreview,
     OtherView,
-    DemandView
+    DemandView,
+    StateManage,
+    AddHuman,
+    AddTime,
+    TransferView
   },
   data() {
     return {
-      userId: 1184, // 登录这ID 1189
+      loginUser: JSON.parse(localStorage.getItem("staffInfo")), // 当前登录者的信息
+      projectItem: JSON.parse(localStorage.getItem("projectItem")), // 当前项目
+      // userId: 1204, // 当前登录者的ID
+      userId: JSON.parse(localStorage.getItem("staffInfo")).userPkid, // 当前登录者的ID
       projectId: 0, // 项目ID
       stageId: '0', // 阶段ID
       taskId: 0, // 任务ID
@@ -816,203 +1032,15 @@ export default {
       stageList: [], // 阶段列表
       tasksList: [], // 左侧分组任务列表
       allFileList: [],  // 分组+未分组列表
+      demandList: [], // 相关需求的列表
+      demandCount: 0, // 是否有相关需求
       stageState: 0, // 当前阶段的状态
+      stageInfo: null, // 当前阶段的所有信息
       demandOrGain: true, // false--相关需求 true--成果文件
-      fileCheckbox: false, // 文件全选
       viewToggle: true, // true--视图1  false--视图2
       fileCheckboxSelf: false, // 个人文档
       notGroupedList: [], // 未分组文件列表 
       parthsGroup: [], // 分组文件列表
-      notGroupedList_1: [
-        {
-          FilePkid: "4085",
-          FileName: "egLogo1.png",
-          UrlMin:
-            "/upload/file/20181227065330/63f7b3f6-f448-448f-b26a-6d6a12741f03/7f31dfb2-196a-48b6-89bc-aa2652013506.png",
-          FileType: "png",
-          userName: "祝建云",
-        },
-        {
-          FilePkid: "6575",
-          FileName: "详情页面1",
-          UrlMin:
-            "/upload/file/20180524103014/41735179-c2d4-45b8-85ca-da4681d5b3af/01.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6573",
-          FileName: "详情页面-2",
-          UrlMin:
-            "/upload/file/20181226081958/5e77da48-39a0-491f-a5db-c23cd5a4023d/b4f00229-8439-4f78-b0a1-957644a58492_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6574",
-          FileName: "详情页面-3",
-          UrlMin:
-            "/upload/file/20180524103014/489053b4-6574-47b0-ace3-22101721e612/2.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6572",
-          FileName: "详情页面-4",
-          UrlMin:
-            "/upload/file/20181226081939/d8e7a662-6f0a-4b41-ba0d-f359aaa3fb5b/2113c63f-2b0b-487a-a3cc-d78b301001b8_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6570",
-          FileName: "详情页面-5",
-          UrlMin:
-            "/upload/file/20181226081938/90571b62-18cb-45aa-a8f0-1f3e30178176/ae3a890a-f693-4023-8b14-f4d960ca0c73_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6571",
-          FileName: "详情页面-6",
-          UrlMin:
-            "/upload/file/20181226081938/ea47a6ae-e9f8-43d6-a63f-08d3c2bb3373/bdca1df3-3343-4381-bed0-8eecf050cd98_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6569",
-          FileName: "详情页面-无分组",
-          UrlMin:
-            "/upload/file/20181226081938/e29e3cec-30ce-4670-8d12-acd4c6a372c3/0d4dfecd-439b-418d-b368-0e2ec3d6206d_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6568",
-          FileName: "详情页面-文件分组最小化",
-          UrlMin:
-            "/upload/file/20181226081938/95216f40-6b6f-43e7-b8ab-a62c285f8b00/a1ec02b1-a3bd-4cb1-afc2-8bd9787c4d03_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6567",
-          FileName: "详情页面-文件移动n",
-          UrlMin:
-            "/upload/file/20181226081938/8f8daa93-ffb1-4445-b4cb-7f79ed5fd2ce/5bc9a050-5e1a-44df-8ac2-0f52d5030175_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6566",
-          FileName: "详情页面-输入文字",
-          UrlMin:
-            "/upload/file/20181226081938/3afc6cd3-72ce-45c0-b4a2-e9e47b73a6d2/82dfd666-49a2-4c15-928c-6dc9b5dfeea3_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6565",
-          FileName: "详情页面-上传文件to成果文件",
-          UrlMin:
-            "/upload/file/20181226081931/55e92e54-1075-43ab-a8ba-74ced18d6121/9a56d16e-6246-4b48-9ea4-3276bc2cdce9_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6564",
-          FileName: "详情页面-上传文件to个人文档",
-          UrlMin:
-            "/upload/file/20181226081931/5ff72ed8-1c2d-4323-bfe4-7e3d45ee83dc/7fd6baae-cb04-4207-9cbf-fa53d399a978_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6563",
-          FileName: "详情页面-删除文件夹与删除文件提示",
-          UrlMin:
-            "/upload/file/20181226081931/819c9db1-70a8-453d-b739-a978be80585f/ce970ac7-d760-4be3-8969-316e22cf6efd_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-          Edition: "1",
-        },
-        {
-          FilePkid: "6562",
-          FileName: "详情页面-空页面",
-          UrlMin:
-            "/upload/file/20181226081930/14707eb6-6f74-4819-844c-76afc08de9b9/8f37b596-48ae-4262-b241-beee53d646a3_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6561",
-          FileName: "详情页面-进入文件夹--文件夹为空",
-          UrlMin:
-            "/upload/file/20181226081930/83ecf1e5-5f21-44c6-bcf7-48e391b99e19/fe95c51a-3ab0-4ab2-8826-c5e925447b4a_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6560",
-          FileName: "详情页面-进入文件夹--出现面包屑---文件hover的操作",
-          UrlMin:
-            "/upload/file/20181226081930/5db23181-724c-42c0-b036-7d4471ec6247/f391c292-ac6b-4ab2-b787-94ea6cd07e26_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6559",
-          FileName: "详情页面-分组文件的展开与收起样式",
-          UrlMin:
-            "/upload/file/20181226081929/4cf89dc7-18e1-456b-ad93-8b687cbf48e4/9713e604-fec5-4298-a28b-9e2eb11fe414_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6558",
-          FileName: "详情页面-成果文件分组更多操作",
-          UrlMin:
-            "/upload/file/20181226081929/82b8f088-2c08-4728-a739-97760c0c3d61/dd3b3458-ddf1-415e-9b75-af241125224e_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        },
-        {
-          FilePkid: "6557",
-          FileName: "详情页面-多选文件样式",
-          UrlMin:
-            "/upload/file/20181226081929/729c03fc-fd7c-41c1-99e8-2fcd1e63dd3a/c96654d0-0582-4809-8359-ecea14d26148_s1.png",
-          FileType: "png",
-          userName: "卢洪臣",
-        }
-      ], // 未分组文件列表
-      parthsGroup_1: [
-        {
-          pkid: 0,
-          groupName: "分组1",
-          border: false,
-          dragDisabled: false,
-          packUp: null,
-          fileList: [
-            {
-              FilePkid: "404",
-              FileName: "附件1",
-              UrlMin:
-                "/upload/file/20181227072023/3c36843c-24be-4d34-9f88-38aadcd9e617/ced7bc91-99d6-4345-ba44-292e4a206593.png",
-              FileType: "png",
-              userName: "祝建云"
-            },
-            {
-              FilePkid: "403",
-              FileName: "赫本",
-              UrlMin:
-                "/upload/file/20181227072001/e9e95bcc-11f0-4470-914e-87cb65be398b/4e822aa0-2b99-4bc0-b58d-48725929ef4b.png",
-              FileType: "png",
-              userName: "祝建云"
-            }
-          ]
-        }
-      ], // 分组文件列表
       personalFilesShow: false, // 个人文档是否显示
       personalFiles: [
         {
@@ -1111,7 +1139,6 @@ export default {
       inputText: '', // 添加文字的内容
       fullPreviewShow: false, // 整体预览是否显示
       fullList: {}, // 整体预览的数据
-      oneChecked: false, // 是否有一个文件被选中
       oneCheckedSelf: false, // 个人文档--是否有一个文件被选中
       checkedList: [], // 已选中的文件列表
       checkedListSelf: [], // 个人文档--已选中的文件列表
@@ -1161,6 +1188,11 @@ export default {
       groupNameCopy: '', // copy文件分组的名字
       fileNameCopy: '', // copy文件的名字
       groupSortFlag: false, // 分组排序展示
+      addHumanShow: false, // 加人显示/隐藏
+      addTimeShow: false, // 加时间显示/隐藏
+      transferShow: false, // 文件移交的弹窗
+      transferStageList: [], // 移交选择的阶段列表
+      transferType: 1, // 1--单个文件移交， 2--多个文件移交， 3--组文件的移交
     };
   },
   watch: {
@@ -1200,27 +1232,104 @@ export default {
         }
         this.parthsGroup = this.parthsGroup.concat();
       }
-    }
+    },
+    notGroupedList(val) {
+      let length = 0;
+      for(let x of this.parthsGroup) {
+        for(let y of x.fileList) {
+          length++;
+        }
+      }
+      this.FILELENGTH_CHANGE(val.length + length);
+      this.stageInfo.fileList[0].fileList = val;
+    },
+    parthsGroup: {
+      deep: true,
+      handler(list) {
+        let length = 0;
+        for(let x of list) {
+          for(let y of x.fileList) {
+            length++;
+          }
+        }
+        this.FILELENGTH_CHANGE(length + this.notGroupedList.length);
+        this.stageInfo.fileList = [].concat(this.stageInfo.fileList[0], list);
+
+      }
+    },
+
   },
   computed: {
     ...mapState([
-      'checkedFileList'
+      'checkedFileList',
+      'fileLength',
+      'power' // 权限管理 0--未参加阶段任务 1--参加了阶段任务
     ]),
+    isOwnChecked() {
+        let indexs = this.checkedFileList.findIndex(ele => ele.UserPkid != this.userId);
+        if(indexs === -1) {
+          return true;
+        }else {
+          return false;
+        }
+    },
+    fileCheckbox: {
+      get() {
+        if(this.fileLength && this.checkedFileList && (this.checkedFileList.length === this.fileLength)) {
+          return true;
+        }else {
+          return false;
+        }
+      },
+      set() {
+
+      }
+      
+    },
+    // 是否有一个文件被选中
+    oneChecked() {
+      if(this.checkedFileList && this.checkedFileList.length) {
+        return true;
+      }else {
+        return false;
+      }
+    }
   },
   methods: {
     ...mapMutations([
       'CHECKEDLIST_CHANGE',
+      'FILELENGTH_CHANGE',
+      'TASKIDS_CHANGE',
+      'POWER_CHANGE'
     ]),
+    // 返回格子任务列表
+    returnProject() {
+      this.$router.push("/project/projectInfo");
+    },
+
+    // 添加人员
+    addHumanHandle() {
+      this.addHumanShow = true;
+      this.addTimeShow = false;
+      let clickHide = e => {
+        this.addHumanShow = false;
+        $(document).unbind("click", clickHide)
+      };
+      $(document).bind("click", clickHide)
+    },
+
+    // 添加时间
+    addTimeHandle() {
+      this.addTimeShow = true;
+      this.addHumanShow = false;
+      let clickHide = e => {
+        this.addTimeShow = false;
+        $(document).unbind("click", clickHide)
+      };
+      $(document).bind("click", clickHide)
+    },
     // 文件视图切换
     viewToggles() {
-      this.idList = {
-        userId: this.userId,
-        projectId: this.projectId,
-        stageId: this.stageId,
-        taskId: this.taskId,
-        stageTaskId: this.stageTaskId,
-        filePartitionId: this.filePartitionId
-      }
       this.viewToggle = !this.viewToggle;
       if(this.viewToggle) {
         const list = this.$refs.otherView.close();
@@ -1364,6 +1473,21 @@ export default {
 
     // 切换相关需求/成果文件
     demandOrGainChange(flag) {
+      if(!flag) {
+        let obj = {
+          stageId: this.idList.stageId,
+          taskId: this.idList.taskId,
+          myUserId: this.idList.userId,
+        }
+        this.$HTTP('post', '/demand_list', obj).then(res => {
+          console.log(res.result);
+          this.demandList = [...res.result];
+          this.demandOrGain = flag;
+        }).catch(err => {
+          console.log(err);
+        });
+        return;
+      }
       this.demandOrGain = flag;
     },
 
@@ -1373,7 +1497,8 @@ export default {
     },
 
     // 文件组折叠/展开
-    groupExtendToggle(index) {
+    groupExtendToggle(index, item) {
+      if(item !== true && !item.overLength) {return}
       if (this.leftCenterFlag) {
         this.leftRightToggle();
         this.parthsGroup[index].packUp = null;
@@ -1389,6 +1514,7 @@ export default {
       }
       this.parthsGroup = this.parthsGroup.concat();
     },
+
 
     // 计算需要折叠的文件个数--分组折叠成一行
     countFileMore(i, flag) {
@@ -1429,9 +1555,8 @@ export default {
         let others = [...list].splice(x - 1);
         let urls = [];
         others.map(ele => urls.push(ele.UrlMin));
-
         if (urls.length > 3) {
-          urls.splice(0, 3);
+          urls = urls.splice(0, 3);
         }
         overList.push({
           FilePkid: `group${i}`,
@@ -1555,7 +1680,15 @@ export default {
       }
       this.parthsGroup = this.parthsGroup.concat();
     },
+    // 分组管理的下拉列表的显示/隐藏时触发
+    visibleChangeGroup(val, group) {
+      if(val) {
+        let x = group.fileList.findIndex(ele => !ele.isOwn);
+        this.$set(group, 'onlySelf', x === -1 ? true : false);
+        this.parthsGroup = this.parthsGroup.concat();
 
+      }
+    },
     // 整体的分组管理
     groupCommand(type) {
       let title = '新建分组';
@@ -1680,7 +1813,7 @@ export default {
     },
 
     // 发送请求，添加分组
-    addParth(title, item) {
+    addParth(title, item, dragItem) {
       return new Promise((resolve) => {
         let obj = {
           stageTaskId: this.stageTaskId,
@@ -1703,9 +1836,12 @@ export default {
             objs = Object.assign({}, res.result, data);
           }
           this.parthsGroup.splice(this.parthsGroup.length - 1, 1, objs);
+          this.fileIsSort(this.parthsGroup.length - 1, res.result.pkid, dragItem);
           this.$message.success('添加分组成功！');
-          console.log('添加分组成功！', objs);
-
+          //console.log('添加分组成功！', objs);
+          if(this.leftCenterFlag) {
+            this.countFileOne();
+          }
         }).catch(err => {
           console.log('err', err);
         });
@@ -1715,14 +1851,17 @@ export default {
     // 文件的更多操作
     fileCommand(type, index1, item, groupId, index) {
       this.operateFile = Object.assign({}, item, {index: index1, groupId: groupId, groupIndex: index});
+      this.transferType = 1; // 单个文件移交
       if(type === 'download') { // 下载
+        this.fileDownlod(item);
         return;
       }
       if(type === 'collect') { // 收藏
         return;
       }
       if(type === 'transfer') { // 移交
-
+        this.getTransferStageList();
+        this.transferShow = true;
         return;
       }
       if(type === 'rename') { // 重命名
@@ -1806,8 +1945,12 @@ export default {
         console.log('删除文件成功', res, this.operateFile);
         if(groupId === 0) { // 未分组文件
           this.notGroupedList.splice(index, 1);
+          this.notGroupedList = this.notGroupedList.concat();
+
         }else { // 分组文件
           this.parthsGroup[groupIndex].fileList.splice(index, 1);
+          this.parthsGroup = this.parthsGroup.concat();
+
         }
       }).catch(err => {
         console.log('删除文件失败', err);
@@ -1818,17 +1961,21 @@ export default {
     fileGroupCommand(type, index, group) {
       this.filePartitionId = group.pkid;
       this.operateParth = Object.assign({}, group, {index: index});
+      this.transferType = 3; // 整组移交
 
       if(type === 'upload') { // 上传文件
         return;
       }
       if(type === 'download') { // 下载
+        this.fileDownlod(group);
         return;
       }
       if(type === 'collect') { // 收藏
         return;
       }
       if(type === 'transfer') { // 整组移交
+        this.getTransferStageList();
+        this.transferShow = true;
 
         return;
       }
@@ -1848,7 +1995,8 @@ export default {
           this.reminderText = '您确认要删除该分组么？ 删除后，分组内的文件将移入到未分组内';
         }else {
           let obj = {
-            filePartitionId: group.pkid
+            filePartitionId: group.pkid,
+            myUserId: this.userId
           };
           this.$HTTP('post', '/filePpartition_delete', obj).then(res => {
             console.log('文件分组删除成功', res);
@@ -1867,21 +2015,33 @@ export default {
     // 文件组确认删除
     delGroupSure() {
       let obj = {
-        filePartitionId: this.filePartitionId
+        filePartitionId: this.filePartitionId,
+        myUserId: this.userId
       };
       this.$HTTP('post', '/filePpartition_delete', obj).then(res => {
-        console.log('文件分组删除成功', res);
+        let addList = res.result;
+        addList = addList.splice(this.notGroupedList.length);
+        for(let y of addList) {
+          let returnObj = this.addFileAttr(y);
+          y = Object.assign(y, returnObj);
+        }
+        console.log('文件分组删除成功',res.result, addList);
+
+        this.notGroupedList.push(...addList);
         this.parthsGroup.splice(this.operateParth.index, 1);
+
       }).catch(err => {
         console.log(err);
       });
       this.delGroupFlag = false;
     },
+
     // 鼠标移入文件
     enterFile(item) {
       item.hover = true;
       this.notGroupedList = this.notGroupedList.concat();
       this.parthsGroup = this.parthsGroup.concat();
+      
 
     },
     // 鼠标移出文件
@@ -1895,37 +2055,46 @@ export default {
     everyFileCheckbox(val, item) {
       let x1,x2, indexs;
       if(val) {
-        this.oneChecked = true;
         this.checkedList.push(item);
-
-        x1 = this.notGroupedList.findIndex(ele => !ele.checked);
-        for(let x of this.parthsGroup) {
-          x2 = x.fileList.findIndex(ele => !ele.checked);
-        }
-        if(x1 === -1 && x2 === -1) {
-          this.fileCheckbox = true;
-        }
+        // this.oneChecked = true;
+        // x1 = this.notGroupedList.findIndex(ele => !ele.checked);
+        // for(let x of this.parthsGroup) {
+        //   x2 = x.fileList.findIndex(ele => !ele.checked);
+        // }
+        // if(x1 === -1 && x2 === -1) {
+        //   this.fileCheckbox = true;
+        // }
 
       }else {
         indexs = this.checkedList.findIndex(ele => ele.FilePkid === item.FilePkid);
         indexs !== -1 && (this.checkedList.splice(indexs, 1));
-        x1 = this.notGroupedList.findIndex(ele => ele.checked);
-        for(let x of this.parthsGroup) {
-          x2 = x.fileList.findIndex(ele => ele.checked);
-        }
-        if(x1 !== -1 || x2 !== -1) {
-          this.oneChecked = true;
-        }else {
-          this.oneChecked = false;
-        }
-        this.fileCheckbox && (this.fileCheckbox = false);
+        // x1 = this.notGroupedList.findIndex(ele => ele.checked);
+        // for(let x of this.parthsGroup) {
+        //   x2 = x.fileList.findIndex(ele => ele.checked);
+        // }
+        // if(x1 !== -1 || x2 !== -1) {
+        //   this.oneChecked = true;
+        // }else {
+        //   this.oneChecked = false;
+        // }
+        // this.fileCheckbox && (this.fileCheckbox = false);
       }
       this.notGroupedList = this.notGroupedList.concat();
       this.parthsGroup = this.parthsGroup.concat();
     },
 
     // 文件全选
-    fileCheckboxAll(val) {
+    fileCheckboxAll(flag) {
+      let val = false;
+      if(this.fileLength && this.checkedFileList && (this.checkedFileList.length === this.fileLength)) {
+        val = false;
+      }else {
+        val = true;
+      }
+      if(flag && flag === 'clear') { // 多选操作结束后，清空选中状态
+        val = false;
+      }
+
       if(!this.viewToggle) {
         this.$refs.otherView.fileCheckboxAll(val);
         return;
@@ -1943,7 +2112,6 @@ export default {
 
           }
         }
-        this.oneChecked = true;
       }else {
         for(let y of this.notGroupedList) {
           y.checked = false;
@@ -1953,11 +2121,150 @@ export default {
             y.checked = false;
           }
         }
-        this.oneChecked = false;
       }
 
       this.notGroupedList = this.notGroupedList.concat();
       this.parthsGroup = this.parthsGroup.concat();
+    },
+
+    //  多选移交
+    multipleTransfer() {
+      this.getTransferStageList();
+      this.transferShow = true;
+      this.transferType = 2; // 多个文件移交
+
+    },
+
+    // 取消文件移交
+    transferCancel() {
+      this.transferShow = false;
+    },
+    // 确认文件移交
+    transferSure(val, descText) {
+      this.transferShow = false;
+      let arr = [[], []];
+      if(this.transferType === 1) { // 单个文件
+        arr[0] = [this.operateFile.FilePkid];
+      }else if(this.transferType === 2) { // 多个文件
+        for(let x of this.notGroupedList) {
+          if(x.checked) {
+            arr[0].push(x.FilePkid);
+          }
+        }
+        for(let x of this.parthsGroup) {
+          let haves = x.fileList.findIndex(ele => !ele.checked);
+          if(haves === -1) {
+            arr[1].push(x.pkid);
+          }else {
+            for(let y of x.fileList) {
+              if(y.checked) {
+                arr[0].push(y.FilePkid);
+              }
+            }
+          }
+        }
+
+      }else { // 组文件
+        arr[1] = [this.filePartitionId];
+      }
+      this.tranferSendHttp(val, arr, descText);
+    },
+
+    // 移交时选择的阶段列表
+    getTransferStageList() {
+      this.transferStageList = [];
+      for (let x of this.stageList) {
+          if(x.stageId != this.stageId) {
+              this.transferStageList.push({
+                  value: x.stageId,
+                  label: x.stageTitle,
+                  disabled: false
+              });
+          }
+      }
+    },
+    // 移交时发送的请求
+    /**
+     * val 移交选择的分组
+     * arr 要移交的文件ID arr[0]里是未分组的ID集合 arr[1]是分组的ID集合
+     * descText 移交时的需求描述
+     * **/
+    tranferSendHttp(val, arr, descText) {
+      console.log('transfer---',  val, arr, descText);
+      return new Promise((resolve) => {
+          if(!arr[0].length && !arr[1].length && !descText) {
+              this.$message.warning('请选择交接文件或添加需求描述');
+              return;
+          }
+
+
+          let obj = {
+              projectId: this.projectId,
+              oldstageId: this.stageId,
+              stageId: val.join(','),
+              taskId: this.taskId,
+              descn: descText,
+              groupIdVals: arr[1].join(','),
+              fileIdVals: arr[0].join(','),
+              myUserId: this.userId,
+          }
+          this.$HTTP('post', '/demand_add', obj).then(res => {
+              this.$emit('handleSure');
+
+          }).catch(err => {
+              console.log(err);
+          });
+      });
+    },
+
+    // 多选下载
+    multipleDownload() {
+      this.transferType = 2; // 多个文件移交
+      this.fileDownlod();
+    },
+
+    // 文件下载
+    fileDownlod(item) {
+      let link = "";
+      if(this.transferType === 1) {
+        link = $(
+          '<a href="' +
+            item.Url +
+            '" download="' +
+            item.FileName +
+            '" target="_blank"></a>'
+        );
+        link.get(0).click();
+      }else if (this.transferType === 2 && this.checkedFileList.length === 1) {
+        link = $(
+          '<a href="' +
+            this.checkedFileList[0].Url +
+            '" download="' +
+            this.checkedFileList[0].FileName +
+            '" target="_blank"></a>'
+        );
+
+        link.get(0).click();
+        this.fileCheckboxAll('clear'); // 多选操作完成后把选中状态还原
+
+      } else {
+        let ids = [];
+        if(this.transferType === 2) {
+          for(let x of this.checkedFileList) {
+            ids.push(x.FilePkid);
+          }
+        }else if(this.transferType === 3) {
+          ids.push(item.pkid);
+        }
+        
+        link = $(
+          `<a href="/EggsWebService.asmx/zipFileDown?stageId=${this.stageId}&taskId=${this.taskId}&demandId=''&vals=${ids.join(',')}&type=${this.transferType - 1}" download="....zip" target="_blank"></a>`
+        );
+        link.get(0).click();
+        if(this.transferType === 2) {
+          this.fileCheckboxAll('clear'); // 多选操作完成后把选中状态还原
+        } 
+      }
     },
 
 
@@ -2005,7 +2312,7 @@ export default {
 
       if(to === 'new') { // 先新增一个分组，再添加文件
         let last = this.parthsGroup[this.parthsGroup.length - 1];
-        this.addParth(last.groupName, last);
+        this.addParth(last.groupName, last, this.dragItem);
       }
       if (from !== "personal" && to === "personal") {
         // 添加到个人文档--copy
@@ -2033,7 +2340,9 @@ export default {
           }
         }
       }
-      this.fileIsSort(e.newIndex, to);
+      if(to !== 'new') {
+        this.fileIsSort(e.newIndex, to);
+      }
       if(from === to) {
         this.dragEndInit();
       }else {
@@ -2043,10 +2352,10 @@ export default {
     },
 
     // 文件移动排序
-    fileIsSort(newIndex, parthId) {
+    fileIsSort(newIndex, parthId, dragItem) {
       return new Promise((resolve, reject) => {
         let obj = {
-          FilePkid: this.dragItem.item.FilePkid,
+          FilePkid: dragItem ? dragItem.item.FilePkid : this.dragItem.item.FilePkid,
           filePartitionId: parthId === 'noGroup' ? 0 : parthId,
           isSort: newIndex
         };
@@ -2189,6 +2498,7 @@ export default {
         
       }
 
+
       // 当个人文档从不显示-->显示的时候，
         // 如果flag === true 继续为true
         // 如果flag === false （半折叠状态）重新计算要折叠剩余的个数
@@ -2219,6 +2529,12 @@ export default {
         }
       }
       this.sizeChange('personalFilesPull');
+      if(!this.demandOrGain) {
+        this.$nextTick(() => {
+          this.$refs.demandView.sizeChange();
+        }); 
+        
+      }
       
     },
 
@@ -2548,7 +2864,7 @@ export default {
     },
     // 文件上传超出提示
     handleExceed(files, fileList) {
-      this.$message.warning("最多只能选择9个文件");
+        this.$message.warning("最多只能选择9个文件");
     },
     // 文件上传前
     beforeUpload(file) {
@@ -2659,14 +2975,20 @@ export default {
       if (ids !== -1) {
         this.fileProgressList[ids].status = 2;
       }
+      
       let returns = this.popFileProgress(this.fileProgressList);
       if (this.uploadProgressFlag && returns) {
         setTimeout(() => {
           this.closeProgress();
+          // 暂时解决两次上传时文件个数大于9个的bug
+          if(Array.isArray(this.$refs.fileUpload)) {
+            this.$refs.fileUpload[0].clearFiles();
+          }else {
+            this.$refs.fileUpload.clearFiles();
+          }
         }, 2000);
       }
     },
-
 
     // 文件上传失败
     uploadError(err, file) {
@@ -2727,7 +3049,7 @@ export default {
       let obj = {
         project: params
       };
-      this.$HTTP("post", "/project_get_Catalog", obj)
+      this.$HTTP("post", "/project_get_Catalog", obj, $('#app')[0])
         .then(res => {
           this.tasksList = res.result;
           for (let y of this.tasksList) {
@@ -2744,9 +3066,7 @@ export default {
 
     // 任务/阶段--详情
     taskStageDetail(taskId, stageId) {
-      if(this.fullPreviewShow) {
-        this.fullPreviewShow = false;
-      }
+      this.initData(); // 初始化数据
       this.taskId = taskId;
       this.stageId = stageId;
       let obj = {
@@ -2755,7 +3075,7 @@ export default {
         stageId: this.stageId,
         taskId: this.taskId,
       }
-      this.$HTTP("post", "/stagetask_get", obj)
+      this.$HTTP("post", "/stagetask_get", obj, $('#app')[0])
       .then(res => {
         this.dataProcessing(res.result);
         // console.log("获取任务详情", res.result);
@@ -2767,13 +3087,33 @@ export default {
       });
 
     },
+    // 详情切换时初始化数据
+    initData() {
+      if(this.fullPreviewShow) {
+        this.fullPreviewShow = false;
+      }
+      if(!this.demandOrGain) {
+        this.demandOrGain = true;
+      }
+      if(!this.leftCenterFlag) {
+        this.leftRightToggle();
+      }
+      if(!this.viewToggle) {
+        this.viewToggle = true;
+      }
+      this.checkedList = [];
+      this.FILELENGTH_CHANGE(0);
+    },
     // 对获取的数据进行处理
     dataProcessing(res) {
+      this.stageInfo = null;
+      this.stageInfo = Object.assign({}, res, {stageId: this.stageId});
       this.parthsGroup = [];
+      this.demandCount = res.demandCount;
       this.stageTaskId = res.stageTaskId;
       this.stageList = [...res.stageList];
-      this.stageList.map(ele => ele.stagePkid = ele.stagePkid.toString());
-      let x = this.stageList.findIndex(ele => ele.stagePkid == this.stageId);
+      this.stageList.map(ele => ele.stageId = ele.stageId.toString());
+      let x = this.stageList.findIndex(ele => ele.stageId == this.stageId);
       if(x !== -1) {
         this.stageState = this.stageList[x].state;
       }
@@ -2790,7 +3130,30 @@ export default {
           this.parthsGroup.push(ele);
         }
       }
+      this.stageInfo.fileList = returnList.concat();
+      this.$nextTick(() => {
+        this.$refs.stageManage.setData(this.stageInfo);
+      });
       this.countFileOne();
+      this.idList = null;
+      this.idList = {
+        userId: this.userId,
+        projectId: this.projectId,
+        stageId: this.stageId,
+        taskId: this.taskId,
+        stageTaskId: this.stageTaskId,
+        filePartitionId: this.filePartitionId
+      }
+      this.TASKIDS_CHANGE(this.idList); // ids集合改变
+
+      let statePower = 0;
+      if(res.isMyParticipate) {
+        statePower = 1;
+      }else {
+        statePower = 0;
+      }
+      this.POWER_CHANGE(statePower); // 设置权限
+
       // console.log("获取任务详情");
 
     },
@@ -2803,7 +3166,8 @@ export default {
         hover: false,
         edit: false,
         FileTitle: title,
-        FileType: this.getFlieTyle(obj.Type)
+        FileType: this.getFlieTyle(obj.Type),
+        isOwn: obj.UserPkid.toString() === this.userId.toString() ? true : false
       }
       if (data.FileType !== 1) {
         data.UrlMin = this.fileTypeImg[data.FileType].src;
@@ -2832,13 +3196,18 @@ export default {
 
     
   },
-  async created() {
+  created() {
     let params = this.$route.params;
-     params = {
-          projectId: 1252,
-          stageId: '38',
-          taskId: 118,
-        }
+    if(params.projectId) {
+      localStorage.setItem('getTaskIds', JSON.stringify(params));
+    }else {
+      params = JSON.parse(localStorage.getItem('getTaskIds'));
+    }
+    //  params = {
+    //       projectId: 1252, // 1267
+    //       stageId: '38',
+    //       taskId: 118,
+    //     }
     this.projectId = params.projectId;
     this.stageId = params.stageId;
     this.taskId = params.taskId;

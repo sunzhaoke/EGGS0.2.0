@@ -225,8 +225,8 @@ input{
   cursor: pointer;
 }
 .cur_dis {
-  cursor: not-allowed;
-  color: @grayNight;
+  cursor: not-allowed !important;
+  color: @grayNight !important;
 }
 .word_over {
   overflow: hidden;
@@ -797,6 +797,7 @@ not supported by any browser */
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
   opacity: 0;
 }
+// 上传进度条
 .upload_progress {
   position: fixed;
   right: 0;
@@ -963,12 +964,17 @@ not supported by any browser */
   color: #9c9c9c;
  
 }
-
+.el-popper[x-placement^=bottom] {
+  margin-top: 0 !important;
+}
 .el-dropdown-menu__item {
   line-height: 32px !important;
   &:hover {
     background: @bg-f2f2f2 !important;
     color: @mainColor !important;
+    .state_manage_y .list_ul, .names {
+      color: #333 !important;
+    }
   }
   .download_a {
     text-decoration: none;
@@ -1048,5 +1054,18 @@ not supported by any browser */
   }
 
 }
+.el_dropdown_state {
+  position: relative;
+  .state_manage_y {
+    left: 118px;
+    top: 0px;
+  }
+
+}
+
+// 任务详情中修改任务阶段的时间的时候，去掉“清空”按钮
+.stage_time .el-picker-panel__footer .el-button--text {
+  display: none !important;
+} 
 
 

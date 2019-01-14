@@ -177,6 +177,8 @@ export default {
       imgCodeShow: false,
       hintimgCode: false,
       deleteCode: '', //删除验证码 定时器
+
+      urls: decodeURI(window.location.href).split("?")[1],
     };
   },
 
@@ -188,7 +190,7 @@ export default {
   },
   methods: {
     goLogin() {
-        localStorage.setItem("registerEmail", this.email);
+      localStorage.setItem("registerEmail", this.email);
     },
 
     // 1。姓名-----------------------------------------------------------------
@@ -312,7 +314,19 @@ export default {
       this.$HTTP("post", "/user_register", obj).then(res => {
         if (res.code == 200) {
           this.$message("注册成功,请登录");
-          this.$router.push("/login");
+          if (this.urls) {
+            let url = decodeURI(window.location.href)
+              .split("?")[1]
+              .split("&");
+            this.myUserId = url[0].split("=")[1];
+            this.type = url[1].split("=")[1];
+            this.id = url[2].split("=")[1]; this.$router.push({
+              path: "/login",
+              query: { myUserId: this.myUserId, type: this.type, id: this.id }
+            });
+          }else{
+            this.$router.push('/login')
+          }
           localStorage.setItem("wrongNum", 0);
           localStorage.setItem("registerInfo", '');
           localStorage.setItem("registerEmail", this.email);

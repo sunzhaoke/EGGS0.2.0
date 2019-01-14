@@ -141,7 +141,7 @@ import { mapState, mapMutations, mapActions, mapGetters } from "vuex";
 import { join } from 'path';
 
 export default {
-  props: ["defaultTreeKeys", "invite"],
+  props: ["defaultTreeKeys", "invite", "fromInfo"], // 0 从好友管理， 1--从项目 3--从项目的任务片段
   data() {
     return {
       userPkid: JSON.parse(localStorage.getItem('staffInfo')).userPkid, // 当前登录者的ID
@@ -394,7 +394,7 @@ export default {
         if (res.code == 200) {
           email.check = "";
         } else if (res.code == 1) {
-          email.check = "此邮箱未注册";
+          email.check = "";
         } else if (res.code == 2) {
           email.check = "已经是您的好友";
         }
@@ -423,7 +423,7 @@ export default {
       }
       if (emails.length) {
         emails = [...new Set(emails)];
-        this.inviteJoin(emails,join(','))
+        this.inviteJoin(emails,join(','));
         this.$emit('handleInvite', emails);
         this.reminders("您的邀请已发送成功");
       } else {
@@ -432,8 +432,7 @@ export default {
     },
     // 邀请加入
     inviteJoin(email) {
-
-      let data = { 'emailList': email, 'myUserId': this.userPkid, 'type': 0, 'id': '' }
+      let data = { 'emailList': email, 'myUserId': this.userPkid, 'type': this.fromInfo.type, 'id': this.fromInfo.id }
       this.$HTTP('post', '/user_invitationEmail', data).then(res => {
         console.log(res)
       })
@@ -507,7 +506,7 @@ export default {
     },
   },
   async created() {
-    console.log('-----', this.defaultTreeKeys);
+    console.log('-----', this.defaultTreeKeys, this.fromInfo);
     try {
       await this.getList();
       await this.getUserList();

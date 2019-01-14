@@ -27,7 +27,10 @@ const state =  {
     projectItem: null, // 当前选择的项目
 
     // new_yun
-    checkedFileList: [],
+    checkedFileList: [], // 已选文件的列表
+    fileLength: 0, // 文件的总数
+    taskIds: {}, // 当前操作的任务的ID集合
+    power: 1, // 权限管理 0--未参加阶段任务 1--参加了阶段任务
 
 }
 

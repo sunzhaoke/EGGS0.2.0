@@ -46,7 +46,6 @@
                                   :data-pkid='list.userId'>
                   <img :src="list.userPic"
                        class=""> {{list.userId}}
-
                   <span> {{list.nickName ||list.userName}}</span>
                 </el-dropdown-item>
 
@@ -157,6 +156,7 @@
                   <span class="stageLists">
                     <textarea class="stageName"
                               style="resize:none"
+                              @keydown='checkEnter'
                               v-model="noPartitions.newStageName"
                               @blur="newStageBlur(noPartitions,noPartitions.newStageName)">
                     </textarea>
@@ -244,7 +244,7 @@
                           <div class="stageInfo cur"
                                v-if="lists.enabled ==true&&lists.stageTaskState==false">
                             <div class="participantImg">
-                              {{lists.isRepeat}}
+                              <!-- {{lists.isRepeat}} -->
                               <draggable :list=" lists.userList"
                                          :class="{'red':!lists.isRepeat}"
                                          :options="{group:!lists.isRepeat?'article':'', disabled: false}">
@@ -567,6 +567,7 @@
                       <textarea type="text"
                                 class="stageTittle"
                                 v-model="element.partitionTitle"
+                                @keydown='checkEnter'
                                 style="resize:none"
                                 @keyup.enter='dse'
                                 @blur="partitionBlur(element,index,element.partitionTitle)"
@@ -578,6 +579,7 @@
                       <span class="stageLists">
                         <textarea class="stageName"
                                   style="resize:none"
+                                  @keydown='checkEnter'
                                   v-model="element.newStageName"
                                   @blur="newStageBlur(element,element.newStageName)">
                         </textarea>
@@ -967,7 +969,6 @@ import Info from "../common/info";
 import ShadePop from "../common/shadePop";
 import ToLead from "./common/toLead";
 import Participant from "../common/participant";
-import Participant1 from "../common/participant1";
 
 import UploadProgress from "../../common/uploadProgress";
 import AddPeople from "../../common/addPeople";
@@ -984,7 +985,6 @@ export default {
     ShadePop,
     ToLead,
     Participant,
-    Participant1,
     UploadProgress,
     AddPeople
   },
@@ -1213,6 +1213,19 @@ export default {
     dse(e) {
       e.preventDefault();
       return false;
+    },
+    checkEnter(e) {
+      var et = e || window.event;
+      var keycode = et.charCode || et.keyCode;
+      if (keycode == 13) {
+        if (window.event) {
+          $('.stageTittle').blur();
+          window.event.returnValue = false;
+        } else {
+          $('.stageTittle').blur();
+          e.preventDefault(); //for firefox
+        }
+      }
     },
     //项目星标
 
@@ -1611,23 +1624,17 @@ export default {
     // 1.添加分区操作
     // 添加分区
     // el:大数组 index:位置 name:分区名字
-    async addPartition(el, index, name) {
-      try {
-        await this.getProjectUsers();
-      } catch (err) {
-        console.log(err);
-      }
-    },
+    // async addPartition(el, index, name) {
+    //   try {
+    //     await this.getProjectUsers();
+    //   } catch (err) {
+    //     console.log(err);
+    //   }
+    // },
 
     addPartition(el, index, name) {
       this.isNewP = true;
 
-      console.log(isNewP)
-      // var t = setTimeout(res => {
-      let indexs = this.partitionsList.findIndex(res => {
-        return res.partitionId == -1;
-      })
-      this.partitionsList.splice(indexs.splice, 1);
       this.EmptyData.partitionTitle = '';
       if (name == 'addPartition') {
         // console.log('分区内容', index)
@@ -1656,10 +1663,12 @@ export default {
             res.result.isnew = false;
             this.isNewP = false;
             this.partitionsList.splice(index, 1, res.result);
+            console.log(this.partitionsList)
           })
         } else {
           this.isNewP = false;
           this.partitionsList.splice(index, 1);
+          console.log(this.partitionsList)
         }
       } else {
         if (this.nowPartitionsName !== name) {
@@ -2561,7 +2570,7 @@ export default {
                         }
                       }
                       .red {
-                        background: red;
+                        // background: red;
                       }
                     }
                     .participantMain {

@@ -140,7 +140,9 @@
     </div>
     <add-people v-if="addPeopleShow"
                 :defaultTreeKeys="addPeopleLists"
-                @handleCancel="cancelAddPeople"></add-people>
+                @handleCancel="cancelAddPeople"
+                :fromInfo="fromInfo"
+                ></add-people>
   </div>
 </template>
 <script>
@@ -172,6 +174,10 @@ export default {
       addPeopleLists: ['1024'],
       userLitsShow: false,
       saveButton: false, //保存信息按钮是否显示
+      fromInfo: {
+        type: 1,
+        id: this.projectId
+      }
     };
   },
   props: ["AddPeople", "classify", "projectId"],
