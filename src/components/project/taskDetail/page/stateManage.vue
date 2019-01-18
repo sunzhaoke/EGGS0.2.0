@@ -74,6 +74,7 @@
             <Reminder2 v-if="remarkStateFlag"
                 :type="1"
                 :text="reminderText"
+                :inputValue='transferDefaultStage'
                 :selectList="selectList"
                 :multiple="true"
                 sureText="选择文件"
@@ -98,6 +99,7 @@
 import Reminder2 from "../../../common/reminder2";
 import SelectedFile from "./selectedFile";
 import StateManageList from "./stateManageList";
+import { mapState } from 'vuex';
 
 export default {
     components: {
@@ -113,11 +115,19 @@ export default {
             remarkStateFlag: false, // 标记完成时温馨提示
             reminderText: '',
             selectList: [], // 交接时选择的阶段列表
+            transferDefaultStage: [], // 移交时默认选择下一阶段阶段
             selectedIds: [], // 选择的ID组
             selectedFileShow: false, // 阶段交接的文件选择和需求描述显示/隐藏
             stateManageFlag: false, // 状态管理列表
             stateManageList: [], // 当前阶段的列表
+
         }
+    },
+
+    computed: {
+        ...mapState([
+            'stageInfos',
+        ]),
     },
 
     methods: {
@@ -141,7 +151,7 @@ export default {
                 }else { // state状态管理
                     this.stateManageFlag = false;
                     
-                    let has = selfId.findIndex(ele => ele == selfId);
+                    let has = selfId.findIndex(ele => ele == this.userId);
                     if(has !== -1) {
                         this.stageInfo.stageTaskUserIsState = state;
                         this.idSelectedFileShow();
@@ -161,8 +171,16 @@ export default {
         state1Enter() {
             this.stateManageFlag = true;
         },
-        visibleChange() {
+        visibleChange(val) {
             this.stateManageFlag = false;
+            // console.log('============', this.stageInfos.stageList[0].userList.length);
+            if(val) {
+                for (let x of this.stageInfos.stageList) {
+                    if(x.stageId == this.stageInfo.stageId) {
+                        this.stateManageList = x.userList;
+                    }
+                }
+            }
         },
 
         //  2.任务成员（不是创建者）：标记完成 / 取消完成
@@ -270,8 +288,10 @@ export default {
         
         // 数据获取/设置
         setData(info) {
-            this.stageInfo = Object.assign({}, info ? info : this.info);
+            this.stageInfo = Object.assign({}, info ? info : this.stageInfos);
             this.selectList = [];
+             this.transferDefaultStage = [];
+
             for (let x of this.stageInfo.stageList) {
                 if(x.stageId != this.stageInfo.stageId) {
                     this.selectList.push({
@@ -285,6 +305,13 @@ export default {
                 
             }
             console.log('状态管理---', this.stageInfo);
+
+            for(let i = 0; i < this.stageInfo.stageList.length; i++) {
+                if(this.stageInfo.stageList[i].stageId == this.stageInfo.stageId && i < this.stageInfo.stageList.length - 2) {
+                this.transferDefaultStage = [this.stageInfo.stageList[i + 1].stageId];
+                return;
+                } 
+            }
 
         },
     },

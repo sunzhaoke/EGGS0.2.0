@@ -70,6 +70,7 @@ export default {
   width: 100%;
   height: 100vh;
   background: #ffffff;
+
   .top {
     width: 166px;
     height: 50px;
@@ -105,6 +106,9 @@ export default {
       .list {
         text-align: center;
         margin-bottom: 45px;
+        .iconfont:hover {
+          background:rgba(54, 132, 255, .2);
+        }
       }
       .checkNav {
         color: @mainColor;

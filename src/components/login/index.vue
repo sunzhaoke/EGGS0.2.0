@@ -66,7 +66,7 @@
               @click="enterLogin"
               v-if='email&&passWord'>确认登录 →</span>
         <span class="loginButtonNo cur"
-              v-else> 确认登录 →</span>
+              v-else>确认登录 →</span>
 
         <p class="otherType">你也可以用以下方式登录</p>
         <a href="http://server.apexgame.cn/wecharCode.ashx"

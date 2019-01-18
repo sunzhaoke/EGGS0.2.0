@@ -72,6 +72,7 @@ export default {
             this.list[index].IsState = !this.list[index].IsState;
             let id = [this.list[index].stageTaskUserId];
             let selfId = [this.list[index].userpkid];
+            // console.log('---id', this.list,index, this.list[index].stageTaskUserId);
             this.$emit('handleSure', id, selfId, this.list[index].IsState, this.list[index].nickName ? this.list[index].nickName : this.list[index].userName);
         },
         checkedList() {

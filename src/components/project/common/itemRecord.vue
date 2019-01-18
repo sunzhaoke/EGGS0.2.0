@@ -2,10 +2,10 @@
     <div id="Info_k">
         <div class="">
             <div class="popup" >
-            <div class="popup_box">
+            <div class="popup_box ">
                 <div class="popup_top">
                     <span class="popup_title" >项目记录</span>
-                    <i class="iconfont icon-close fr" @click="closeNewPop"></i>
+                    <i class="iconfont icon-guanbijiantou fr" @click="closeNewPop"></i>
                 </div>
                 <div class="popup_content popup_content_ke popup_content_main clearfix">
                     <ul class="recordList">
@@ -116,6 +116,12 @@ export default {
 @import "../../../assets/css/base.less";
 
 #Info_k {
+  .popup_box{
+    width: 400px;
+  }
+  i{
+    font-size: 14px;
+  }
   .popup_content_main {
     width: 400px;
     max-height: 485px;

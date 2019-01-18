@@ -118,7 +118,6 @@ export default {
     margin-top: 50px;
     .box_sizing;
     background: #ffffff;
-    overflow: hidden;
   }
 }
 </style>

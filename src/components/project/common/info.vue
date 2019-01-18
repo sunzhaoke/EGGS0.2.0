@@ -2,7 +2,7 @@
   <div id="Info_k">
     <div class="">
       <div class="popup">
-        <div class="popup_box">
+        <div class="popup_box popup_box_k">
           <div class="popup_top">
             <span class="popup_title"
                   v-if="classify=='newInformation'">新建项目</span>
@@ -30,7 +30,7 @@
               <li class="describeBox clearfix">
                 <div>
                   <i class="iconfont icon-caidan"></i>
-                  <span :class="{'describeBold':describeShow} "
+                  <span :class="{'describeBold':descn} "
                         @click="describeBox"
                         v-if="classify=='newInformation'||classify=='myResponsible'">描述</span>
                   <span class="describeBold"
@@ -38,22 +38,13 @@
                 </div>
                 <textarea name=""
                           class="fr"
-                          v-show="textShow"
+                          v-show="textShow ||descn"
                           :class="descnFocus?'describePitchOn':'describe'"
-                          v-if="classify=='newInformation'"
                           v-model='descn'
                           ref="describeFocus"
                           style="resize:none"
                           @focus="descnInputFocus"
-                          @blur="descnInputBlur"></textarea>
-                <textarea name=""
-                          class="fr"
-                          :class="descnFocus?'describePitchOn':'describes'"
-                          v-if="classify=='myResponsible'"
-                          v-model='descn'
-                          style="resize:none"
-                          @focus="descnInputFocus"
-                          @blur="descnInputBlur"></textarea>
+                          @blur="descnInputBlur(descn)"></textarea>
                 <span class="fr describes"
                       v-if="classify=='pigeonhole'">{{descn}}</span>
               </li>
@@ -97,10 +88,14 @@
               <!-- 4.选择日期 -->
               <li class="optionDate">
                 <i class="iconfont icon-rili1"></i>
-                <span v-if="classify=='iParticipate'||classify=='pigeonhole' ">
-                  <span>{{startTime}}</span>
-                  <span class="lines">-</span>
-                  <span>{{endTime}}</span>
+                <span v-if="classify=='iParticipate'||classify=='pigeonhole'">
+                  <span v-show="startTime">
+                    <span>{{startTime}}</span>
+                    <span class="lines">-</span>
+                    <span>{{endTime}}</span>
+                  </span>
+                  <span v-show="!startTime"
+                        style="margin:0">创建者未设置时间</span>
                 </span>
                 <span v-else>
                   <div class="block">
@@ -119,7 +114,6 @@
                     </el-date-picker>
                   </div>
                 </span>
-
               </li>
             </ul>
             <input type="button"
@@ -141,8 +135,8 @@
     <add-people v-if="addPeopleShow"
                 :defaultTreeKeys="addPeopleLists"
                 @handleCancel="cancelAddPeople"
-                :fromInfo="fromInfo"
-                ></add-people>
+                :fromInfo="fromInfo"></add-people>
+              
   </div>
 </template>
 <script>
@@ -379,7 +373,6 @@ export default {
           }
         }
       }
-      console.log('AddUserList', AddUserList, 'DelUserList', DelUserList);
 
       let obj = {
         projectId: this.projectId,
@@ -436,8 +429,12 @@ export default {
     descnInputFocus() {
       this.descnFocus = true;
     },
-    descnInputBlur() {
+    descnInputBlur(descn) {
       this.descnFocus = false;
+      if (descn == '') {
+        this.textShow = false;
+
+      }
     }
   },
   created() {
@@ -464,6 +461,9 @@ export default {
       font-size: 14px;
     }
   }
+  .popup_box_k {
+    width: 400px;
+  }
   .popup_content_main {
     width: 400px;
     min-height: 352px;
@@ -472,8 +472,9 @@ export default {
   }
   .popup_content_k {
     width: 400px;
-    min-height: 352px;
-    max-height: 485px;
+    height: 520px;
+    // min-height: 352px;
+    // max-height: 485px;
     padding: 40px 25px;
     overflow: auto;
     .box_sizing;

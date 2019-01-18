@@ -1,20 +1,34 @@
 <template>
   <div id="top_k"
        class="clearfix">
-    <span class="personImg">
-      <img src="../../assets/img/egLogo_small.png"
-           class="company_logo"
-           alt="">
-    </span>
-    <div class="otherButton fr">
-      <ul>
+    <img src="../../assets/img/egLogo_small.png"
+         class="company_logo  "
+         alt="">
+    <div class="otherButton fr clearfix">
+      <ul class="clearfix">
         <span ref='userInfo'>
           <li class="last">
-            {{staffInfo.realName}}
-            <i class="iconfont icon-unfold"></i>
+            <el-dropdown trigger="click">
+              <span class="el-dropdown-link">
+                {{staffInfo.realName}}
+                <i class="el-icon-arrow-down el-icon--right"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item>
+                  <router-link tag="li"
+                               to='/myCenter'>
+                    个人中心
+                  </router-link>
+                </el-dropdown-item>
+                <el-dropdown-item>系统设置</el-dropdown-item>
+                <el-dropdown-item>问题反馈</el-dropdown-item>
+                <el-dropdown-item @click.native="exitLogin">
+                  退出登录
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
           </li>
-          <li class="last"
-              @click="setListShow=!setListShow">
+          <li class="last">
             <img :src="staffInfo.pic"
                  class="userImg"
                  alt="">
@@ -30,17 +44,6 @@
           <i class="iconfont icon-haoyouliebiao"></i>
         </li>
       </ul>
-      <transition name='info'>
-        <ul class="setList user-info"
-            style=""
-            v-show="setListShow">
-          <router-link tag='li'
-                       to='/myCenter'>个人中心</router-link>
-          <li>系统设置</li>
-          <li>问题反馈</li>
-          <li @click="exitLogin">退出登录</li>
-        </ul>
-      </transition>
     </div>
   </div>
 </template>
@@ -99,17 +102,17 @@ export default {
     }
   },
   mounted() {
-    let _this = this;
-    document.addEventListener("click", function (e) {
-      if (_this.$refs.userInfo) {
-        if (!_this.$refs.userInfo.contains(e.target)) {
-          _this.setListShow = false;
-          return;
-        }
+    // let _this = this;
+    // document.addEventListener("click", function (e) {
+    //   if (_this.$refs.userInfo) {
+    //     if (!_this.$refs.userInfo.contains(e.target)) {
+    //       _this.setListShow = false;
+    //       return;
+    //     }
 
-      }
-      _this.setListShow = true;
-    });
+    //   }
+    //   _this.setListShow = true;
+    // });
   }
 };
 </script>
@@ -119,6 +122,8 @@ export default {
 #top_k {
   width: 100%;
   height: 100%;
+  padding: 0 20px;
+  .box_sizing;
   .serchBox {
     width: 65%;
     padding: 0 30px;
@@ -130,26 +135,18 @@ export default {
       width: calc(100% - 40px);
     }
   }
-  .personImg {
-    display: inline-block;
-    width: 166px;
-    height: 100%;
-    line-height: 50px;
-    text-align: center;
-    // box-shadow: -1px 0px 4px 0px rgba(95, 95, 95, 0.3);
-    img {
-      width: 86px;
-      vertical-align: middle;
-    }
+
+  .company_logo {
+    margin-top: 15px;
+    width: 64px;
+    vertical-align: middle;
   }
   .otherButton {
     width: 35%;
     height: 100%;
-    padding: 13px 0;
+    padding: 11px 0;
     line-height: 24px;
     .box_sizing;
-    padding-right: 20px;
-
     li {
       float: right;
       min-width: 55px;
@@ -167,6 +164,9 @@ export default {
         height: 28px;
         .border_radius(@br: 3px);
         background: red;
+      }
+      i {
+        font-size: 12px;
       }
     }
     .setList {

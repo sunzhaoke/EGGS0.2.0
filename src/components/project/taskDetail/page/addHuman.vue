@@ -60,7 +60,7 @@
                 v-if="inviteShow"
                 :defaultTreeKeys="inviteDefaultKeys"
                 :fromInfo="fromInfo"
-                @handleCancel="cancelAddPeople" 
+                @handleCancel="handleAddPeople" 
                 />
         </transition>
         
@@ -85,7 +85,7 @@ export default {
     AddPeople,
     Reminder2
   },
-  props: ["defaultList", "ids"],
+  props: ["defaultList", "ids", "fullViewFlag"],
   data() {
     return {
       stagePeopleList: [], // 阶段人员列表
@@ -104,6 +104,7 @@ export default {
       }
     };
   },
+
   methods: {
     // 鼠标移入参与者头像
     peopleEnter(item) {
@@ -133,10 +134,11 @@ export default {
     delPeopleSure() {
       this.delPeopleFlag = false;
       const index = this.selectedIndex[0];
-        const index1 = this.selectedIndex[1];
+      const index1 = this.selectedIndex[1];
        console.log( this.stagePeopleList[index]);
       // 发送请求
       let obj = {
+        projectId: this.ids.projectId,
         addVale: "",
         delVale: this.stagePeopleList[index].userList[index1].userpkid,
         stageId: this.stagePeopleList[index].stageId,
@@ -145,8 +147,14 @@ export default {
       };
       this.$HTTP("post", "/stageTask_user_update", obj)
         .then(res => {
+          let data = {
+            item: this.stagePeopleList[index],
+            del: [this.stagePeopleList[index].userList[index1].userpkid],
+            add: []
+          }
+          this.$emit('stageInfoChange', 1, data);
           this.stagePeopleList[index].userList.splice(index1, 1);
-          console.log("任务删除人员", res, this.stagePeopleList);
+          // console.log("任务删除人员", res, this.stagePeopleList);
         })
         .catch(err => {
           console.log("任务删除人员失败", err);
@@ -174,7 +182,7 @@ export default {
             w1 = $('#addPeople').width();
             appW = $('#app').width();
             top = top + 40;
-            left = left - 80;
+            left = left - 155;
             if(left + w1 > appW) {
                 left = appW - w1 - 24;
             }
@@ -191,7 +199,7 @@ export default {
     },
 
     // 取消添加人员/邀请人员中发生变化事发送请求
-    cancelAddPeople(obj) {
+    handleAddPeople(obj) {
       if (obj) {
         obj.invite === false && (this.inviteShow = false);
         // 发送请求，taskPeopleList发生变化
@@ -204,8 +212,6 @@ export default {
 
     // 添加/删除人员成功
     addPeopleSure(data) {
-        console.log("add-people", data);
-
       let index = this.selectedIndex[0];
       let index1 = this.selectedIndex[1];
       let nowList = this.stagePeopleList[index].userList;
@@ -244,7 +250,12 @@ export default {
             }
             this.stagePeopleList[index].userList = [...arr];
             this.stagePeopleList = this.stagePeopleList.concat();
-
+            let data = {
+              item: this.stagePeopleList[index],
+              del: del,
+              add: add
+            }
+            this.$emit('stageInfoChange', 1,data);
             // console.log("任务添加人员", res, nowList);
           })
           .catch(err => {
@@ -259,6 +270,7 @@ export default {
       this.addPeopleShow = false;
       this.inviteShow = true;
       this.inviteDefaultKeys = ids;
+
     },
 
     // 获取项目成员列表
@@ -283,11 +295,13 @@ export default {
 
     setData() {
       this.stagePeopleList = [...this.defaultList];
-      let indexs = this.stagePeopleList.findIndex( ele => ele.stageId == this.ids.stageId);
-      if(indexs > 0) {
-        let list = this.stagePeopleList[indexs];
-        this.stagePeopleList.splice(indexs, 1);
-        this.stagePeopleList.unshift(list);
+      if(!this.fullViewFlag) {
+        let indexs = this.stagePeopleList.findIndex( ele => ele.stageId == this.ids.stageId);
+        if(indexs > 0) {
+          let list = this.stagePeopleList[indexs];
+          this.stagePeopleList.splice(indexs, 1);
+          this.stagePeopleList.unshift(list);
+        }
       }
       for (let x of this.stagePeopleList) {
         this.$set(x, "show", false);
@@ -317,7 +331,7 @@ export default {
   background: rgba(255, 255, 255, 1);
   box-shadow: 0px 1px 15px 0px rgba(59, 81, 133, 0.3);
   border-radius: 4px;
-  z-index: 1;
+  z-index: 100;
 
   .stage_people {
     width: 100%;
@@ -444,7 +458,7 @@ export default {
         .arrow_div {
             position: absolute;
             top: -10px;
-            left: 85px;
+            left: 160px;
             width: 10px;
             height: 10px;
             overflow: hidden;
@@ -462,6 +476,9 @@ export default {
             margin-top: 7px;
             }
         }
+    }
+    .popup {
+      // background-color: rgba(255,255,255,0) !important;
     }
 }
 </style>

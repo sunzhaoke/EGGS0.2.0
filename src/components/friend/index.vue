@@ -693,14 +693,14 @@ export default {
             if(indexs != -1) {
                 this.friendList[indexs].friendsList.push(ele);
                 this.friendList[x[0]].friendsList.splice(x[1], 1);
-                this.friendList[indexs].friendsListCont = this.friendList[indexs].length;
+                this.friendList[x[0]].friendsListCont = this.friendList[x[0]].friendsList.length;
+                this.friendList[indexs].friendsListCont = this.friendList[indexs].friendsList.length;
                 if(!this.friendList[indexs].extend) {
                     this.friendList[indexs].extend = true;
                     $('.friend_group_list_every').eq(indexs).slideDown(400);
                 }
             }
             this.updateGroup([ele.pkid], id);
-
         },
 
         // 移动分组方法

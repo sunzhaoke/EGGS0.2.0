@@ -27,6 +27,7 @@ const state =  {
     projectItem: null, // 当前选择的项目
 
     // new_yun
+    stageInfos: {}, // 当前操作的任务-阶段的所有信息
     checkedFileList: [], // 已选文件的列表
     fileLength: 0, // 文件的总数
     taskIds: {}, // 当前操作的任务的ID集合

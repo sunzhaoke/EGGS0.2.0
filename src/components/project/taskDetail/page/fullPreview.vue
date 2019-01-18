@@ -1,6 +1,6 @@
 <template>
     <div class="full_preview" @click.stop='() => {}'>
-        <div class="top_operate">
+        <div v-if='false' class="top_operate">
             <div class="t_o_left fl">
               <span>{{fullPreview.taskTitle}}</span>
             </div>
@@ -112,7 +112,7 @@ export default {
 <style lang='less'>
 .full_preview {
   position: absolute;
-  top: 0;
+  top: 51px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -121,7 +121,7 @@ export default {
 
   .full_preview_list {
       width: 100%;
-      height: calc(100% - 51px);
+      height: 100%;
       background: #fff;
       overflow-y: hidden;
       overflow-x: auto;

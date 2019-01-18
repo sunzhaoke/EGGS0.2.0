@@ -109,7 +109,7 @@
                                 </template>
                                 <template v-else>
                                     <span class="file_pic">
-                                        <template v-if='item.FileType === 11'>
+                                        <template v-if='item.FileType === 11 && item.Desc'>
                                         <span class="text_desc"><span>{{item.Desc}}</span></span>
                                         </template>
                                         <template v-else>
@@ -157,7 +157,7 @@
                                 @mouseleave="leaveFile(item)"
                                 >
                                 <span class="file_pic">
-                                    <template v-if='item.FileType === 11'>
+                                    <template v-if='item.FileType === 11 && item.Desc'>
                                     <span class="text_desc"><span>{{item.Desc}}</span></span>
                                     </template>
                                     <template v-else>
@@ -529,7 +529,7 @@ export default {
         background: #ffffff;
         .demand_box {
             width: 100%;
-            height: calc(100% - 40px);
+            height: calc(100% - 40px - 20px);
             padding: 0 24px;
             .box_sizing;
             overflow: auto;
@@ -564,6 +564,9 @@ export default {
                     .parths_group {
                         .group_top {
                             margin-top: 16px;
+                            .group_name {
+                                font-weight: bold;
+                            }   
                         }
                         .group_file {
                             margin-left: -24px;

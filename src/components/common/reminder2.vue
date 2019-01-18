@@ -74,7 +74,7 @@ export default {
         return {
             types: this.type ? this.type : '1',
             texts: this.text ? this.text : '是否确定删除',
-            values: this.inputValue ? this.inputValue : '',
+            values: this.inputValue ? this.inputValue : (this.multiple ? [] : ''),
             selectLists: this.selectList ? this.selectList : [],
             sureTexts: this.sureText ? this.sureText : '',
             multiples: this.multiple ? this.multiple : false,

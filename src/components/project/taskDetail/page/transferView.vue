@@ -42,10 +42,10 @@
             <div class="reminder2_bottom">
                 <button class="but fl"
                     @click="cancel">取消</button>
-                <button v-if="!selectLists.length && !values.length"
+                <button v-if="!values.length && !descText"
                     disabled
                     class="but but_right color_dis fl"
-                    @click="sure">确认</button>
+                    >确认</button>
                 <button v-else
                     class="but but_right color_main fl"
                     @click="sure">确认</button>
@@ -58,10 +58,10 @@
 import { mapState } from 'vuex';
 
 export default {
-    props: ["selectList"],
+    props: ["selectList", "default"],
     data() {
         return {
-            values: [],
+            values: this.default ? this.default : [],
             selectLists: this.selectList ? this.selectList : [],
             descShow: false,
             descText: '',

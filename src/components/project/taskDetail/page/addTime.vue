@@ -43,7 +43,7 @@
 </template>
 <script>
 export default {
-    props: ["defaultList", "ids"],
+    props: ["defaultList", "ids", "fullViewFlag"],
     data() {
         return {
             stageTimeList: [],
@@ -51,7 +51,6 @@ export default {
     },
     methods: {
         timeChange(val, item) {
-            console.log(val);
             if(val) {
                 item.rangeSeparator = '-';
             }else {
@@ -62,11 +61,18 @@ export default {
                 taskId: this.ids.taskId,
                 startTime: val ? this.format(val[0]) : '',
                 endTime: val ? this.format(val[1]) : '',
+                myUserId: this.ids.userId,
             };
             this.$HTTP("post", "/stageTask_date_update", obj)
             .then(res => {
-                console.log("任务修改时间成功", res.result);
-                
+                // console.log("任务修改时间成功", res.result);
+                res.result.stageId = res.result.stageId.toString();
+                let data = {
+                    item: res.result,
+                    del: [],
+                    add: []
+                }
+                this.$emit('stageInfoChange', 2, data);
             })
             .catch(err => {
                 console.log("任务修改时间失败", err);
@@ -75,16 +81,19 @@ export default {
         },
         setData() {
             this.stageTimeList = [...this.defaultList];
-            let indexs = this.stageTimeList.findIndex( ele => ele.stageId == this.ids.stageId);
+            if(!this.fullViewFlag) {
+                let indexs = this.stageTimeList.findIndex( ele => ele.stageId == this.ids.stageId);
+                if(indexs > 0) {
+                    let list = this.stageTimeList[indexs];
+                    this.stageTimeList.splice(indexs, 1);
+                    this.stageTimeList.unshift(list);
+                }
+            }
             for(let x of this.stageTimeList) {
                 this.$set(x, 'rangeSeparator', x.startTime ? '-' : ' ');
                 this.$set(x, 'timeRange', [new Date(x.startTime), new Date(x.endTime)]);
             }
-            if(indexs > 0) {
-                let list = this.stageTimeList[indexs];
-                this.stageTimeList.splice(indexs, 1);
-                this.stageTimeList.unshift(list);
-            }
+            
          
         }
     },
@@ -106,7 +115,7 @@ export default {
     background: rgba(255, 255, 255, 1);
     box-shadow: 0px 1px 15px 0px rgba(59, 81, 133, 0.3);
     border-radius: 4px;
-    z-index: 1;
+    z-index: 11;
     .stage_time_box {
         width: 100%;
         max-height: 290px;

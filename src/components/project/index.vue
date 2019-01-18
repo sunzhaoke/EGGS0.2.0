@@ -4,7 +4,6 @@
          v-if="enterShow">
       <p class="tittle">HI {{name}}！欢迎使用Eggs</p>
       <div>您可以利用Eggs强大的团队协作和成果展示功能，帮助团队提高工作效率</div>
-
       <div class="video">
         <video controls
                poster
@@ -27,19 +26,16 @@ export default {
   components: { List, Template },
   data() {
     return {
-      enterShow: true,
+      enterShow: '',
       name: 'zhaoke',
       userId: '',
       myUserId: '',
     };
   },
   methods: {
-    newPro() {
-      console.log('ee')
-    },
     enterLogin() {
       this.enterShow = false;
-      let data = { 'userId': this.userId }
+      let data = { 'userId': this.userId };
       this.$HTTP('post', '/user_update_isHomeVideo', data).then(res => {
       })
     },
@@ -60,8 +56,9 @@ export default {
   },
 
   created() {
-    let staffInfo = JSON.parse(localStorage.getItem('staffInfo'))
-    this.enterShow = staffInfo.isHomeVideo;
+    let staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
+    
+    this.enterShow = staffInfo.isHomeVideo; 
     this.name = staffInfo.realName;
     this.userId = staffInfo.userPkid;
     let urls = decodeURI(window.location.href).split("?")[1];
@@ -92,16 +89,16 @@ export default {
 #PMP {
   position: relative;
   height: 100%;
+  width: 100%;
+  background: #fafafa;
+  overflow: hidden;
 }
 .enter {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin-left: -350px;
-  bottom: 0;
-  margin-top: -230px;
-  .box_sizing;
+  width: 100%;
+  max-height: 90%;
   text-align: center;
+  margin: 50vh auto 0;
+  transform: translateY(-56%);
   .tittle {
     font-size: 18px;
     font-weight: bold;
@@ -109,21 +106,9 @@ export default {
   }
   .video {
     margin: 20px auto;
-    width: 695px;
-    height: 390px;
+    height: 100%;
     video {
-      height: 100%;
-    }
-  }
-  @media screen and (max-height: 1366px) {
-    .video {
-      margin: 20px auto;
-      width: 695px;
-      height: 320px;
-      video {
-        // width: 100%;
-        height: 100%;
-      }
+      width: 55%;
     }
   }
 }

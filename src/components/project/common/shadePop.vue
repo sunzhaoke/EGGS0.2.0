@@ -3,7 +3,7 @@
          class="popup">
         <div class="editStage">
             <div class="titleTop">编辑项目阶段
-                <i class="iconfont icon-guanbijiantou fr"
+                <i class="iconfont icon-return fl"
                    @click="closePop"></i>
             </div>
             <div class="defaultLists">
@@ -23,7 +23,7 @@
                            v-if="!list.enabled"
                            @click.stop="delStage(list,index)"></i>
                         <i v-if='list.enabled'
-                           class="iconfont icon-wancheng_huaban"></i>
+                           class="iconfont icon-xuanze1"></i>
                     </li>
                     <li class="userDefined fl cur"
                         @click="addList">自定义</li>
@@ -60,15 +60,7 @@
                     </draggable>
                 </div>
             </div>
-            <!-- <div class="bottomButton">
-                <div class="buttonBox fr">
-                    <button class="cancel"
-                            @click="cancel">取消</button>
-                    <button class="main_button_bg">确认</button>
-                </div>
-            </div> -->
         </div>
-
     </div>
 </template>
 <script>
@@ -305,7 +297,7 @@ export default {
             left: 5px;
             top: 13px;
           }
-          .icon-wancheng_huaban {
+          .icon-xuanze1 {
             position: absolute;
             right: 5px;
             top: 11px;
