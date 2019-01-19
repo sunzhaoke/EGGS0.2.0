@@ -2,25 +2,40 @@
     <div id="FileDetails">
         <div class="fileTop">
             <div class="fl leftNav">
-                <el-breadcrumb separator="/">
+                <el-breadcrumb separator="/"
+                               class="fl">
                     <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
                     <el-breadcrumb-item>
                         <a href="/">活动管理</a>
                     </el-breadcrumb-item>
                     <el-breadcrumb-item>活动列表</el-breadcrumb-item>
-                    <el-breadcrumb-item>活动详情
-                        <i class="iconfont icon-bianji"></i>
-                    </el-breadcrumb-item>
-                </el-breadcrumb>
+                </el-breadcrumb> /
+                <span v-if="modifyShow"
+                      class="cur fileName"> {{fileItem.FileName}}
+                    <i v-if='power'
+                       class="iconfont  icon-bianji"
+                       @click="ModifyFileName"></i>
+                </span>
+                <input v-if='!modifyShow'
+                       type="text"
+                       v-model="fileItem.FileName"
+                       id="fileNameInput"
+                       @blur="autofocusFileName(fileItem.FileName)">
             </div>
             <div class="right fr">
                 <span class="cur">
                     <i class="iconfont icon-tihuan"> </i> 文件替换</span>
                 <span class="cur">
-                    <i class="iconfont icon-xiazai"></i> 下载</span>
+                    <i class="iconfont icon-xiazai">
+                        <a :href="fileItem.Url"
+                           :download="fileItem.FileName">下载</a>
+                    </i>
+                </span>
+
                 <span class="cur">
                     <i class="iconfont icon-fenxiang"></i> 分享</span>
-                <span class="cur">
+                <span class="cur"
+                      @click="delResultFile">
                     <i class="iconfont icon-delete"></i> 删除</span>
                 <span class="cur"
                       @click="closeDetails">
@@ -28,22 +43,89 @@
                 </span>
             </div>
         </div>
-        <div class="fileContent">
+        <div class="fileContent clearfix">
             <!-- 左侧列表 -->
-            <div class="leftFileOne">
+            <div class="leftFileOne fl">
                 <!-- 文件预览 -->
-                <div class="file">
-                    <div class="imgBg">
-                        <img :src="selectedNow.Url"
-                             alt="">
+                <div class="fileBoxBig">
+                    <div class="fileListBox">
+                        <!-- 图片预览 -->
+                        <div class="imgBg"
+                             v-if="fileItem.FileType == 1 ">
+                            <img :src="fileItem.Url"
+                                 alt=""
+                                 draggable="true">
+                        </div>
+                        <div class='otherType'
+                             style="min-height:600px"
+                             v-if="fileItem.FileType == 2 || fileItem.FileType == 3 || fileItem.FileType == 5 || fileItem.FileType == 'txt'">
+                            <iframe :src="fileItem.Url"
+                                    width='100%'
+                                    min-height='500px'
+                                    frameborder='0'>
+                            </iframe>
+                        </div>
+                        <div class="pdfType"
+                             v-if='fileItem.FileType == 6'>
+                            <c-pdf @closepdf="closepdf"
+                                   :pdfurl="this.fileItem.Url"></c-pdf>
+                        </div>
+                        <div v-if="fileItem.FileType == 7"
+                             class="audio_div">
+                            <div class="audioBox">
+                                <div class="iframe_title">{{fileItem.Title}}</div>
+                                <audio v-if="fileItem.FileType == 7"
+                                       :src="fileItem.Url"
+                                       controls="controls"
+                                       autoplay="autoplay"
+                                       preload="preload">亲 您的浏览器不支持html5的audio标签</audio>
+                            </div>
+                        </div>
+                        <div v-if="fileItem.FileType == 8"
+                             class="video_div">
+                            <div class="videoBox">
+                                <video v-if="fileItem.FileType == 8"
+                                       :src="fileItem.Url"
+                                       controls="controls"
+                                       autoplay="autoplay"
+                                       preload="preload">亲 您的浏览器不支持html5的video标签</video>
+
+                            </div>
+                        </div>
+                        <div class="OtherStyle"
+                             v-if="fileItem.FileType == 0||fileItem.FileType == 4 || fileItem.FileType == 9 || fileItem.FileType ==10">
+                            <div class="otherBox">
+                                <div class="topName">
+                                    <div class="c"> {{FileName}}.{{FileType}} </div>
+                                </div>
+                                <div class="fileImg">
+                                    <img class="typeTwo"
+                                         v-if="fileItem.FileType === 0"
+                                         src="../../../assets/img/file_b/0.png">
+                                    <img class="typeTwo"
+                                         v-if="fileItem.FileType === 4"
+                                         src="../../../assets/img/file_b/4.png">
+                                    <img class="typeTwo"
+                                         v-if="fileItem.FileType === 9"
+                                         src="../../../assets/img/file_b/9.png">
+                                    <img class="typeTwo"
+                                         v-if="fileItem.FileType === 10"
+                                         src="../../../assets/img/file_b/10.png">
+                                </div>
+                                <div class="dowButton cur">
+                                    <a :href="fileItem.Url">下载文件（{{size}}）</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="personalInfo">
                         <span class="userImg">
-                            <img :src="selectedNow.UserPic"
+                            <img :src="fileItem.UserPic"
                                  alt="">
                         </span>
-                        <span>{{selectedNow.nickName}}</span>
-                        <span>{{selectedNow.formatTime}}</span>
+                        <span>{{fileItem.nickName}}</span>
+                        <span>{{fileItem.formatTime}}</span>
                         <span class="cur fr">
                             <i class="iconfont icon-iconfontchakanyuantu"></i>
                             查看原图
@@ -87,11 +169,12 @@
                 </div>
             </div>
             <!-- 右侧列表 -->
-            <div class="rightFileLists">
+            <div class="rightFileLists fr">
                 <template>
-                    <el-select v-model="value"
+                    <el-select v-model="defaultGroupList"
+                               @change='checkGroup(defaultGroupList)'
                                placeholder="请选择">
-                        <el-option v-for="item in options"
+                        <el-option v-for="item in groupList"
                                    :key="item.value"
                                    :label="item.label"
                                    :value="item.value">
@@ -106,11 +189,11 @@
                         :class="{'allListCheck':checkIndex==index}">
                         <span class="check"
                               v-show="checkIndex==index"></span>
-                        <div class="fileBox">
+                        <span class="fileBox">
                             <img :src="list.UrlMin"
                                  alt="">
-                            <p>{{list.FileTitle}}</p>
-                        </div>
+                        </span>
+                        <p>{{list.FileTitle}}</p>
                     </li>
                 </ul>
             </div>
@@ -121,16 +204,46 @@
 export default {
     data() {
         return {
-            options: [{
-                value: '选项1',
-                label: '黄金糕'
-            }],
-            value: '',
+            groupList: [], //分组列表
+            defaultGroupList: '',
             fileListsAll: '', //文件列表 总
             checkIndex: 0, //当前选择index
+
+            isStar: true, //是否星标
+            filePkid: "", //文件pkid
+            nowSelectedEdition: "", //版本号
+            versionChoiceShow: false, //版本选择弹框,
+            modifyShow: true, //修改姓名
+            FileName: "",
+            FileType: "",
+            items: "", // 图片预览列表,
+            fileItem: "", // 文件预览对象,
+            everyFileList: "",
+            YimageUrl: "",
+            Url: "",
+            fileEveryReplaceItem: "", // 当前选择人员的文件单个要替换的详情
+            checkIndex: "",
+            oneFilelist: "", //个人文件渲染列表
+            newList: [], //新所有数据渲染列表
+            size: "",
+            isChoose: false,
+            imgSize: "",
+            teskIds: "", // 详细任务的ID
+            publishID: "", // 当前发布人的ID
+            num: "", //图片展示 百分比
+            windowHeight: "",
+            isshowpdf: false,
+            ArticleFileId: "", // 卡片id
+            power: true, //是否有权限显示 修改按钮
+            userID: "", //当前登录用户id,
+            fileUserid: "", //文件发布人 userid
+            fileProgressList: [], // 上传进度列表
+            uploadProgressFlag: false, // 上传进度显示隐藏
+            Selectgroupedition: "", //当前文件最高版本,
+            fangdaShow: true //全屏 缩小显示icon
         }
     },
-    props: ['fileLists'],
+    props: ['info'],
     methods: {
         // 关闭文件详情
         closeDetails() {
@@ -139,14 +252,267 @@ export default {
         // 切换文件
         checkFile(list, index) {
             this.checkIndex = index;
-            this.selectedNow = list;
-            console.log(list)
-        }
+            this.fileItem = list;
+            this.filePreview(list);
+        },
+        // 切换分组
+        checkGroup(defaultGroupList) {
+            for (let list of this.info.fileList) {
+                if (list.pkid == defaultGroupList) {
+
+                    this.fileLists = list.fileList;
+                }
+            }
+            console.log(this.info)
+        },
+        // 结果展示文件 可以删除
+        delResultFile() {
+            let data = { 'FilePkid': this.filePkid };
+            this.$HTTP("post", "/stageTaskFile_delete", data).then(res => {
+                console.log();
+            });
+        },
+        // 点击关闭pdf文件预览
+        closepdf() {
+            this.isshowpdf = false;
+            this.iframeFlag = false;
+        },
+        // 全屏显示
+        fullScreen() {
+            console.log(22222)
+            this.fangdaShow = !this.fangdaShow;
+            var content = document.getElementById("imgType");
+            var rfs =
+                content.requestFullScreen ||
+                content.webkitRequestFullScreen ||
+                content.mozRequestFullScreen ||
+                content.msRequestFullScreen,
+                wscript;
+
+            if (typeof rfs != "undefined" && rfs) {
+                rfs.call(content);
+                return;
+            }
+
+            if (typeof window.ActiveXObject != "undefined") {
+                wscript = new ActiveXObject("WScript.Shell");
+                if (wscript) {
+                    wscript.SendKeys("{F11}");
+                }
+            }
+        },
+        // 关闭全屏显示
+        closeFull() {
+            this.fangdaShow = !this.fangdaShow;
+            var content = document.getElementById("imgType");
+            var content = document,
+                cfs =
+                    content.cancelFullScreen ||
+                    content.webkitCancelFullScreen ||
+                    content.mozCancelFullScreen ||
+                    content.exitFullScreen,
+                wscript;
+
+            if (typeof cfs != "undefined" && cfs) {
+                cfs.call(content);
+                return;
+            }
+            if (typeof window.ActiveXObject != "undefined") {
+                wscript = new ActiveXObject("WScript.Shell");
+                if (wscript != null) {
+                    wscript.SendKeys("{F11}");
+                }
+            }
+        },
+        // 关闭文件上传视图
+        closeProgress() {
+            this.uploadProgressFlag = false;
+            this.fileProgressList = [];
+        },
+        // 修改文件名称
+        autofocusFileName(newFileName) {
+            let data = { FilePkid: this.filePkid, newTitle: newFileName };
+            this.$HTTP("post", "/stageTaskFile_update", data).then(res => {
+                console.log();
+            });
+            this.modifyShow = true;
+        },
+        ModifyFileName() {
+            this.modifyShow = !this.modifyShow;
+            this.$('#fileNameInput').focus();
+        },
+        // 下一个文件
+        next() {
+            if (this.checkIndex < this.everyFileList.length - 1) {
+                this.checkIndex = this.checkIndex + 1;
+                this.oneFilelist = this.everyFileList[this.checkIndex];
+                this.filePreview(this.everyFileList, this.oneFilelist, this.checkIndex);
+            } else {
+                this.$message('没有更多文件了');
+                return
+
+            }
+        },
+        // 进度判断是否全部完成
+        popFileProgress(list) {
+            let indexs = list.findIndex(ele => {
+                return ele.progress < 100;
+            });
+            if (indexs == -1) {
+                return true;
+            } else {
+                return false;
+            }
+        },
+        // 点击文件预览
+        filePreview(item) {
+            // 1.图片: 1
+            // 2.pdf: 6
+            // 3.可以用office online预览的文件: 2 3 5
+            // 4.音频: 7
+            // 5.视屏: 8
+            // 6 txt
+            // 不可预览的文件: 其他
+            if (item.FileType === 6) {
+                this.$nextTick(() => {
+                    this.isshowpdf = true;
+                });
+            } else if (
+                item.FileType == 2 ||
+                item.FileType == 3 ||
+                item.FileType == 5
+            ) {
+                console.log('22222')
+                let url2 = 'http://eggs.apexgame.cn/' + item.Url;
+                url2 = encodeURIComponent(url2);
+                let url3 = "https://view.officeapps.live.com/op/view.aspx?src=";
+                this.fileItem.Url = url3 + url2;
+                this.$nextTick(() => {
+                    this.iframeFlag = true;
+                });
+            } else if (
+                item.FileType == 7 ||
+                item.FileType == 8 ||
+                item.FileType == 11
+            ) {
+                this.$nextTick(() => {
+                    this.iframeFlag = true;
+                });
+            } else if (item.FileType === 0 && item.FileType == "txt") {
+                this.$nextTick(() => {
+                    this.iframeFlag = true;
+                });
+            } else {
+                // this.$message.warning("此文件类型暂不支持预览，可点击下载");
+            }
+        },
+        // 文件上传超出提示
+        handleExceed(files, fileList) {
+            this.$message.warning("最多只能选择9个文件");
+        },
+
+        // 文件上传之前
+        beforeUpload(file) {
+            if (!this.uploadProgressFlag) {
+                this.uploadProgressFlag = true;
+            }
+            let sizes = this.conver(file.size);
+            let FileType = this.getSuffix(file.name);
+            FileType = this.getFlieTyle(FileType);
+            let obj = {
+                uid: file.uid,
+                size: sizes,
+                name: file.name,
+                type: 2,
+                progress: 0,
+                status: false,
+                FileType: FileType,
+                imgUrl: ""
+            };
+            this.fileProgressList.unshift(obj);
+        },
+
+        // 文件上传改变
+        uploadChange(file, fileList) {
+            // this.uploadListLength = fileList.length;
+            // console.log('文件上传改变uploadChange',this.nowUploadSelectedList, fileList);
+        },
+
+        // 文件上传成功（返回文件ID）
+        uploadSuccess(res, file, fileList) {
+            this.fileUpload(res, file);
+        },
+
+        // 文件上传进度
+        uploadProgress(event, file, fileList) {
+            let percents = parseInt(event.percent);
+            let ids = this.fileProgressList.findIndex(ele => {
+                return ele.uid === file.uid;
+            });
+
+            if (ids !== -1) {
+                this.fileProgressList[ids].progress = percents;
+                if (
+                    !this.fileProgressList[ids].imgUrl &&
+                    this.fileProgressList[ids].FileType == 1
+                ) {
+                    this.fileProgressList[ids].imgUrl = file.url;
+                }
+            }
+        },
+
+        // 文件上传
+        fileUpload(fileIds, file) {
+            let obj = { articlePkid: this.teskId, fileIds: fileIds };
+            this.$HTTP("post", "/AppendTaskFile", obj)
+                .then(res => {
+                    for (let ele of res.result) {
+                        this.$set(ele, "checked", false);
+                        this.$set(ele, "delFlag", false);
+                        this.$set(ele, "percentFile", null);
+                        this.$set(ele, "FileType", this.getFlieTyle(ele.FileType));
+                    }
+
+                    this.fileList = res.result.concat(this.fileList);
+                    console.log("YYYYYY上传成功", this.fileList, res);
+
+                    let ids = this.fileProgressList.findIndex(ele => {
+                        return ele.uid === file.uid;
+                    });
+
+                    if (ids !== -1) {
+                        this.fileProgressList[ids].status = true;
+                    }
+
+                    let returns = this.popFileProgress(this.fileProgressList);
+                    if (this.uploadProgressFlag && returns) {
+                        setTimeout(() => {
+                            this.closeProgress();
+                        }, 2000);
+                    }
+                })
+                .catch(err => {
+                    console.log("上传错误", err);
+                });
+            this.clearCard(2);
+        },
+        // 获取未分区列表
+        getGroupList(info) {
+            for (let list of info.fileList) {
+                this.groupList.push(
+                    { 'label': list.groupName, 'value': list.pkid }
+                );
+                this.defaultGroupList = info.groupIndex;
+            }
+            this.fileLists = info.fileList[info.groupIndex].fileList;
+            this.fileItem = this.fileLists[info.fileIndex];
+
+            this.filePreview(this.fileLists);
+        },
     },
     created() {
-        this.fileListsAll = this.fileLists;
-        this.selectedNow = this.fileListsAll[0];
-        console.log(this.selectedNow)
+        this.getGroupList(this.info);
+
     }
 }
 </script>
@@ -177,7 +543,11 @@ export default {
     .box_sizing;
     background: #ffffff;
     .leftNav {
+      line-height: 50px;
       .el-breadcrumb {
+        line-height: 50px;
+      }
+      .fileName {
         line-height: 50px;
       }
     }
@@ -193,20 +563,21 @@ export default {
     width: 1111px;
     height: 100%;
     margin: 24px auto;
-    display: flex;
-    flex-direction: row;
-
     .leftFileOne {
       width: 880px;
       height: calc(100% - 100px);
+      //   min-height: calc(100% - 100px);
       padding-bottom: 20px;
-      overflow: auto;
-      .file {
-        width: 100%;
+      overflow: scroll;
+      //   background: pink;
+      .fileBoxBig {
+        // width: 100%;
+        // height: 100%;
         background: rgba(255, 255, 255, 1);
         box-shadow: 0px 1px 6px 0px rgba(0, 0, 0, 0.2);
         border-radius: 4px;
         padding: 25px 20px;
+        position: relative;
         .box_sizing;
         .imgBg {
           text-align: center;
@@ -214,10 +585,26 @@ export default {
           background: rgba(250, 250, 250, 1);
           border: 1px solid rgba(238, 238, 238, 1);
           img {
-            width: 100%;
+            max-width: 100%;
+          }
+        }
+        .fileListBox {
+          padding-bottom: 35px;
+          .box_sizing;
+          iframe {
+            width: 100% !important;
+            height: 100% !important;
           }
         }
         .personalInfo {
+          height: 60px;
+          width: 100%;
+          padding: 0 25px;
+          .box_sizing;
+          background: yellow;
+          position: absolute;
+          bottom: 0;
+          left: 0;
           .userImg {
             display: inline-block;
             width: 20px;
@@ -232,6 +619,7 @@ export default {
           }
         }
       }
+      //   评论
       .commentBox {
         margin-top: 15px;
         width: 100%;
@@ -270,7 +658,7 @@ export default {
               height: 76px;
               padding: 19px 0;
               .box_sizing;
-            //   background: pink;
+              //   background: pink;
               border-bottom: 1px solid #f2f2f2;
               position: relative;
               .commentator {
@@ -295,7 +683,7 @@ export default {
                 //   font-family: 'PingFang-SC-Regular';
                 // }
                 p {
-                  line-height:20px;
+                  line-height: 20px;
                 }
               }
             }
@@ -310,6 +698,9 @@ export default {
       overflow: scroll;
       background: #ffffff;
       border-radius: 4px;
+      .el-input__inner {
+        border: none;
+      }
       .allFileLists {
         .allList {
           width: 207px;
@@ -318,6 +709,7 @@ export default {
           background: #ffffff;
           position: relative;
           padding: 7px 0 0 0;
+          text-align: center;
           .box_sizing;
           .check {
             width: 0;
@@ -334,32 +726,33 @@ export default {
             left: 10px;
           }
           .fileBox {
+            display: inline-block;
             margin: 0 auto;
             width: 156px;
             height: 117px;
-            // line-height: 117px;
-            text-align: center;
+            line-height: 117px;
             background: #ffffff;
             border: 1px solid rgba(238, 238, 238, 1);
             border-radius: 4px;
             overflow: hidden;
             img {
-              //   vertical-align: middle;
               max-height: 100%;
+              vertical-align: middle;
+              line-height: 117px;
             }
-            p {
-              position: absolute;
-              bottom: 5px;
-              left: 50%;
-              margin-left: -51px;
-              width: 119px;
-              height: 14px;
-              font-size: 12px;
-              font-family: "PingFang-SC-Regular";
-              overflow: hidden;
-              font-weight: 400;
-              color: rgba(51, 51, 51, 1);
-            }
+          }
+          p {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            margin-left: -51px;
+            width: 119px;
+            height: 15px;
+            font-size: 12px;
+            font-family: "PingFang-SC-Regular";
+            overflow: hidden;
+            font-weight: 400;
+            color: rgba(51, 51, 51, 1);
           }
         }
         .allListCheck {

@@ -376,7 +376,7 @@
                            @mouseenter="enterFile(ele)"
                            @mouseleave="leaveFile(ele)">
                         <span class="file_pic"
-                              @click='enterTheDetails(notGroupedList)'>
+                              @click='enterTheDetails(index, 0)'>
                           <template v-if='ele.FileType === 11 && ele.Desc'>
                             <span class="text_desc">
                               <span>{{ele.Desc}}</span>
@@ -1139,6 +1139,7 @@
                      @handleRe="reUpload" />
     <file-details v-if="filedetailsShow"
                   :fileLists='fileLists'
+                  :info='enterDetailInfo'
                   @closeDetails='closeDetails' />
   </div>
 </template>
@@ -1174,6 +1175,7 @@ export default {
   },
   data() {
     return {
+      enterDetailInfo: {}, // 进入文件详情的信息
       loginUser: JSON.parse(localStorage.getItem("staffInfo")), // 当前登录者的信息
       projectItem: JSON.parse(localStorage.getItem("projectItem")), // 当前项目
       // userId: 1204, // 当前登录者的ID
@@ -1532,9 +1534,14 @@ export default {
       'POWER_CHANGE'
     ]),
     // 进入文件详情
-    enterTheDetails(notGroupedList) {
+    enterTheDetails(index, groupIndex) {
+      this.enterDetailInfo = {
+        groupIndex: groupIndex,
+        fileIndex: index,
+        fileList: this.stageInfo.fileList
+      }
       this.filedetailsShow = true;
-      this.fileLists = notGroupedList;
+      this.fileLists = [];
       
     },
     // 关闭文件详情

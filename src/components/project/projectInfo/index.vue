@@ -1188,9 +1188,6 @@ export default {
         }
       }
       this.noPartitions.taskList = [...this.noPartitions.taskList];
-
-      // console.log(this.noPartitions)
-
     },
 
     // 获取项目成员列表
