@@ -268,7 +268,7 @@ input:-webkit-autofill {
   cursor: pointer;
   vertical-align: middle;
 }
-.main_button_color:hover {
+.main_button_color:hover { 
   border: 1px solid #3762EB;
   color: #3762EB;
 }
@@ -779,6 +779,7 @@ not supported by any browser */
 .demo_textarea textarea::-webkit-input-placeholder {
   /* WebKit browsers */
   color: #9c9c9c;
+
 }
 .demo_textarea textarea:-moz-placeholder {
   /* Mozilla Firefox 4 to 18 */

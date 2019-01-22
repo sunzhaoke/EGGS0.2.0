@@ -15,22 +15,22 @@ proxyTable: {
 target:" http://eggs.apexgame.cn/",
 logLevel:'debug', 
 changeOrigin:true
-      }, 
+                  }, 
 '/upload': {
 target:'http://eggs.apexgame.cn/',
 logLevel:'debug', 
 changeOrigin:true
-      }, 
+                  }, 
 '/ProjectFile.ashx': {
 target:'http://eggs.apexgame.cn/',
 logLevel:'debug', 
 changeOrigin:true
-      }, 
-"/img.ashx": {
+                  }, 
+"/PersonalFile.ashx": {
 target:"http://eggs.apexgame.cn/",
 logLevel:'debug', 
 changeOrigin:true
-      }
+                  }
 }, 
 
 // Various Dev Server settings
@@ -43,8 +43,8 @@ poll:false, // https://webpack.js.org/configuration/dev-server/#devserver-watcho
 
 
 /**
-     * Source Maps
-     */
+                 * Source Maps
+                 */
 
 // https://webpack.js.org/configuration/devtool/#development
 devtool:'cheap-module-eval-source-map', 
@@ -55,7 +55,7 @@ devtool:'cheap-module-eval-source-map',
 cacheBusting:true, 
 
 cssSourceMap:true
-  }, 
+      }, 
 
 build: {
 // Template for index.html
@@ -67,8 +67,8 @@ assetsSubDirectory:'static',
 assetsPublicPath:'./', 
 
 /**
-     * Source Maps
-     */
+                 * Source Maps
+                 */
 
 productionSourceMap:true, 
 // https://webpack.js.org/configuration/devtool/#production
@@ -86,5 +86,5 @@ productionGzipExtensions:['js', 'css'],
 // `npm run build --report`
 // Set to `true` or `false` to always turn it on or off
 bundleAnalyzerReport:process.env.npm_config_report
-  }
+      }
 }

@@ -2,41 +2,45 @@
     <div id="FileDetails">
         <div class="fileTop">
             <div class="fl leftNav">
-                <el-breadcrumb separator="/"
-                               class="fl">
-                    <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-                    <el-breadcrumb-item>
-                        <a href="/">活动管理</a>
-                    </el-breadcrumb-item>
-                    <el-breadcrumb-item>活动列表</el-breadcrumb-item>
-                </el-breadcrumb> /
-                <span v-if="modifyShow"
-                      class="cur fileName"> {{fileItem.FileName}}
-                    <i v-if='power'
-                       class="iconfont  icon-bianji"
-                       @click="ModifyFileName"></i>
-                </span>
-                <input v-if='!modifyShow'
-                       type="text"
-                       v-model="fileItem.FileName"
-                       id="fileNameInput"
-                       @blur="autofocusFileName(fileItem.FileName)">
+                <ul>
+                    <li v-for='(list,index) of this.info.menuList'
+                        :key="index"
+                        class="fl"
+                        v-show="index<3">
+                        {{list}} /
+                    </li>
+                    <span>
+                        <span v-if="modifyShow"
+                              class="cur fileName"> {{fileItem.FileTitle}}
+                            <i v-if='power'
+                               class="iconfont  icon-bianji"
+                               @click="ModifyFileName"></i>
+                        </span>
+                        <input v-show='!modifyShow'
+                               type="text"
+                               v-model="fileItem.FileTitle"
+                               id="fileNameInput"
+                               @blur="autofocusFileName(fileItem.FileTitle)">
+                    </span>
+
+                </ul>
             </div>
             <div class="right fr">
-                <span class="cur">
-                    <i class="iconfont icon-tihuan"> </i> 文件替换</span>
+                <!-- <span class="cur">
+                    <i class="iconfont icon-tihuan"> </i> 文件替换</span> -->
                 <span class="cur">
                     <i class="iconfont icon-xiazai">
                         <a :href="fileItem.Url"
                            :download="fileItem.FileName">下载</a>
                     </i>
                 </span>
-
                 <span class="cur">
-                    <i class="iconfont icon-fenxiang"></i> 分享</span>
-                <span class="cur"
-                      @click="delResultFile">
-                    <i class="iconfont icon-delete"></i> 删除</span>
+                    <i class="iconfont icon-fenxiang"></i> 分享
+                </span>
+                <!-- <span class="cur"
+                      @click="delResultFile(fileItem)">
+                    <i class="iconfont icon-delete"></i> 删除
+                </span> -->
                 <span class="cur"
                       @click="closeDetails">
                     <i class="iconfont icon-guanbijiantou"></i>
@@ -57,11 +61,10 @@
                                  draggable="true">
                         </div>
                         <div class='otherType'
-                             style="min-height:600px"
                              v-if="fileItem.FileType == 2 || fileItem.FileType == 3 || fileItem.FileType == 5 || fileItem.FileType == 'txt'">
                             <iframe :src="fileItem.Url"
                                     width='100%'
-                                    min-height='500px'
+                                    height='100%'
                                     frameborder='0'>
                             </iframe>
                         </div>
@@ -89,7 +92,6 @@
                                        controls="controls"
                                        autoplay="autoplay"
                                        preload="preload">亲 您的浏览器不支持html5的video标签</video>
-
                             </div>
                         </div>
                         <div class="OtherStyle"
@@ -124,9 +126,9 @@
                             <img :src="fileItem.UserPic"
                                  alt="">
                         </span>
-                        <span>{{fileItem.nickName}}</span>
-                        <span>{{fileItem.formatTime}}</span>
-                        <span class="cur fr">
+                        <span class="nickName">{{fileItem.nickName}}</span>
+                        <span class="formatTime">{{fileItem.formatTime}}</span>
+                        <span class="original cur fr">
                             <i class="iconfont icon-iconfontchakanyuantu"></i>
                             查看原图
                         </span>
@@ -136,32 +138,34 @@
                 <div class="commentBox">
                     <div class="topInputBox">
                         <textarea name=""
-                                  id=""
-                                  cols="30"
-                                  rows="10"
                                   placeholder="输入评论内容，可@通知对方，Enter快速发布"
+                                  v-model="commentInfo"
                                   class="commentiInput">
                         </textarea>
                         <div class="atButton">
                             <i class="iconfont ">@</i>
                             <i class="iconfont icon-biaoqing"></i>
-                            <span class="fr">评论</span>
+                            <span class="fr commentButton"
+                                  :class="commentInfo?'main_button_bg':'main_button_disabled_bg'"
+                                  @click="sendComment(commentInfo)">评论</span>
                         </div>
                     </div>
                     <div class="allComment">
                         <p>全部评论</p>
                         <ul>
-                            <li class="clearfix commentList">
+                            <li class="clearfix commentList"
+                                v-for="(list,index) of commentInfoLists"
+                                :key="index">
                                 <span class="commentator">
-                                    <img src=""
+                                    <img :src="list.img"
                                          alt="">
                                 </span>
-                                <span class="commentatorInfo">
-                                    <p>mingzi</p>
-                                    <p>neirong</p>
-                                </span>
+                                <div class="commentatorInfo">
+                                    <p class="name">{{list.name}}</p>
+                                    <p class="infoBox">{{list.info}}</p>
+                                </div>
                                 <span class="fr time">
-                                    <p>时间</p>
+                                    <p>{{list.time}}</p>
                                 </span>
                             </li>
                         </ul>
@@ -208,39 +212,23 @@ export default {
             defaultGroupList: '',
             fileListsAll: '', //文件列表 总
             checkIndex: 0, //当前选择index
-
-            isStar: true, //是否星标
             filePkid: "", //文件pkid
-            nowSelectedEdition: "", //版本号
-            versionChoiceShow: false, //版本选择弹框,
+            commentInfo: '', //信息
             modifyShow: true, //修改姓名
             FileName: "",
             FileType: "",
-            items: "", // 图片预览列表,
             fileItem: "", // 文件预览对象,
             everyFileList: "",
-            YimageUrl: "",
             Url: "",
-            fileEveryReplaceItem: "", // 当前选择人员的文件单个要替换的详情
-            checkIndex: "",
             oneFilelist: "", //个人文件渲染列表
-            newList: [], //新所有数据渲染列表
-            size: "",
-            isChoose: false,
-            imgSize: "",
-            teskIds: "", // 详细任务的ID
-            publishID: "", // 当前发布人的ID
-            num: "", //图片展示 百分比
-            windowHeight: "",
             isshowpdf: false,
-            ArticleFileId: "", // 卡片id
             power: true, //是否有权限显示 修改按钮
-            userID: "", //当前登录用户id,
-            fileUserid: "", //文件发布人 userid
             fileProgressList: [], // 上传进度列表
             uploadProgressFlag: false, // 上传进度显示隐藏
-            Selectgroupedition: "", //当前文件最高版本,
-            fangdaShow: true //全屏 缩小显示icon
+            fangdaShow: true,//全屏 缩小显示icon
+            commentInfoLists: [],
+            loginUser: JSON.parse(localStorage.getItem('staffInfo')), // 当前登录者的信息
+
         }
     },
     props: ['info'],
@@ -265,11 +253,23 @@ export default {
             }
             console.log(this.info)
         },
+        sendComment(info) {
+            console.log(this.loginUser.realName)
+            let infoList = { img: this.loginUser.pic, name: this.loginUser.realName, info: info, time: '2001' };
+            this.commentInfoLists.unshift(infoList)
+        },
         // 结果展示文件 可以删除
-        delResultFile() {
-            let data = { 'FilePkid': this.filePkid };
+        delResultFile(fileItem) {
+            let index = this.fileLists.findIndex(res => {
+                return res.FilePkid == fileItem.FilePkid;
+            })
+            console.log(this.fileLists)
+            this.fileLists.splice(index, 1);
+            this.fileLists = [... this.fileLists];
+            let data = { 'FilePkid': fileItem.FilePkid };
             this.$HTTP("post", "/stageTaskFile_delete", data).then(res => {
                 console.log();
+
             });
         },
         // 点击关闭pdf文件预览
@@ -339,7 +339,10 @@ export default {
         },
         ModifyFileName() {
             this.modifyShow = !this.modifyShow;
-            this.$('#fileNameInput').focus();
+            this.$nextTick(res => {
+                this.$('#fileNameInput').focus();
+
+            })
         },
         // 下一个文件
         next() {
@@ -373,6 +376,9 @@ export default {
             // 5.视屏: 8
             // 6 txt
             // 不可预览的文件: 其他
+            console.log('zhixing', item)
+            console.log('type222222', item.FileType)
+
             if (item.FileType === 6) {
                 this.$nextTick(() => {
                     this.isshowpdf = true;
@@ -382,7 +388,6 @@ export default {
                 item.FileType == 3 ||
                 item.FileType == 5
             ) {
-                console.log('22222')
                 let url2 = 'http://eggs.apexgame.cn/' + item.Url;
                 url2 = encodeURIComponent(url2);
                 let url3 = "https://view.officeapps.live.com/op/view.aspx?src=";
@@ -405,6 +410,7 @@ export default {
             } else {
                 // this.$message.warning("此文件类型暂不支持预览，可点击下载");
             }
+
         },
         // 文件上传超出提示
         handleExceed(files, fileList) {
@@ -505,14 +511,17 @@ export default {
                 this.defaultGroupList = info.groupIndex;
             }
             this.fileLists = info.fileList[info.groupIndex].fileList;
+            console.log(1)
+            this.checkIndex = info.fileIndex;
             this.fileItem = this.fileLists[info.fileIndex];
 
-            this.filePreview(this.fileLists);
+            this.filePreview(this.fileItem);
         },
     },
     created() {
         this.getGroupList(this.info);
-
+        this.commentInfoLists = [{ img: '', name: 'zhaoke', info: '随便写的', time: '2001' }, { img: '', name: 'zhaoke', info: '随便写的', time: '2001' }]
+        console.log(this.info)
     }
 }
 </script>
@@ -550,6 +559,9 @@ export default {
       .fileName {
         line-height: 50px;
       }
+      #fileNameInput {
+        // width: ;
+      }
     }
     .right {
       line-height: 50px;
@@ -572,7 +584,7 @@ export default {
       //   background: pink;
       .fileBoxBig {
         // width: 100%;
-        // height: 100%;
+        height: 100%;
         background: rgba(255, 255, 255, 1);
         box-shadow: 0px 1px 6px 0px rgba(0, 0, 0, 0.2);
         border-radius: 4px;
@@ -581,6 +593,7 @@ export default {
         .box_sizing;
         .imgBg {
           text-align: center;
+          height: 100%;
           width: 832px;
           background: rgba(250, 250, 250, 1);
           border: 1px solid rgba(238, 238, 238, 1);
@@ -588,7 +601,11 @@ export default {
             max-width: 100%;
           }
         }
+        .otherType {
+          height: 100%;
+        }
         .fileListBox {
+          height: 100%;
           padding-bottom: 35px;
           .box_sizing;
           iframe {
@@ -598,10 +615,10 @@ export default {
         }
         .personalInfo {
           height: 60px;
+          line-height: 60px;
           width: 100%;
           padding: 0 25px;
           .box_sizing;
-          background: yellow;
           position: absolute;
           bottom: 0;
           left: 0;
@@ -611,11 +628,24 @@ export default {
             height: 20px;
             border-radius: 4px;
             overflow: hidden;
-            margin-top: 20px;
+            position: absolute;
+            top: 20px;
             img {
+              position: absolute;
               width: 20px;
               height: 20px;
             }
+          }
+          .nickName {
+            margin-left: 30px;
+            font-weight: bold;
+          }
+          .formatTime {
+            font-size: 12px;
+            color: #999999;
+          }
+          .original {
+            line-height: 60px;
           }
         }
       }
@@ -648,6 +678,12 @@ export default {
             .icon-biaoqing {
               margin-left: 15px;
             }
+            .commentButton {
+              margin-top: 15px;
+            }
+          }
+          textarea {
+            resize: none;
           }
         }
         .allComment {
@@ -655,10 +691,9 @@ export default {
           .box_sizing;
           ul {
             .commentList {
-              height: 76px;
+              min-height: 76px;
               padding: 19px 0;
               .box_sizing;
-              //   background: pink;
               border-bottom: 1px solid #f2f2f2;
               position: relative;
               .commentator {
@@ -677,14 +712,25 @@ export default {
                 }
               }
               .commentatorInfo {
-                position: absolute;
-                left: 40px;
-                // .name {
-                //   font-family: 'PingFang-SC-Regular';
-                // }
-                p {
+                width: 798px;
+                margin-left: 40px;
+                .name {
+                  font-weight: bold;
                   line-height: 20px;
                 }
+                .infoBox {
+                  width: 100%;
+                  height: 100%;
+                  line-height: 20px;
+                  color: #333333;
+                }
+              }
+              .time {
+                position: absolute;
+                right: 0;
+                top: 22px;
+                font-size: 12px;
+                color: #999999;
               }
             }
           }

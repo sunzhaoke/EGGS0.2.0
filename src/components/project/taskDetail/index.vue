@@ -1535,10 +1535,17 @@ export default {
     ]),
     // 进入文件详情
     enterTheDetails(index, groupIndex) {
+       let x = this.stageList.findIndex(ele => ele.stageId == this.stageId);
       this.enterDetailInfo = {
         groupIndex: groupIndex,
         fileIndex: index,
-        fileList: this.stageInfo.fileList
+        fileList: this.stageInfo.fileList,
+        menuList: [
+          this.stageInfo.title, 
+          this.stageInfo.stageList[x].stageTitle, 
+          this.stageInfo.fileList[groupIndex].groupName, 
+          this.stageInfo.fileList[groupIndex].fileList[index].FileName
+          ]
       }
       this.filedetailsShow = true;
       this.fileLists = [];

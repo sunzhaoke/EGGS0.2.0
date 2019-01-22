@@ -34,7 +34,6 @@
             <div class="projectUserLists">
               <p class="projecttTitle">项目成员列表</p>
               <draggable v-model="userList"
-                         @start='userListMove'
                          @choose='userListChoose'
                          class="userlist"
                          :options="{
@@ -107,7 +106,6 @@
         </div>
         <div class="mainContent"
              :class="{'mainContentFixed':isFixed}">
-
           <!-- 未分区 -->
           <div class="partitionsMain noPartitions"
                :data-partitionid='noPartitions.partitionId'>
@@ -152,9 +150,9 @@
                 </div>
                 <!-- 空白占位 -->
                 <draggable v-model="userList"
-                           @start='userListMove'
                            @choose='userListChoose'
                            class="userlist"
+                           @remove='moveNopartitonTask(noPartitions,$event)'
                            :options="{
                                 group:{name: 'file',pull:'clone'},
                                  dragClass: 'drag_userImg',
@@ -181,10 +179,8 @@
 
                 <draggable v-model="noPartitions.taskList"
                            class="box"
-                           :move='getdata2(noPartitions)'
-                           @start='taskMoveStart(noPartitions)'
-                           @end='taskMoveEnd(noPartitions)'
-                           @update="datadragEnd2(noPartitions)"
+                           @update="datadragEnd2(noPartitions,$event)"
+                           @remove='moveNopartitonTask(element,$event)'
                            :options="{
                                  group: 'file', 
                                  ghostClass: 'ghost_file', 
@@ -192,12 +188,14 @@
                                  draggable: '.dragging',
                                  handle:'.moveStageHandel'
                                  }">
-                  <transition-group class="taskLists">
+                  <transition-group class="taskLists"
+                                    :data-partitionid='noPartitions.partitionId'>
                     <!-- 任务及阶段 -->
                     <li v-for="(item,index) in noPartitions.taskList"
                         v-if='item.taskId'
                         :key="item.taskId"
                         class="stageBox"
+                        :data-taskid='item.taskId'
                         @mouseenter="mouseEnter(item,index)"
                         :class="{'stageBoxFixed':leftFixed,'dragging':item.taskId!==''}">
                       <span class="stageLists cur"
@@ -207,8 +205,7 @@
                                       effect="dark"
                                       content="移动"
                                       placement="top-start">
-                            <span class="icon moveStageHandel cur"
-                                  @click.stop="movePartitions(item)">
+                            <span class="icon moveStageHandel cur">
                               <i class="iconfont icon-pailie"></i>
                             </span>
                           </el-tooltip>
@@ -250,11 +247,12 @@
                                v-if="lists.isPartIn"></div>
                           <!-- 2.完成时显示 -->
                           <div class="finishPage"
-                               v-if='lists.stageTaskState==true&&lists.enabled===true'>
+                               v-if='lists.stageTaskState==true'>
                             <i class="iconfont icon-wancheng"></i>完成</div>
                           <!-- 3.开启状态 显示内容 -->
+                          <!-- {{lists.enabled}} -->
                           <div class="stageInfo cur"
-                               v-if="lists.enabled==true||lists.enabled==''">
+                               v-if="lists.enabled==''||lists.enabled==true">
                             <div class="participantImg">
                               <draggable :list="lists.userList"
                                          :class="{'red':!lists.isRepeat}"
@@ -472,7 +470,6 @@
                             :content="noPartitions.partitionId==0?'默认分区无法移动':'移动'"
                             placement="top-start">
                   <span class="icon moveHandel"
-                        @click.stop="movePartitions"
                         :class="{'cur_dis':noPartitions.partitionId==0}">
                     <i class="iconfont icon-pailie"
                        :class="{'cur_dis':noPartitions.partitionId==0 ,'cur':noPartitions.partitionId!==0}"></i>
@@ -540,8 +537,7 @@
                                     effect="dark"
                                     content="移动"
                                     placement="top-start">
-                          <span class="icon moveHandel"
-                                @click.stop="movePartitions">
+                          <span class="icon moveHandel">
                             <i class="iconfont icon-pailie cur"></i>
                           </span>
                         </el-tooltip>
@@ -575,14 +571,16 @@
                       <i class="iconfont cur unfold"
                          :class="!element.autoExpand?'icon-unfold':'icon-packup'"
                          @click="goFlod(element)"></i>
-                      <textarea type="text"
-                                class="stageTittle"
-                                contenteditable="true"
-                                v-model="element.partitionTitle"
-                                @keydown='checkEnter'
-                                style="resize:none"
-                                @blur="partitionBlur(element,index,element.partitionTitle)"
-                                @focus="partitionFocus(element.partitionTitle,element,index)"></textarea>
+                      <div type="text"
+                           class="stageTittle"
+                           contenteditable="true"
+                           v-html="element.partitionTitle"
+                           @keydown='checkEnter'
+                           ref="haha"
+                           style="resize:none"
+                           @blur="partitionBlur(element,index,element.partitionTitle)"
+                           @focus="partitionFocus(element.partitionTitle,element,index)">1</div>
+                      
                     </div>
                     <!-- 空白占位 -->
                     <span v-if="element.isBlank"
@@ -604,20 +602,22 @@
                     </span>
                     <draggable v-model="element.taskList"
                                class="box"
-                               :move='getdata2(element)'
-                               @update="datadragEnd2(element)"
+                               @remove='moveNopartitonTask(element,$event)'
+                               @update="datadragEnd2(element,$event)"
                                :options="{
                                  group: 'file', 
                                  ghostClass: 'ghost_file', 
                                  dragClass: 'drag_file',
                                  draggable: '.dragging',handle:'.moveStageHandel'
                                  }">
-                      <transition-group class="taskListsTwo">
+                      <transition-group class="taskListsTwo"
+                                        :data-partitionId='element.partitionId'>
                         <!-- 任务及阶段 -->
                         <li v-for="(item,index) in element.taskList"
                             v-if='item.taskId'
                             :key="item.taskId"
                             class="stageBox"
+                            :data-taskid='item.taskId'
                             @mouseenter="mouseEnter(item,index)"
                             :class="{'stageBoxFixed':leftFixed,'dragging':item.taskId!==''}">
                           <span class="stageLists cur"
@@ -627,8 +627,7 @@
                                           effect="dark"
                                           content="移动"
                                           placement="top-start">
-                                <span class="icon moveStageHandel cur"
-                                      @click.stop="movePartitions">
+                                <span class="icon moveStageHandel cur">
                                   <i class="iconfont icon-pailie"></i>
                                 </span>
                               </el-tooltip>
@@ -673,11 +672,12 @@
                                    v-if="lists.isPartIn"></div>
                               <!-- 2.完成时显示 -->
                               <div class="finishPage"
-                                   v-if='lists.stageTaskState==true&&lists.enabled===true'>
+                                   v-if='lists.stageTaskState==true'>
                                 <i class="iconfont icon-wancheng"></i>完成</div>
                               <!-- 3.开启状态 显示内容 -->
+                              <!-- {{lists.stageTaskState}}任务是否完成 {{lists.enabled}}是否开启 -->
                               <div class="stageInfo cur"
-                                   v-if="lists.enabled ==true||lists.enabled ==''&&lists.stageTaskState==false">
+                                   v-if="lists.enabled==true||lists.enabled==''">
                                 <div class="participantImg">
                                   <draggable :list="lists.userList"
                                              :options="{group:{'article':lists.isRepeat}, disabled: false}">
@@ -899,8 +899,7 @@
                                 :content="element.partitionId==0?'默认分区无法移动':'移动'"
                                 placement="top-start">
                       <span class="icon moveHandel"
-                            :class="{'cur_dis':element.partitionId==0}"
-                            @click.stop="movePartitions">
+                            :class="{'cur_dis':element.partitionId==0}">
                         <i class="iconfont icon-pailie"
                            :class="{'cur_dis':element.partitionId==0 ,'cur':element.partitionId!==0}"></i>
                       </span>
@@ -1006,6 +1005,7 @@ import AddPeople from "../../common/addPeople";
 import Reminder2 from "../../common/reminder2";
 import draggable from "vuedraggable";
 import { WSAESOCKTNOSUPPORT, POINT_CONVERSION_COMPRESSED } from 'constants';
+import { setTimeout } from 'timers';
 
 export default {
   components: {
@@ -1170,9 +1170,7 @@ export default {
   methods: {
     ...mapMutations(['DETAILS_CHANGE', 'TASKITEM_CHANGE', 'TASK_POSITION', 'PROJECT_CHANGE']),
     // 项目列表人员拖拽 放下
-    userListMove(evt) {
 
-    },
     userListChoose(evt) {
       let userId = evt.item.dataset.pkid;
       for (let list of this.noPartitions.taskList) {
@@ -1538,17 +1536,20 @@ export default {
     // 1.添加分区操作
     // el:大数组 index:位置 name:分区名字
     addPartition(el, index, name) {
+
       this.nowTime = new Date().getTime();
       if (this.nowTime - this.nowBlurTime >= 1000) {
         this.isNewP = true;
-        this.EmptyData.partitionTitle = '';
+        this.EmptyData.partitionTitle = ' ';
         if (name == 'addPartition') {
           this.partitionsList.splice(index + 1, 0, this.EmptyData);
           this.EmptyData.partitionId = this.partitionsList.length + 1;
           this.$nextTick(res => {
+ 
             $('.hhah').children().eq(index).find('.stageTittle').focus();
           })
         } else {
+          return
           this.partitionsList.splice(1, 0, this.EmptyData);
           this.EmptyData.partitionId = this.partitionsList.length + 1;
           this.$nextTick(res => {
@@ -1562,16 +1563,18 @@ export default {
       this.nowBlurTime = new Date().getTime();
       // 先判断 是否是新建项目
       if (this.isNewP) {
-        console.log(2)
         if (name) {
           let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, title: name, 'iSort': index + 1 }
           this.$HTTP('post', '/partition_iSort_add', obj).then(res => {
             res.result.isBlank = true;
             res.result.isnew = false;
             this.isNewP = false;
+            console.log(name)
             this.partitionsList.splice(index, 1, res.result);
           })
         } else {
+            console.log('没有内容')
+          
           this.isNewP = false;
           this.partitionsList.splice(index, 1);
         }
@@ -1747,24 +1750,19 @@ export default {
         item.autoExpand = true;
       }
     },
-    movePartitions(item) {
-      console.log('ceshi ', item);
-    },
 
-    startDrag(data) {
-      console.log('startDrag: ', data)
-    },
-    endDrag(data) {
-      console.log('endDrag: ', data)
-    },
     goFlod(el) {
       el.autoExpand = !el.autoExpand;
       let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, 'partitionId': el.partitionId, 'isState': el.autoExpand }
       this.$HTTP('post', '/partition_operation', obj).then(res => {
-
       })
-
-
+    },
+    // 跨分区移动
+    moveNopartitonTask(element, evt) {
+      // console.log(element, evt.to.dataset.partitionid)
+      let data = { 'taskId': evt.item.dataset.taskid, 'partitionId': evt.to.dataset.partitionid, 'isSort': evt.newIndex }
+      this.$HTTP('post', '/task_group_update_isSort', data).then(res => {
+      })
     },
     handleScroll() {
       var scrollTop = parseInt($('.tableBox')[0].scrollTop);
@@ -1781,37 +1779,11 @@ export default {
         this.leftFixed = false;
       }
     },
-    // 任务 移动前的操作
-    taskMoveStart(list) {
-      console.log('chufale触发了', list);
-    },
-    // 任务 移动到的操作
-    taskMoveEnd(list) {
-
-      console.log(1, list)
-      // if (list.taskList.length <= 1) {
-      //   list.isBlank = true;
-      // }
-      console.log(list, '结束后的list')
-    },
-    getdata2(evt) {
-
-      // console.log(2, evt);
-
-      // evt.preventDefault();
-      // console.log(evt.draggedContext.element.id, 'element.id')
-    },
-    datadragEnd2(evt) {
-      console.log('eeeeeeee')
-      console.log(evt)
-      // let data={'taskId':'','partitionId':'','isSort':''}
-      // this.$HTTP('post','/task_group_update_isSort',data).then(res=>{
-
-      // })
-      // task_group_update_isSort
-      // filePartition_update_isSort
-      // console.log('拖动前的索引 :' + evt.oldIndex)
-      // console.log('拖动后的索引 :' + evt.newIndex)
+    // 任务 任务移动
+    datadragEnd2(elment, evt) {
+      let data = { 'taskId': evt.item.dataset.taskid, 'partitionId': elment.partitionId, 'isSort': evt.newIndex }
+      this.$HTTP('post', '/task_group_update_isSort', data).then(res => {
+      })
     },
     // 获取阶段列表
     getstageList() {
@@ -1823,7 +1795,7 @@ export default {
           newList.push({ 'stageId': i });
         }
         this.EmptyData =
-          {            'partitionId': -1, 'partitionTitle': '', 'autoExpand': false, 'taskList': [
+          {            'partitionId': -1, 'partitionTitle': '222', 'autoExpand': false, 'taskList': [
               { 'taskId': -1, 'stageTaskList': newList },
             ]          }
 
@@ -2667,6 +2639,9 @@ export default {
                     text-align: center;
                     display: none;
                     .el-button {
+                      border: none !important;
+                      background: none;
+                      padding: 0 !important;
                       line-height: 72px;
                       i {
                         color: #fff;
@@ -2677,9 +2652,10 @@ export default {
                       }
                     }
                     .el-button:hover {
+                      border: none !important;
                       background: none;
+                      padding: 0 !important;
                     }
-
                     .iconBg {
                       display: inline-block;
                       width: 24px;
@@ -2701,9 +2677,11 @@ export default {
                     background: #ffffff;
                     text-align: center;
                     display: none;
-
                     .el-button {
                       line-height: 72px;
+                      border: none;
+                      padding: 0;
+                      background: none;
                       i {
                         color: #fff;
                         font-size: 14px;
@@ -2906,7 +2884,7 @@ export default {
             position: absolute;
             left: 14px;
             top: 50%;
-            margin-top: -10px;
+            margin-top: -5px;
           }
           .box_sizing;
           .iconBox {
@@ -2939,9 +2917,9 @@ export default {
           position: fixed;
         }
         .stageTittle {
+          min-width: 1px;
           width: 56px;
           max-height: 50%;
-          // line-height: 1.5;
           position: absolute;
           top: calc(50% + 4px);
           left: calc(50% + 7px);
@@ -2952,6 +2930,7 @@ export default {
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
+          display: inline-block;
           i {
             position: absolute;
           }

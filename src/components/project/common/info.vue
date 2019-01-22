@@ -136,7 +136,7 @@
                 :defaultTreeKeys="addPeopleLists"
                 @handleCancel="cancelAddPeople"
                 :fromInfo="fromInfo"></add-people>
-              
+
   </div>
 </template>
 <script>
@@ -463,256 +463,250 @@ export default {
   }
   .popup_box_k {
     width: 400px;
-  }
-  .popup_content_main {
-    width: 400px;
-    min-height: 352px;
-    max-height: 485px;
-    .box_sizing;
-  }
-  .popup_content_k {
-    width: 400px;
-    height: 520px;
-    // min-height: 352px;
-    // max-height: 485px;
-    padding: 40px 25px;
-    overflow: auto;
-    .box_sizing;
-    ul {
-      margin-bottom: 30px;
-      li {
-        margin-top: 30px;
-        &:first-child {
-          margin-top: 0;
+    .popup_content_k {
+      width: 400px;
+      height: 520px;
+      min-height: 352px;
+      max-height: 485px;
+      padding: 40px 25px;
+      overflow: auto;
+      .box_sizing;
+      ul {
+        margin-bottom: 30px;
+        li {
+          margin-top: 30px;
+          &:first-child {
+            margin-top: 0;
+          }
         }
-      }
-      .enterTitle,
-      .describeBox,
-      .addProBox,
-      .optionDate {
-        width: 100%;
-        .block {
-          width: 105px;
-          .el-date-editor {
+        .enterTitle,
+        .describeBox,
+        .addProBox,
+        .optionDate {
+          width: 100%;
+          .block {
             width: 105px;
-          }
-        }
-        .lines {
-          // color: red;
-          margin-right: 20px;
-        }
-        .titleInput {
-          width: 319px;
-          height: 30px;
-          line-height: 1.7;
-          color: #333333;
-          font-weight: bold;
-          .box_sizing;
-        }
-        .pitchOn {
-          width: 88%;
-          padding: 10px;
-          border: 1px solid #d0d0d0;
-          height: 30px;
-          border-radius: 3px;
-          .box_sizing;
-        }
-        i {
-          color: #666666;
-        }
-        input {
-          color: #333333;
-          margin-left: 10px;
-        }
-        span {
-          color: #999999;
-          margin-left: 10px;
-          cursor: pointer;
-        }
-      }
-      .describeBox {
-        .describeBold {
-          color: #333333;
-          font-weight: bold;
-        }
-        .describePitchOn {
-          width: 322px;
-          min-height: 32px;
-          line-height: 1.7;
-          max-height: 67px;
-          border: 1px solid rgba(208, 208, 208, 1);
-          border-radius: 4px;
-          margin-top: 8px;
-          padding: 0 8px;
-          .box_sizing;
-        }
-        .describe {
-          width: 322px;
-          max-height: 67px;
-          line-height: 1.7;
-          border: none;
-          overflow: auto;
-          color: #333333;
-          margin-top: 8px;
-          padding: 0 8px;
-          .box_sizing;
-        }
-        .describes {
-          width: 322px;
-          max-height: 67px;
-          color: #333333;
-          line-height: 1.7;
-          border: none;
-          overflow: auto;
-          margin-top: 8px;
-          .box_sizing;
-        }
-      }
-      .addProBox {
-        .addbold {
-          color: #333333;
-          font-weight: bold;
-        }
-        .userImgBox {
-          max-width: 278px;
-          max-height: 56px;
-          position: absolute;
-          left: 40px;
-          top: 0;
-          overflow: auto;
-          span {
-            margin: 0;
-          }
-
-          .userImg {
-            width: 20px;
-            height: 20px;
-            &:not(:first-child) {
-              margin-left: 8px;
-              margin-bottom: 8px;
-              // border: 1px solid #ffffff;
+            .el-date-editor {
+              width: 105px;
             }
-            &:nth-child(10n + 1) {
+          }
+          .lines {
+            // color: red;
+            margin-right: 20px;
+          }
+          .titleInput {
+            width: 319px;
+            height: 30px;
+            line-height: 1.7;
+            color: #333333;
+            font-weight: bold;
+            .box_sizing;
+          }
+          .pitchOn {
+            width: 88%;
+            padding: 10px;
+            border: 1px solid #d0d0d0;
+            height: 30px;
+            border-radius: 3px;
+            .box_sizing;
+          }
+          i {
+            color: #666666;
+          }
+          input {
+            color: #333333;
+            margin-left: 10px;
+          }
+          span {
+            color: #999999;
+            margin-left: 10px;
+            cursor: pointer;
+          }
+        }
+        .describeBox {
+          .describeBold {
+            color: #333333;
+            font-weight: bold;
+          }
+          .describePitchOn {
+            width: 322px;
+            min-height: 32px;
+            line-height: 1.7;
+            max-height: 67px;
+            border: 1px solid rgba(208, 208, 208, 1);
+            border-radius: 4px;
+            margin-top: 8px;
+            padding: 0 8px;
+            .box_sizing;
+          }
+          .describe {
+            width: 322px;
+            max-height: 67px;
+            line-height: 1.7;
+            border: none;
+            overflow: auto;
+            color: #333333;
+            margin-top: 8px;
+            padding: 0 8px;
+            .box_sizing;
+          }
+          .describes {
+            width: 322px;
+            max-height: 67px;
+            color: #333333;
+            line-height: 1.7;
+            border: none;
+            overflow: auto;
+            margin-top: 8px;
+            .box_sizing;
+          }
+        }
+        .addProBox {
+          .addbold {
+            color: #333333;
+            font-weight: bold;
+          }
+          .userImgBox {
+            max-width: 278px;
+            max-height: 56px;
+            position: absolute;
+            left: 40px;
+            top: 0;
+            overflow: auto;
+            span {
               margin: 0;
             }
-            .addPhoto {
-              display: inline-block;
+
+            .userImg {
               width: 20px;
               height: 20px;
+              &:not(:first-child) {
+                margin-left: 8px;
+                margin-bottom: 8px;
+                // border: 1px solid #ffffff;
+              }
+              &:nth-child(10n + 1) {
+                margin: 0;
+              }
+              .addPhoto {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                text-align: center;
+                line-height: 20px;
+                border-radius: 3px;
+                position: relative;
+                overflow: hidden;
+                i {
+                  position: absolute;
+                  left: 2px;
+                  color: rgba(255, 255, 255, 0);
+                }
+                img {
+                  width: 20px;
+                  height: 20px;
+                  position: absolute;
+                  background: slateblue;
+                  left: 0;
+                }
+                .delBox {
+                  display: block;
+                  position: absolute;
+                  background: rgba(51, 51, 51, 0);
+                  width: 100%;
+                  height: 100%;
+                  left: 0;
+                  top: 0;
+                }
+              }
+              .addPhoto:hover {
+                i {
+                  color: rgba(255, 255, 255, 1);
+                  transition: all 0.3s linear;
+                }
+                .delBox {
+                  background: rgba(51, 51, 51, 0.7);
+                  transition: all 0.3s linear;
+                }
+              }
+            }
+            .addPhotoIcon {
+              margin-left: 8px;
+              width: 20px;
+              height: 20px;
+              display: inline-block;
               text-align: center;
               line-height: 20px;
               border-radius: 3px;
               position: relative;
               overflow: hidden;
+              background: #3684ff;
               i {
                 position: absolute;
-                left: 2px;
-                color: rgba(255, 255, 255, 0);
+                left: 5px;
+                font-size: 10px;
+                color: rgba(255, 255, 255, 1);
               }
+            }
+          }
+          .addList {
+            margin-top: 14px;
+            margin-left: 32px;
+            width: 322px;
+            min-height: 32px;
+            position: relative;
+            span {
+              margin: 0;
+            }
+            .oneself {
+              width: 20px;
+              height: 20px;
+              overflow: hidden;
+              border-radius: 3px;
+              position: absolute;
+              left: 0;
+              top: 0;
               img {
-                width: 20px;
-                height: 20px;
-                position: absolute;
-                background: slateblue;
-                left: 0;
-              }
-              .delBox {
-                display: block;
-                position: absolute;
-                background: rgba(51, 51, 51, 0);
+                display: inline-block;
                 width: 100%;
                 height: 100%;
-                left: 0;
-                top: 0;
               }
             }
-            .addPhoto:hover {
-              i {
-                color: rgba(255, 255, 255, 1);
-                transition: all 0.3s linear;
-              }
-              .delBox {
-                background: rgba(51, 51, 51, 0.7);
-                transition: all 0.3s linear;
-              }
-            }
-          }
-          .addPhotoIcon {
-            margin-left: 8px;
-            width: 20px;
-            height: 20px;
-            display: inline-block;
-            text-align: center;
-            line-height: 20px;
-            border-radius: 3px;
-            position: relative;
-            overflow: hidden;
-            background: #3684ff;
-            i {
-              position: absolute;
-              left: 5px;
-              font-size: 10px;
-              color: rgba(255, 255, 255, 1);
-            }
-          }
-        }
-        .addList {
-          margin-top: 14px;
-          margin-left: 32px;
-          width: 322px;
-          min-height: 32px;
-          position: relative;
-          span {
-            margin: 0;
-          }
-          .oneself {
-            width: 20px;
-            height: 20px;
-            overflow: hidden;
-            border-radius: 3px;
-            position: absolute;
-            left: 0;
-            top: 0;
-            img {
+            .line {
+              height: 10px;
+              width: 1px;
+              background: #f2f2f2;
               display: inline-block;
-              width: 100%;
-              height: 100%;
+              margin-bottom: 5px;
+              position: absolute;
+              left: 30px;
+              top: 5px;
             }
-          }
-          .line {
-            height: 10px;
-            width: 1px;
-            background: #f2f2f2;
-            display: inline-block;
-            margin-bottom: 5px;
-            position: absolute;
-            left: 30px;
-            top: 5px;
           }
         }
       }
-    }
-    .optionDate {
-      .block {
-        display: inline-block;
-        width: 80px;
-
-        .el-date-editor {
+      .optionDate {
+        .block {
           display: inline-block;
-          border: none;
-          .el-input__inner {
+          width: 80px;
+
+          .el-date-editor {
+            display: inline-block;
             border: none;
-            padding: 0;
-            margin: 0;
-            height: 30px;
+            .el-input__inner {
+              border: none;
+              padding: 0;
+              margin: 0;
+              height: 30px;
+              line-height: 30px;
+            }
+          }
+          .el-input__prefix {
+            display: none;
+          }
+          .el-input__icon {
             line-height: 30px;
           }
-        }
-        .el-input__prefix {
-          display: none;
-        }
-        .el-input__icon {
-          line-height: 30px;
         }
       }
     }
