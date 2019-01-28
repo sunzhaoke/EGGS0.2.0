@@ -1,34 +1,35 @@
 <template>
-  <div class="add_people popup" @click.stop>
+  <div class="add_people popup"
+       @click.stop>
     <div class="popup_box">
       <div class="popup_top">
         <i v-if="!invite"
-            class="iconfont icon-return fl"
-            @click.stop="lastStep"></i>
+           class="iconfont icon-return fl"
+           @click.stop="lastStep"></i>
         <span class="popup_title">{{addInvite ? '邀请新成员' : '好友列表'}}</span>
         <i class="iconfont icon-guanbijiantou fr"
-            @click.stop="cancel"></i>
+           @click.stop="cancel"></i>
       </div>
       <!-- 添加人员 -->
       <div v-if="!addInvite && !invite">
         <div v-if="treeList.length"
-              class="popup_content">
+             class="popup_content">
           <ul class="three_parths">
             <li class="parths parths_one">
               <p class="parths_title">好友列表</p>
               <el-tree :data="treeList"
-                        show-checkbox
-                        node-key="pkid"
-                        ref="tree1"
-                        default-expand-all
-                        :default-checked-keys="defaultTreeKeys"
-                        :props="defaultProps"
-                        @check-change="treeCheckChange">
+                       show-checkbox
+                       node-key="pkid"
+                       ref="tree1"
+                       default-expand-all
+                       :default-checked-keys="defaultTreeKeys"
+                       :props="defaultProps"
+                       @check-change="treeCheckChange">
                 <span class="custom-tree-node"
                       slot-scope="{ node, data }">
                   <img class="el_tree_img"
-                        v-if="!data.groupName"
-                        :src="data.Images" />
+                       v-if="!data.groupName"
+                       :src="data.Images" />
                   <span class="el_tree_name">{{ node.label }}</span>
                 </span>
               </el-tree>
@@ -41,15 +42,15 @@
                 <li v-for="list in usedList"
                     :key="list.userid">
                   <el-checkbox :disabled="list.disabled"
-                                v-model="list.checked"
-                                @change="usedCheckChange(list)"></el-checkbox>
+                               v-model="list.checked"
+                               @change="usedCheckChange(list)"></el-checkbox>
                   <img class="el_tree_img"
-                        :src="list.Images" />
+                       :src="list.Images" />
                   <span class="el_tree_name">{{ list.nickName ? list.nickName : list.userName }}</span>
                 </li>
               </ul>
               <p class="no_body"
-                  v-else>暂无，可在好友管理中添加，系统也会自动生成</p>
+                 v-else>暂无，可在好友管理中添加，系统也会自动生成</p>
             </li>
             <li class="parths parths_three">
               <p class="parths_title">已选列表</p>
@@ -58,19 +59,19 @@
                     :key="list.userid"
                     v-if="list.checked && !list.disabled">
                   <img class="el_tree_img"
-                        :src="list.Images" />
+                       :src="list.Images" />
                   <span class="el_tree_name">{{ list.nickName ? list.nickName : list.userName }}</span>
                   <i class="iconfont icon-delete"
-                      @click="delCheckChange(list, index)"></i>
+                     @click="delCheckChange(list, index)"></i>
                 </li>
               </ul>
             </li>
           </ul>
         </div>
         <div v-else
-              class="content_empty">
+             class="content_empty">
           <img src="../../assets/img/noBody.png"
-                alt="">
+               alt="">
           <p>您还没有好友，请点击
             <span @click="clickInvite">这里</span>邀请朋友加入吧！</p>
         </div>
@@ -95,19 +96,19 @@
             <li v-for="(email, index) in emailList"
                 :key="index">
               <input class="invite_input"
-                      type="text"
-                      placeholder="请输入邮箱账号"
-                      v-model="email.email"
-                      @focus="emailFocus(index)"
-                      @blur="emailBlur(email)"
-                      @input="emailInput(email)" />
+                     type="text"
+                     placeholder="请输入邮箱账号"
+                     v-model="email.email"
+                     @focus="emailFocus(index)"
+                     @blur="emailBlur(email)"
+                     @input="emailInput(email)" />
               <span v-if="email.check"
                     class="error">{{email.check}}</span>
             </li>
 
           </ul>
-          <button class="main_button_color"
-                  @click="inviteButton">邀请</button>
+          <button class="main_button_color" @click="inviteButton">邀请</button>
+
         </li>
         <li class="parths parths_two fl">
           <p class="title">方式二：发送邀请链接</p>
@@ -129,7 +130,7 @@ import { mapState, mapMutations, mapActions, mapGetters } from "vuex";
 import { join } from 'path';
 
 export default {
-  props: ["defaultTreeKeys", "invite"],
+  props: ["defaultTreeKeys", "invite", "fromInfo"],
   data() {
     return {
       userPkid: JSON.parse(localStorage.getItem('staffInfo')).userPkid, // 当前登录者的ID
@@ -149,7 +150,10 @@ export default {
     };
   },
   computed: {
-    ...mapState(["demo"])
+    ...mapState(["demo"]),
+    canInvite() {
+      let ok = this.emailList.findIndex(ele => ele.check);
+    }
   },
 
   methods: {
@@ -347,9 +351,7 @@ export default {
         this.keysList = this.keysList.concat(this.defaultTreeKeys);
         this.keysList = this.keysList.concat(addIds);
       }
-
       // this.$emit("handleCancel", addIds);
-
     },
 
     // 添加邀请邮箱input聚焦
@@ -366,7 +368,7 @@ export default {
         return;
       }
       let reg = new RegExp(
-        "^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"
+        "^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"
       );
       if (!reg.test(email.email)) {
         email.check = "邮箱格式错误";
@@ -381,7 +383,7 @@ export default {
         if (res.code == 200) {
           email.check = "";
         } else if (res.code == 1) {
-          email.check = "此邮箱未注册";
+          // email.check = "此邮箱未注册";
         } else if (res.code == 2) {
           email.check = "已经是您的好友";
         }
@@ -397,12 +399,16 @@ export default {
       }
     },
 
+
+
     // 点击邀请按钮
     inviteButton() {
       let emails = [];
+      let emailError = [];
       for (let ele of this.emailList) {
         if (ele.check) {
-          return;
+          emailError.push(ele);
+          continue;
         }
         if (ele.email) {
           emails.push(ele.email);
@@ -410,19 +416,42 @@ export default {
       }
       if (emails.length) {
         emails = [...new Set(emails)];
-        this.inviteJoin(emails,join(','))
+        this.inviteJoin(emails.join(','), emailError)
         this.$emit('handleInvite', emails);
-        this.$message.success('您的邀请已发送成功');
-      } else {
-        this.$message.error('您还没有输入邀请邮箱');
+      } else if(emailError.length === this.emailList.length - 1) {
+        this.$message({
+          type: 'error',
+          message: '邮箱格式错误!',
+          center: true
+        });
+      }else {
+        this.$message({
+          type: 'error',
+          message: '您还没有输入邀请邮箱!',
+          center: true
+        });
       }
+      
     },
     // 邀请加入
-    inviteJoin(email) {
-
-      let data = { 'emailList': email, 'myUserId': this.userPkid, 'type': 0, 'id': '' }
-      this.$HTTP('post', '/user_invitationEmail', data).then(res => {
+    inviteJoin(email, emailError) {
+      let data = { 'emailList': email, 'myUserId': this.userPkid, 'type': this.fromInfo.type, 'id': this.fromInfo.id }
+      this.$HTTP('post', '/user_invitationEmail', data, $('#app')[0]).then(res => {
+        this.$message({
+          type: 'success',
+          message: '您的邀请已发送成功!',
+          center: true
+        });
+        this.emailList = [];
+        if(emailError.length === 1) {
+          this.emailList = this.emailList.concat(emailError, [{ email: "", check: "" }]);
+        }else if(emailError.length >= 2) {
+          this.emailList = this.emailList.concat(emailError);
+        }else {
+          this.emailList = [{ email: "", check: "" }, { email: "", check: "" }];
+        }
         console.log(res)
+
       })
     },
     // 点击一键复制
@@ -447,7 +476,7 @@ export default {
           this.treeList = [...res.result];
           for (let x of this.treeList) {
             x.userName = x.groupName;
-            for(let ele of x.friendsList) {
+            for (let ele of x.friendsList) {
               ele.userName = ele.nickName ? ele.nickName : ele.userName;
             }
             x.friendsList.map(ele => {
@@ -489,7 +518,8 @@ export default {
     },
   },
   async created() {
-    console.log('-----', this.defaultTreeKeys);
+    console.log('-----', this.defaultTreeKeys, this.fromInfo);
+    // this.fromInfo
     try {
       await this.getList();
       await this.getUserList();
@@ -502,9 +532,10 @@ export default {
 </script>
 <style lang="less">
 @import "../../assets/css/base.less";
-.add_people,.popup{
+.add_people,
+.popup {
   .popup_box {
-    width: 800px;
+    width: 800px !important;
     height: 540px;
   }
   .popup_content {
@@ -718,8 +749,9 @@ export default {
           }
         }
       }
-      .main_button_color {
+      .main_button_color, .main_button_disabled {
         margin-top: 60px;
+        
       }
     }
     .parths_two {

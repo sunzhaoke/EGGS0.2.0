@@ -22,7 +22,6 @@
                                id="fileNameInput"
                                @blur="autofocusFileName(fileItem.FileTitle)">
                     </span>
-
                 </ul>
             </div>
             <div class="right fr">
@@ -61,7 +60,7 @@
                                  draggable="true">
                         </div>
                         <div class='otherType'
-                             v-if="fileItem.FileType == 2 || fileItem.FileType == 3 || fileItem.FileType == 5 || fileItem.FileType == 'txt'">
+                             v-if="fileItem.FileType == 2 || fileItem.FileType == 3 || fileItem.FileType == 5 || fileItem.FileType == 11">
                             <iframe :src="fileItem.Url"
                                     width='100%'
                                     height='100%'
@@ -157,15 +156,15 @@
                                 v-for="(list,index) of commentInfoLists"
                                 :key="index">
                                 <span class="commentator">
-                                    <img :src="list.img"
+                                    <img :src="list.userPic"
                                          alt="">
                                 </span>
                                 <div class="commentatorInfo">
-                                    <p class="name">{{list.name}}</p>
-                                    <p class="infoBox">{{list.info}}</p>
+                                    <p class="name">{{list.nickName}}</p>
+                                    <p class="infoBox">{{list.descn}}</p>
                                 </div>
                                 <span class="fr time">
-                                    <p>{{list.time}}</p>
+                                    <p>{{list.createTime}}</p>
                                 </span>
                             </li>
                         </ul>
@@ -212,6 +211,7 @@ export default {
             defaultGroupList: '',
             fileListsAll: '', //文件列表 总
             checkIndex: 0, //当前选择index
+            fileLists: '',
             filePkid: "", //文件pkid
             commentInfo: '', //信息
             modifyShow: true, //修改姓名
@@ -251,25 +251,30 @@ export default {
                     this.fileLists = list.fileList;
                 }
             }
-            console.log(this.info)
         },
         sendComment(info) {
-            console.log(this.loginUser.realName)
-            let infoList = { img: this.loginUser.pic, name: this.loginUser.realName, info: info, time: '2001' };
-            this.commentInfoLists.unshift(infoList)
+            let data = { 'myUserId': this.loginUser.userPkid, 'type': this.info.type, 'descn': info, 'id': this.fileItem.FilePkid };
+            this.$HTTP('post', '/comment_add', data).then(res => {
+                let infoList = { userPic: this.loginUser.pic, nickName: this.loginUser.realName, descn: info, createTime: res.result.CreateTime };
+                this.commentInfoLists.unshift(infoList);
+                this.commentInfo = '';
+            })
         },
         // 结果展示文件 可以删除
         delResultFile(fileItem) {
             let index = this.fileLists.findIndex(res => {
                 return res.FilePkid == fileItem.FilePkid;
             })
-            console.log(this.fileLists)
-            this.fileLists.splice(index, 1);
-            this.fileLists = [... this.fileLists];
+
             let data = { 'FilePkid': fileItem.FilePkid };
             this.$HTTP("post", "/stageTaskFile_delete", data).then(res => {
-                console.log();
+                this.fileLists.splice(index, 1);
+                this.checkIndex = 0;
+                // console.log()
+                this.fileItem = this.fileLists[0];
+                this.filePreview(this.fileItem);
 
+                this.fileLists = [... this.fileLists];
             });
         },
         // 点击关闭pdf文件预览
@@ -279,7 +284,6 @@ export default {
         },
         // 全屏显示
         fullScreen() {
-            console.log(22222)
             this.fangdaShow = !this.fangdaShow;
             var content = document.getElementById("imgType");
             var rfs =
@@ -386,7 +390,8 @@ export default {
             } else if (
                 item.FileType == 2 ||
                 item.FileType == 3 ||
-                item.FileType == 5
+                item.FileType == 5 ||
+                item.FileType == 11
             ) {
                 let url2 = 'http://eggs.apexgame.cn/' + item.Url;
                 url2 = encodeURIComponent(url2);
@@ -397,8 +402,7 @@ export default {
                 });
             } else if (
                 item.FileType == 7 ||
-                item.FileType == 8 ||
-                item.FileType == 11
+                item.FileType == 8
             ) {
                 this.$nextTick(() => {
                     this.iframeFlag = true;
@@ -429,7 +433,7 @@ export default {
                 uid: file.uid,
                 size: sizes,
                 name: file.name,
-                type: 2,
+                type: this.info.type,
                 progress: 0,
                 status: false,
                 FileType: FileType,
@@ -455,7 +459,6 @@ export default {
             let ids = this.fileProgressList.findIndex(ele => {
                 return ele.uid === file.uid;
             });
-
             if (ids !== -1) {
                 this.fileProgressList[ids].progress = percents;
                 if (
@@ -511,16 +514,28 @@ export default {
                 this.defaultGroupList = info.groupIndex;
             }
             this.fileLists = info.fileList[info.groupIndex].fileList;
-            console.log(1)
             this.checkIndex = info.fileIndex;
             this.fileItem = this.fileLists[info.fileIndex];
-
             this.filePreview(this.fileItem);
+            this.getCommenList(this.fileItem.FilePkid);
+
         },
+        // 获取评论列表
+        getCommenList(fileId) {
+            let data = { 'myUserId': this.loginUser.userPkid, 'type': this.info.type, 'id': fileId, 'page': '', 'number': '' };
+            this.$HTTP('post', '/comment_get_list', data).then(res => {
+                var object2 = [];
+                for (let list of res.result) {
+                    for (let i of list.user) {
+                        object2.push(Object.assign(list, i));
+                    }
+                }
+                this.commentInfoLists = object2;
+            })
+        }
     },
     created() {
         this.getGroupList(this.info);
-        this.commentInfoLists = [{ img: '', name: 'zhaoke', info: '随便写的', time: '2001' }, { img: '', name: 'zhaoke', info: '随便写的', time: '2001' }]
         console.log(this.info)
     }
 }
@@ -597,7 +612,13 @@ export default {
           width: 832px;
           background: rgba(250, 250, 250, 1);
           border: 1px solid rgba(238, 238, 238, 1);
+          position: relative;
           img {
+            position: absolute;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             max-width: 100%;
           }
         }
@@ -761,8 +782,10 @@ export default {
             width: 0;
             height: 0;
             overflow: hidden;
-            font-size: 0; /*是因为, 虽然宽高度为0, 但在IE6下会具有默认的 */
-            line-height: 0; /* 字体大小和行高, 导致盒子呈现被撑开的长矩形 */
+            font-size: 0;
+            /*是因为, 虽然宽高度为0, 但在IE6下会具有默认的 */
+            line-height: 0;
+            /* 字体大小和行高, 导致盒子呈现被撑开的长矩形 */
             border-width: 7px;
             border-style: solid dashed dashed dashed; /*IE6下, 设置余下三条边的border-style为dashed,即可达到透明的效果*/
             border-color: transparent transparent transparent #3684ff;

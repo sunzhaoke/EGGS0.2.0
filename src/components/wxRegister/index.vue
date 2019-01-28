@@ -31,7 +31,7 @@
             </span>
           </el-upload>
         </span>
-        <p>Hi！{{name}}，请完善您的账号信息，</p>
+        <p>Hi！{{wxName}}，请完善您的账号信息，</p>
         <p>以便今后使用微信快捷登录</p>
         <input type="text"
                v-model="name"
@@ -54,6 +54,7 @@ export default {
   data() {
     return {
       name: "11", //真实姓名
+
       wxImg: "",
       unionId: "",
       nickname: '',
@@ -86,7 +87,7 @@ export default {
       this.$HTTP("post", "/user_register_bindwx", data).then(res => {
         if (res.code == 200) {
           localStorage.setItem("staffInfo", JSON.stringify(res.result));
-          this.$router.push("/PersonalHome");
+          this.$router.push("/project");
         }
       });
     },

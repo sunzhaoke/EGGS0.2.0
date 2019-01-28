@@ -34,12 +34,12 @@
                             >
                             <div 
                                 class="every_file"
-                                v-for="(item) in group.overList"
+                                v-for="(item, index1) in group.overList"
                                 :key="item.FilePkid"
                                 :groupid='group.pkid'
                                 :id='item.FilePkid'
                                 :filename='item.FileName'
-                                @click='groupExtendToggle(index, item)'
+                                @click='groupExtendToggle(index, item, index1)'
                                 >
                                 <template v-if='item.overLength'>
                                     <span class="file_pic">
@@ -54,7 +54,6 @@
                                         </span>
                                         <span class="more"><img class="more" src="../style/more.png" alt=""></span>
                                         <span class="none"></span>
-                                        
                                     </span>
                                     <div class="file_info">
                                         <p class="file_length underline_text">展开更多<span class="mainColor">{{item.overLength}}</span>个文件</p>
@@ -62,7 +61,7 @@
                                 </template>
                                 <template v-else>
                                     <span class="file_pic">
-                                        <template v-if='item.FileType === 11'>
+                                        <template v-if='item.FileType === 11 && item.Desc'>
                                         <span class="text_desc"><span>{{item.Desc}}</span></span>
                                         </template>
                                         <template v-else>
@@ -79,7 +78,7 @@
                                         <i class='iconfont icon-pinglun'></i>
                                         {{item.Count}}
                                         </span>
-                                        <span class="fixed file_checkbox">
+                                        <span class="fixed file_checkbox" @click.stop>
                                             <el-checkbox v-model="item.checked" @change="everyFileCheckbox($event, item, index)"></el-checkbox>
                                         </span>
                                     </div>
@@ -95,14 +94,15 @@
                             >
                             <div 
                                 class="every_file"
-                                v-for="(item) in group.fileList"
+                                v-for="(item, index1) in group.fileList"
                                 :key="item.FilePkid"
                                 :groupid='group.pkid'
                                 :id='item.FilePkid'
                                 :filename='item.FileName'
+                                @click='enterTheDetails(index1, index)'
                                 >
                                 <span class="file_pic">
-                                    <template v-if='item.FileType === 11'>
+                                    <template v-if='item.FileType === 11 && item.Desc'>
                                     <span class="text_desc"><span>{{item.Desc}}</span></span>
                                     </template>
                                     <template v-else>
@@ -119,7 +119,7 @@
                                     <i class='iconfont icon-pinglun'></i>
                                     {{item.Count}}
                                     </span>
-                                    <span class="fixed file_checkbox">
+                                    <span class="fixed file_checkbox" @click.stop>
                                     <el-checkbox v-model="item.checked" @change="everyFileCheckbox($event, item, index)"></el-checkbox>
                                     </span>
                                 </div>
@@ -165,22 +165,36 @@
             </div>
            
         </div>
+        <!-- 文件详情预览 -->
+        <transition name="fade1">
+            <file-details 
+                v-if="filedetailsShow"
+                :info='enterDetailInfo'
+                @closeDetails='closeDetails' />
+        </transition>
     </div>
 </template>
 <script>
 import { mapState } from 'vuex';
+import FileDetails from '../../fileDetails';
 
 export default {
-    props: ['list', 'ids'],
+    props: ['info', 'ids'],
+    components: {
+        FileDetails
+    },
     data() {
         return {
             userId: JSON.parse(localStorage.getItem("staffInfo")).userPkid, // 当前登录者的ID
+            infos: {}, // 所有信息
             fileCheckbox: false,
             fileLists: [],
             checkedFileList: [],
             descShow: false, // 是否显示描述
             descText: '', // 需求描述的内容
             descTextFocus: false, // 需求描述获取焦点
+            filedetailsShow: false, // 文件详情
+            enterDetailInfo: {}, // 文件进入详情需要的数据
         }
     },
     computed: {
@@ -188,10 +202,35 @@ export default {
         'taskIds'
         ]),
     },
-    methods: {
+    methods: { 
+        // 进入文件详情
+        enterTheDetails(index, groupIndex) {
+            let x = this.stageInfo.stageList.findIndex(ele => ele.stageId == this.taskIds.stageId);
+            this.enterDetailInfo = {
+                groupIndex: groupIndex,
+                fileIndex: index,
+                fileList: this.stageInfo.fileList,
+                type: 1,
+                menuList: [
+                    this.stageInfo.title, 
+                    this.stageInfo.stageList[x].stageTitle, 
+                    this.stageInfo.fileList[groupIndex].groupName, 
+                    this.stageInfo.fileList[groupIndex].fileList[index].FileName
+                ]
+            }
+            this.filedetailsShow = true;
+        
+        },
+        // 关闭文件详情
+        closeDetails() {
+            this.filedetailsShow = false;
+        },
         // 文件组折叠/展开
-        groupExtendToggle(index, item) {
-            if(item !== true && !item.overLength) {return}
+        groupExtendToggle(index, item, index1) {
+            if(item !== true && !item.overLength) {
+                this.enterTheDetails(index, index1);
+                return;
+            }
             this.fileLists[index].packUp = !this.fileLists[index].packUp;
         },
 
@@ -359,7 +398,8 @@ export default {
         },
         // 数据的获取/设置
         setData() {
-            this.fileLists = JSON.parse(JSON.stringify(this.list));
+            this.stageInfo = JSON.parse(JSON.stringify(this.info));
+            this.fileLists = this.stageInfo.fileList;
             let id = this.userId;
             for(var i = 0; i < this.fileLists.length; i++) {
                 let x = this.fileLists[i];
@@ -384,11 +424,13 @@ export default {
                 }
                 
             }
-            console.log('选择交接文件---', this.fileLists);
+            this.stageInfo.fileList = [...this.fileLists];
+            console.log('选择交接文件---', this.info, this.ids);
         },
     },
     created() {
         this.setData();
+        console.log('文件选择----');
     }
 }
 </script>

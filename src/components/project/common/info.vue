@@ -1,134 +1,131 @@
 <template>
   <div id="Info_k">
-    <div class="">
-      <div class="popup">
-        <div class="popup_box popup_box_k">
-          <div class="popup_top">
-            <span class="popup_title"
-                  v-if="classify=='newInformation'">新建项目</span>
-            <span class="popup_title"
-                  v-else>项目信息</span>
-            <i class="iconfont  icon-guanbijiantou fr"
-               @click="closeNewPop"></i>
-          </div>
-          <div class="popup_content popup_content_k popup_content_main clearfix">
-            <ul>
-              <!-- 1.输入标题 -->
-              <li class="enterTitle">
-                <i class="iconfont icon-title"></i>
-                <input type="text"
-                       v-if="classify=='newInformation'||classify=='myResponsible'"
-                       placeholder="输入项目的标题"
-                       @focus="titleInputFocus"
-                       @blur="titleInputBlur"
-                       v-model="title"
-                       :class="titleFocus?'pitchOn':'titleInput'">
-                <span v-else
-                      class="titleInput">{{title}}</span>
-              </li>
-              <!-- 2.描述 -->
-              <li class="describeBox clearfix">
-                <div>
-                  <i class="iconfont icon-caidan"></i>
-                  <span :class="{'describeBold':descn} "
-                        @click="describeBox"
-                        v-if="classify=='newInformation'||classify=='myResponsible'">描述</span>
-                  <span class="describeBold"
-                        v-else>描述</span>
-                </div>
-                <textarea name=""
-                          class="fr"
-                          v-show="textShow ||descn"
-                          :class="descnFocus?'describePitchOn':'describe'"
-                          v-model='descn'
-                          ref="describeFocus"
-                          style="resize:none"
-                          @focus="descnInputFocus"
-                          @blur="descnInputBlur(descn)"></textarea>
-                <span class="fr describes"
-                      v-if="classify=='pigeonhole'">{{descn}}</span>
-              </li>
-              <!-- 3.添加成员 -->
-              <li class="addProBox clearfix">
-                <i class="iconfont icon-haoyou"></i>
-                <span @click="addPeo"
-                      v-if="classify=='newInformation'"
-                      :class="{'addbold':addListShow}">添加成员</span>
-                <span v-else
-                      class="addbold">添加成员</span>
-                <div class="addList clearfix"
-                     v-if="userLitsShow || classify!=='newInformation'">
-                  <span class="oneself">
-                    <img :src="oneSelfImg">
-                  </span>
-                  <span class="line"></span>
-                  <span class="userImgBox clearfix">
-                    <div v-for='(item,index) in userList'
-                         :key="index"
-                         v-if="!item.del"
-                         class="userImg fl clearfix">
-                      <span class="addPhoto fl">
-                        <img :src="item.image"
-                             alt="">
-                        <i class="delBox"
-                           v-if="classify!=='pigeonhole'||classify=='newInformation'"></i>
-                        <i class="iconfont  icon-guanbijiantou"
-                           v-if="classify!=='pigeonhole'||classify=='newInformation'"
-                           @click="delPeo(item,index)"></i>
-                      </span>
-                    </div>
-                    <div class="addPhotoIcon fl"
-                         @click="addPeo"
-                         v-if="classify!=='pigeonhole'||classify=='newInformation'">
-                      <i class="iconfont icon-jia1"> </i>
-                    </div>
-                  </span>
-                </div>
-              </li>
-              <!-- 4.选择日期 -->
-              <li class="optionDate">
-                <i class="iconfont icon-rili1"></i>
-                <span v-if="classify=='iParticipate'||classify=='pigeonhole'">
-                  <span v-show="startTime">
-                    <span>{{startTime}}</span>
-                    <span class="lines">-</span>
-                    <span>{{endTime}}</span>
-                  </span>
-                  <span v-show="!startTime"
-                        style="margin:0">创建者未设置时间</span>
+    <div class="popup">
+      <div class="popup_box_k">
+        <div class="popup_top">
+          <span class="popup_title"
+                v-if="classify=='newInformation'">新建项目</span>
+          <span class="popup_title"
+                v-else>项目信息</span>
+          <i class="iconfont  icon-guanbijiantou fr"
+             @click="closeNewPop"></i>
+        </div>
+        <div class="popup_content popup_content_k popup_content_main clearfix">
+          <ul>
+            <!-- 1.输入标题 -->
+            <li class="enterTitle">
+              <i class="iconfont icon-title"></i>
+              <input type="text"
+                     v-if="classify=='newInformation'||classify=='myResponsible'"
+                     placeholder="输入项目的标题"
+                     @focus="titleInputFocus"
+                     @blur="titleInputBlur"
+                     v-model="title"
+                     :class="titleFocus?'pitchOn':'titleInput'">
+              <span v-else
+                    class="titleInput">{{title}}</span>
+            </li>
+            <!-- 2.描述 -->
+            <li class="describeBox clearfix">
+              <div>
+                <i class="iconfont icon-caidan"></i>
+                <span :class="{'describeBold':descn||textShow} "
+                      @click="describeBox"
+                      v-if="classify=='newInformation'||classify=='myResponsible'">描述</span>
+                <span class="describeBold"
+                      v-else>描述</span>
+              </div>
+              <textarea name=""
+                        class="fr"
+                        v-show="textShow ||descn"
+                        :class="descnFocus?'describePitchOn':'describe'"
+                        v-model='descn'
+                        ref="describeFocus"
+                        style="resize:none"
+                        @focus="descnInputFocus"
+                        @blur="descnInputBlur(descn)"></textarea>
+              <span class="fr describes"
+                    v-if="classify=='pigeonhole'">{{descn}}</span>
+            </li>
+            <!-- 3.添加成员 -->
+            <li class="addProBox clearfix">
+              <i class="iconfont icon-haoyou"></i>
+              <span @click="addPeo"
+                    v-if="classify=='newInformation'"
+                    :class="{'addbold':addListShow}">添加成员</span>
+              <span v-else
+                    class="addbold">添加成员</span>
+              <div class="addList clearfix"
+                   v-if="userLitsShow || classify!=='newInformation'">
+                <span class="oneself">
+                  <img :src="oneSelfImg">
                 </span>
-                <span v-else>
-                  <div class="block">
-                    <el-date-picker v-model="startTime"
-                                    type="date"
-                                    default-time
-                                    placeholder="设置开始时间">
-                    </el-date-picker>
+                <span class="line"></span>
+                <span class="userImgBox clearfix">
+                  <div v-for='(item,index) in userList'
+                       :key="index"
+                       v-if="!item.del"
+                       class="userImg fl clearfix">
+                    <span class="addPhoto fl">
+                      <img :src="item.image"
+                           alt="">
+                      <i class="delBox"
+                         v-if="classify!=='pigeonhole'||classify=='newInformation'"></i>
+                      <i class="iconfont  icon-guanbijiantou"
+                         v-if="classify!=='pigeonhole'||classify=='newInformation'"
+                         @click="delPeo(item,index)"></i>
+                    </span>
                   </div>
-
-                  <span class="lines"> -</span>
-                  <div class="block">
-                    <el-date-picker v-model="endTime"
-                                    type="date"
-                                    placeholder="设置截止时间">
-                    </el-date-picker>
+                  <div class="addPhotoIcon fl"
+                       @click="addPeo"
+                       v-if="classify!=='pigeonhole'||classify=='newInformation'">
+                    <i class="iconfont icon-jia1"> </i>
                   </div>
                 </span>
-              </li>
-            </ul>
-            <input type="button"
-                   value="开始创建"
-                   v-if="classify=='newInformation'"
-                   @click="enterNew"
-                   class="enterNew fr"
-                   :class="newButtonShow ? 'main_button_bg' : 'main_button_disabled_bg'">
-            <input type="button"
-                   value="保存信息"
-                   v-else
-                   @click="saveMain"
-                   class="enterNew fr"
-                   :class="saveButton? 'main_button_bg' :'main_button_disabled_bg' ">
-          </div>
+              </div>
+            </li>
+            <!-- 4.选择日期 -->
+            <li class="optionDate">
+              <i class="iconfont icon-rili1"></i>
+              <span v-if="classify=='iParticipate'||classify=='pigeonhole'">
+                <span v-show="startTime">
+                  <span>{{startTime}}</span>
+                  <span class="lines">-</span>
+                  <span>{{endTime}}</span>
+                </span>
+                <span v-show="!startTime"
+                      style="margin:0">创建者未设置时间</span>
+              </span>
+              <span v-else>
+                <div class="block">
+                  <el-date-picker v-model="startTime"
+                                  type="date"
+                                  default-time
+                                  placeholder="设置开始时间">
+                  </el-date-picker>
+                </div>
+                <span class="lines"> -</span>
+                <div class="block">
+                  <el-date-picker v-model="endTime"
+                                  type="date"
+                                  placeholder="设置截止时间">
+                  </el-date-picker>
+                </div>
+              </span>
+            </li>
+          </ul>
+          <input type="button"
+                 value="开始创建"
+                 v-if="classify=='newInformation'"
+                 @click="enterNew"
+                 class="enterNew fr"
+                 :class="newButtonShow ? 'main_button_bg' : 'main_button_disabled_bg'">
+          <input type="button"
+                 value="保存信息"
+                 v-else
+                 @click="saveMain"
+                 class="enterNew fr"
+                 :class="saveButton? 'main_button_bg' :'main_button_disabled_bg' ">
         </div>
       </div>
     </div>
@@ -168,6 +165,7 @@ export default {
       addPeopleLists: ['1024'],
       userLitsShow: false,
       saveButton: false, //保存信息按钮是否显示
+      oldItemInfo: '',
       fromInfo: {
         type: 1,
         id: this.projectId
@@ -199,13 +197,22 @@ export default {
         this.saveButton = false;
       }
     },
-    userList(val, i) {
-      console.log(val)
-      if (val !== this.itemInfo.userlist) {
-        this.saveButton = true;
+    userList(val, old) {
+      if (this.oldItemInfo.length) {
+
+        if (val.lenght !== this.oldItemInfo.userlist.lenght) {
+          this.saveButton = true;
+        } else {
+          this.saveButton = false;
+        }
       } else {
-        this.saveButton = false;
+        if (val.length) {
+          this.saveButton = true;
+        } else {
+          this.saveButton = false;
+        }
       }
+
     },
     // 开始时间
     startTime(val, i) {
@@ -240,12 +247,9 @@ export default {
       this.textShow = true;
       this.describeShow = true;
       this.descnFocus = true;
-
       this.$nextTick(res => {
         this.$refs.describeFocus.focus()
-
       })
-
     },
     // 添加成员
     addPeo() {
@@ -256,16 +260,13 @@ export default {
       // console.log(this.userList, 'ddddddddddddddddd');
       if (this.userList) {
         for (let item of this.userList) {
-
           if (!item.del) {
-
             userIds.push(item.userId);
           } else {
           }
         }
         this.addPeopleLists = userIds;
       }
-
     },
     // 删除添加人员
     delPeo(item, index) {
@@ -355,6 +356,8 @@ export default {
 
     // 保存修改信息
     saveMain() {
+      if (!this.saveButton) return;
+
       if (this.startTime) {
         this.startTime = this.format(this.startTime, "yyyy-MM-dd HH:mm:ss");
       }
@@ -403,6 +406,9 @@ export default {
       let obj = { projectId: projectId };
       this.$HTTP("post", "/project_get", obj).then(res => {
         this.itemInfo = res.result;
+
+        this.oldItemInfo = [...res.result];
+        // console.log(this.oldItemInfo)
         this.oneSelfImg = this.itemInfo.createrPic;
         this.title = this.itemInfo.title;
         this.descn = this.itemInfo.descn;
@@ -442,10 +448,12 @@ export default {
     this.oneSelfImg = staffInfo.pic;
     this.createrId = staffInfo.userPkid;
     this.userId = staffInfo.userPkid;
+
+    console.log(this.classify)
+
     if (this.classify !== "newInformation") {
       this.getProjectMain(this.projectId);
     }
-
     if (this.classify == "pigeonhole") {
       this.addListShow = true;
     }
@@ -463,6 +471,19 @@ export default {
   }
   .popup_box_k {
     width: 400px;
+    background-color: #ffffff;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    // -webkit-transform: translateZ(-50%);
+    .box_sizing;
+    -webkit-box-shadow: inset 0px 1px 8px 0px rgba(126, 126, 126, 0.6);
+    -moz-box-shadow: inset 0px 1px 8px 0px rgba(126, 126, 126, 0.6);
+    -webkit-box-shadow: 0px 1px 8px 0px rgba(126, 126, 126, 0.6);
+    -moz-box-shadow: 0px 1px 8px 0px rgba(126, 126, 126, 0.6);
+    box-shadow: 0px 1px 8px 0px rgba(126, 126, 126, 0.6);
+    .border_radius(@br: 6px);
     .popup_content_k {
       width: 400px;
       height: 520px;
@@ -484,6 +505,7 @@ export default {
         .addProBox,
         .optionDate {
           width: 100%;
+          position: relative;
           .block {
             width: 105px;
             .el-date-editor {
@@ -504,7 +526,7 @@ export default {
           }
           .pitchOn {
             width: 88%;
-            padding: 10px;
+            // padding: 10px;
             border: 1px solid #d0d0d0;
             height: 30px;
             border-radius: 3px;
@@ -536,7 +558,7 @@ export default {
             border: 1px solid rgba(208, 208, 208, 1);
             border-radius: 4px;
             margin-top: 8px;
-            padding: 0 8px;
+            padding: 0 1px;
             .box_sizing;
           }
           .describe {
@@ -547,7 +569,8 @@ export default {
             overflow: auto;
             color: #333333;
             margin-top: 8px;
-            padding: 0 8px;
+            border: 1px solid #ffffff;
+            padding: 0 1px;
             .box_sizing;
           }
           .describes {

@@ -4,354 +4,356 @@
       <top-bar></top-bar>
     </div>
     <div class="mainBox">
-      <router-link to="/project"
-                   class="next cur">退出个人中心</router-link>
-      <el-tabs v-model="activeName"
-               @tab-click="handleClick">
-        <el-tab-pane label="用户管理"
-                     name="first">
-          <div class="myMain">
-            <div class="hintBox"
-                 v-if="!emails">
-              <p class="h1">账号信息需要完善</p>
-              <p>您还未绑定邮箱和设置密码，部分功能暂时无法使用</p>
-              <button class="main_button_bg perfect"
-                      @click=" activeName = 'second'"> 完善账号 </button>
-            </div>
-            <div class="personalInfobox personalMainBox">
-              <span class="logo_k">
-                <el-upload class="avatar-uploader"
-                           action="/img.ashx"
-                           :show-file-list="false"
-                           :on-success="handleAvatarSuccess"
-                           :before-upload="beforeAvatarUpload">
-                  <img v-if="personalImg"
-                       :src="personalImg"
-                       class="avatar">
-                  <span class="editor">编辑</span>
-                </el-upload>
-              </span>
-              <ul class="fl optionsList detailed">
-                <li>姓名 </li>
-                <li>所属行业 </li>
-                <li>职位 </li>
-                <li>电话 </li>
-                <li>生日 </li>
-              </ul>
-              <ul class="fr optionsMain">
-                <li><input type="text"
-                         v-model="realName"></li>
-                <li>
-                  <el-select v-model="profession"
-                             clearable
-                             placeholder="请选择行业信息">
-                    <el-option v-for="item in industryLists"
-                               :key="item.Pkid"
-                               :label="item.Title"
-                               :value="item.Pkid">
-                    </el-option>
-                  </el-select>
-                </li>
-                <li><input type="text"
-                         placeholder="请输入职位名称"
-                         v-model="job"></li>
-                <li><input type="text"
-                         placeholder="请输入联系方式"
-                         v-model="tell"></li>
-                <li class="birthday">
-                  <select name="public-choice"
-                          class="year"
-                          v-model="year"
-                          @change="getCouponSelected(year)">
-                    <option :value="coupon"
-                            v-for="(coupon,index) in yearLists"
-                            :key="index">{{coupon}}</option>
-                  </select>年
-                  <select name="sel_month"
-                          class="month"
-                          v-model="month"
-                          @change="getCouponSelected(month)">
-                    <option :value="coupon"
-                            v-for="(coupon,index) in monthLists"
-                            :key="index">{{coupon}}</option>
-                  </select>月
-                  <select name="sel_month"
-                          class="day"
-                          v-model="day"
-                          @change="getCouponSelected(day)">
-                    <option :value="coupon"
-                            v-for="(coupon,index) in dayList"
-                            :key="index">{{coupon}}</option>
-                  </select>日
-
-                </li>
-              </ul>
-              <button :class="saveShow?'saveBtn main_button_bg':'saveBtn main_button_disabled_bg' "
-                      @click="saveMain"> 保存信息 </button>
-              <!-- <button class="main_button_disabled_bg saveBtn"> 保存信息 </button> -->
-
-            </div>
-          </div>
-        </el-tab-pane>
-        <el-tab-pane label="安全设置"
-                     name="second">
-          <div class="myMain">
-            <div class="personalMainBox ">
-              <div v-if="emails">
-                <p class="title">修改密码</p>
-                <ul class="fl optionsList oldpawList">
-                  <li>旧密码 </li>
-                  <li>新密码 </li>
-                  <li>确认新密码 </li>
+      <div class="midel">
+        <router-link to="/project"
+                     class="next cur">退出个人中心</router-link>
+        <el-tabs v-model="activeName"
+                 @tab-click="handleClick">
+          <el-tab-pane label="用户管理"
+                       name="first">
+            <div class="myMain">
+              <div class="hintBox"
+                   v-if="!emails">
+                <p class="h1">账号信息需要完善</p>
+                <p>您还未绑定邮箱和设置密码，部分功能暂时无法使用</p>
+                <button class="main_button_bg perfect"
+                        @click=" activeName = 'second'"> 完善账号 </button>
+              </div>
+              <div class="personalInfobox personalMainBox">
+                <span class="logo_k">
+                  <el-upload class="avatar-uploader"
+                             action="/img.ashx"
+                             :show-file-list="false"
+                             :on-success="handleAvatarSuccess"
+                             :before-upload="beforeAvatarUpload">
+                    <img v-if="personalImg"
+                         :src="personalImg"
+                         class="avatar">
+                    <span class="editor">编辑</span>
+                  </el-upload>
+                </span>
+                <ul class="fl optionsList detailed">
+                  <li>姓名 </li>
+                  <li>所属行业 </li>
+                  <li>职位 </li>
+                  <li>电话 </li>
+                  <li>生日 </li>
                 </ul>
                 <ul class="fr optionsMain">
-                  <div class="box">
-                    <input type="password"
-                           placeholder="请输入旧密码"
-                           class="inputBox"
-                           v-model="oldPwd"
-                           @focus="oldPawdFocus"
-                           @blur="oldPwdAutofocus">
-                  </div>
-                  <!-- 输入新密码 -->
-                  <div class="pwd_div box">
-                    <input :type="!check?'text':'password'"
-                           placeholder="请输入新密码（6位以上）"
-                           class="inputBox"
-                           v-model="password"
-                           v-on:blur="autofocusPw(password)"
-                           @focus="pawdFocus"
-                           v-on:input="pwdInput(password)"
-                           maxlength="20">
-                    <i class="iconfont"
-                       :class="check?'icon-yanjing-bi':'icon-yanjing-zheng'"
-                       @click="check=!check"></i>
-                    <div class=""
-                         v-show="triangleShow">
-                      <span class="Triangle"></span>
-                      <div class="hintMessage">
-                        <p>您的密码必须包含：</p>
-                        <p>
-                          <el-checkbox v-model="radio"> 请输入6- 20个字符</el-checkbox>
-                        </p>
-                        <p>
-                          <el-checkbox v-model="radio2">同时包含字母和数字</el-checkbox>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="pwd_div box">
-                    <input :type="!checkTwo?'text':'password'"
-                           placeholder="请再次输入密码"
-                           class="inputBox"
-                           v-model="repPassword"
-                           v-on:blur="autofocusPwTw(repPassword)"
-                           @focus="pawdFocusTwo"
-                           @keyup.enter="resetPasswords(password)"
-                           maxlength="20">
-                    <i class="iconfont"
-                       :class="checkTwo?'icon-yanjing-bi':'icon-yanjing-zheng'"
-                       @click="checkTwo = !checkTwo"></i>
-                  </div>
-                  <span class="error_title"
-                        v-if="erroPaw">{{erroPaw}}</span>
-                </ul>
-                <button :class="oldPwd&&password&&repPassword ? 'saveBtn main_button_bg':'saveBtn main_button_disabled_bg' "
-                        @click="amendMain">确认修改</button>
-              </div>
-              <!-- +++++++++++++++++++++++++  完善账号 ++++++++++++++++++++++++++++++++++++++++++++ -->
-              <div v-else>
-                <p class="title">完善账号</p>
-                <ul class="fl optionsList email">
-                  <li>邮箱账号 </li>
-                  <li>验证码 </li>
-                  <li v-show="imgCodeShow">动态验证码</li>
-                  <li>密码 </li>
-                  <li>确认密码 </li>
-                </ul>
-                <div class="fl optionsMain">
-                  <div class="email_div box">
-                    <input type="text"
-                           placeholder="请输入您的工作邮箱"
-                           :class="errorEmail?'inputBoxBlur':'inputBox'"
-                           v-model="email"
-                           v-on:blur="autofocusEm(email)"
-                           @focus="emailFocus">
-                  </div>
-                  <div class="getCodeBox box">
-                    <input type="text"
-                           placeholder="请输入邮箱收到的验证码"
-                           :class="errorCode?'inputBoxBlur':'inputBox'"
-                           v-model="emailCode"
-                           v-on:blur="autofocusCode(emailCode)"
-                           @focus="codeFocus">
-                    <el-button disabled
-                               class="getCode cur"
-                               v-if="!email">获取验证码</el-button>
-                    <el-button class="getCode cur"
-                               v-else
-                               @click="getCode">获取验证码</el-button>
-                    <span class="getCodes cur"
-                          v-show="getcodeShow">{{countdownTime}}</span>
-                  </div>
-                  <div class="getCodeBox box"
-                       v-show='imgCodeShow'>
-                    <input type="text"
-                           placeholder="请输入右侧图片验证码"
-                           :class="imgCodes?'inputBoxBlur':'inputBox'"
-                           v-model="imgCodeMain"
-                           v-on:blur="autofocusImgCode(emailCode)"
-                           @focus="imgcodeFocus">
-                    <span class="imgCode cur"
-                          id="validate">{{validate}}</span>
-                  </div>
-                  <div class="pwd_div box">
-                    <input :type="!check?'text':'password'"
-                           placeholder="请输入密码"
-                           :class="errorPwd?'inputBoxBlur':'inputBox'"
-                           v-model="password"
-                           v-on:blur="autofocusPw(password)"
-                           @focus="pawdFocus"
-                           v-on:input="pwdInput(password)"
-                           autocomplete="off"
-                           maxlength="20">
-                    <i class="iconfont"
-                       :class="check?'icon-yanjing-bi':'icon-yanjing-zheng'"
-                       @click="check = !check"></i>
-                    <div class=""
-                         v-show="triangleShow">
-                      <span class="Triangle"></span>
-                      <div class="hintMessage">
-                        <p>您的密码必须包含：</p>
-                        <p>
-                          <el-checkbox v-model="radio"> 请输入6-20个字符</el-checkbox>
-                        </p>
-                        <p>
-                          <el-checkbox v-model="radio2">同时包含字母和数字</el-checkbox>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="pwd_div box">
-                    <input :type="!checkTwo?'text':'password'"
-                           placeholder="请再次输入密码"
-                           :class="errorPwdTwo ?'inputBoxBlur':'inputBox'"
-                           v-model="repPassword"
-                           v-on:blur="autofocusPwTw(repPassword)"
-                           @focus="pawdFocusTwo"
-                           autocomplete="off"
-                           maxlength="20">
-                    <i class="iconfont"
-                       :class="checkTwo?'icon-yanjing-bi':'icon-yanjing-zheng'"
-                       @click="checkTwo = !checkTwo"></i>
-                  </div>
-                  <span class="error_title"
-                        v-if="erroPaw">{{erroPaw}}</span>
+                  <li><input type="text"
+                           v-model="realName"></li>
+                  <li>
+                    <el-select v-model="profession"
+                               clearable
+                               placeholder="请选择行业信息">
+                      <el-option v-for="item in industryLists"
+                                 :key="item.Pkid"
+                                 :label="item.Title"
+                                 :value="item.Pkid">
+                      </el-option>
+                    </el-select>
+                  </li>
+                  <li><input type="text"
+                           placeholder="请输入职位名称"
+                           v-model="job"></li>
+                  <li><input type="text"
+                           placeholder="请输入联系方式"
+                           v-model="tell"></li>
+                  <li class="birthday">
+                    <select name="public-choice"
+                            class="year"
+                            v-model="year"
+                            @change="getCouponSelected(year)">
+                      <option :value="coupon"
+                              v-for="(coupon,index) in yearLists"
+                              :key="index">{{coupon}}</option>
+                    </select>年
+                    <select name="sel_month"
+                            class="month"
+                            v-model="month"
+                            @change="getCouponSelected(month)">
+                      <option :value="coupon"
+                              v-for="(coupon,index) in monthLists"
+                              :key="index">{{coupon}}</option>
+                    </select>月
+                    <select name="sel_month"
+                            class="day"
+                            v-model="day"
+                            @change="getCouponSelected(day)">
+                      <option :value="coupon"
+                              v-for="(coupon,index) in dayList"
+                              :key="index">{{coupon}}</option>
+                    </select>日
 
-                </div>
-                <button :class="repPassword?'saveBtn main_button_bg':'saveBtn main_button_disabled_bg' "
-                        @click="confirmToSubmit">确认提交</button>
-              </div>
-              <div class="successBox"
-                   v-if='logInShow'>
-                2222
+                  </li>
+                </ul>
+                <button :class="saveShow?'saveBtn main_button_bg':'saveBtn main_button_disabled_bg' "
+                        @click="saveMain"> 保存信息 </button>
+                <!-- <button class="main_button_disabled_bg saveBtn"> 保存信息 </button> -->
+
               </div>
             </div>
-          </div>
-        </el-tab-pane>
-        <el-tab-pane label="账号绑定"
-                     name="third">
-          <div class="myMain">
-            <div class="personalMainBox changePassword">
-              <div class="boundEmailBox clearfix"
-                   v-show="!boundEmail">
-                <ul class="fl optionsList">
-                  <li>邮箱</li>
-                  <li>微信</li>
-                </ul>
-                <ul class="fl optionsList accountInformation ">
-                  <li v-if="emails">{{emails}}</li>
-                  <li v-else>
-                    <span class="">请在</span>
-                    <span class="cur mainColor"
-                          @click="activeName = 'second'"> 安全设置 </span>
-                    <span class="">中设置邮箱和密码</span>
-                  </li>
-                  <li v-show="xwName"
-                      class="xwName">{{xwName}}
-                    <span class="cur errRed"
-                          v-show="xwName"
-                          @click="removeWxBind"> 解除绑定</span>
-                  </li>
-                </ul>
-                <ul class="fl optionsList goBound">
-                  <li class="cur mainColor"
-                      v-show="emails"
-                      @click="boundEmail=!boundEmail">更换绑定</li>
-                  <li v-if="!emails"
-                      style="opacity:0">dd</li>
-                  <li class="cur mainColor"
-                      v-show="!xwName">
-                    <a href="https://server.apexgame.cn/wecharCode2.ashx">绑定</a>
-                  </li>
-                </ul>
-              </div>
-              <div class="boundEmailBox changePassword changeEmail"
-                   v-show="boundEmail">
-                <ul class=" fl optionsList">
-                  <li>邮箱账号</li>
-                  <li>验证码</li>
-                  <li v-show="imgCodeShow">动态验证码</li>
-                </ul>
-                <div class="fl optionsMain">
-                  <div class="email_div box">
-                    <input type="text"
-                           placeholder="请输入您的工作邮箱"
-                           :class="errorEmail?'inputBoxBlur':'inputBox'"
-                           v-model="email"
-                           v-on:blur="autofocusEm(email)"
-                           @focus="emailFocus">
-                  </div>
-                  <div class="getCodeBox box">
-                    <input type="text"
-                           placeholder="请输入邮箱收到的验证码"
-                           :class="errorCode?'inputBoxBlur':'inputBox'"
-                           v-model="emailCode"
-                           v-on:blur="autofocusCode(emailCode)"
-                           @focus="codeFocus">
-                    <el-button disabled
-                               class="getCode cur"
-                               v-if="!email">获取验证码</el-button>
-                    <el-button class="getCode cur"
-                               v-else
-                               @click="getCode">获取验证码</el-button>
-                    <span class="getCodes cur"
-                          v-show="getcodeShow">{{countdownTime}}</span>
-                  </div>
-                  <div class="getCodeBox box"
-                       v-show='imgCodeShow'>
-                    <span class="hint"
-                          v-show="hintimgCode">请输入右侧图片验证码</span>
-                    <input type="text"
-                           placeholder="请输入右侧图片验证码"
-                           :class="imgCodes?'inputBoxBlur':'inputBox'"
-                           v-model="imgCodeMain"
-                           v-on:blur="autofocusImgCode(emailCode)"
-                           @focus="imgcodeFocus">
-                    <span class="imgCode"
-                          id="validate">{{validate}}</span>
-                  </div>
-                  <span class="error_title"
-                        v-if="erroPaw">{{erroPaw}}</span>
+          </el-tab-pane>
+          <el-tab-pane label="安全设置"
+                       name="second">
+            <div class="myMain">
+              <div class="personalMainBox ">
+                <div v-if="emails">
+                  <p class="title">修改密码</p>
+                  <ul class="fl optionsList oldpawList">
+                    <li>旧密码 </li>
+                    <li>新密码 </li>
+                    <li>确认新密码 </li>
+                  </ul>
+                  <ul class="fr optionsMain">
+                    <div class="box">
+                      <input type="password"
+                             placeholder="请输入旧密码"
+                             class="inputBox"
+                             v-model="oldPwd"
+                             @focus="oldPawdFocus"
+                             @blur="oldPwdAutofocus">
+                    </div>
+                    <!-- 输入新密码 -->
+                    <div class="pwd_div box">
+                      <input :type="!check?'text':'password'"
+                             placeholder="请输入新密码（6位以上）"
+                             class="inputBox"
+                             v-model="password"
+                             v-on:blur="autofocusPw(password)"
+                             @focus="pawdFocus"
+                             v-on:input="pwdInput(password)"
+                             maxlength="20">
+                      <i class="iconfont"
+                         :class="check?'icon-yanjing-bi':'icon-yanjing-zheng'"
+                         @click="check=!check"></i>
+                      <div class=""
+                           v-show="triangleShow">
+                        <span class="Triangle"></span>
+                        <div class="hintMessage">
+                          <p>您的密码必须包含：</p>
+                          <p>
+                            <el-checkbox v-model="radio"> 请输入6- 20个字符</el-checkbox>
+                          </p>
+                          <p>
+                            <el-checkbox v-model="radio2">同时包含字母和数字</el-checkbox>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pwd_div box">
+                      <input :type="!checkTwo?'text':'password'"
+                             placeholder="请再次输入密码"
+                             class="inputBox"
+                             v-model="repPassword"
+                             v-on:blur="autofocusPwTw(repPassword)"
+                             @focus="pawdFocusTwo"
+                             @keyup.enter="resetPasswords(password)"
+                             maxlength="20">
+                      <i class="iconfont"
+                         :class="checkTwo?'icon-yanjing-bi':'icon-yanjing-zheng'"
+                         @click="checkTwo = !checkTwo"></i>
+                    </div>
+                    <span class="error_title"
+                          v-if="erroPaw">{{erroPaw}}</span>
+                  </ul>
+                  <button :class="oldPwd&&password&&repPassword ? 'saveBtn main_button_bg':'saveBtn main_button_disabled_bg' "
+                          @click="amendMain">确认修改</button>
                 </div>
-                <button :class="email&&emailCode?'saveBtn main_button_bg':'saveBtn main_button_disabled_bg' "
-                        @click="changeBind">更换邮箱</button>
+                <!-- +++++++++++++++++++++++++  完善账号 ++++++++++++++++++++++++++++++++++++++++++++ -->
+                <div v-else>
+                  <p class="title">完善账号</p>
+                  <ul class="fl optionsList email">
+                    <li>邮箱账号 </li>
+                    <li>验证码 </li>
+                    <li v-show="imgCodeShow">动态验证码</li>
+                    <li>密码 </li>
+                    <li>确认密码 </li>
+                  </ul>
+                  <div class="fl optionsMain">
+                    <div class="email_div box">
+                      <input type="text"
+                             placeholder="请输入您的工作邮箱"
+                             :class="errorEmail?'inputBoxBlur':'inputBox'"
+                             v-model="email"
+                             v-on:blur="autofocusEm(email)"
+                             @focus="emailFocus">
+                    </div>
+                    <div class="getCodeBox box">
+                      <input type="text"
+                             placeholder="请输入邮箱收到的验证码"
+                             :class="errorCode?'inputBoxBlur':'inputBox'"
+                             v-model="emailCode"
+                             v-on:blur="autofocusCode(emailCode)"
+                             @focus="codeFocus">
+                      <el-button disabled
+                                 class="getCode cur"
+                                 v-if="!email">获取验证码</el-button>
+                      <el-button class="getCode cur"
+                                 v-else
+                                 @click="getCode">获取验证码</el-button>
+                      <span class="getCodes cur"
+                            v-show="getcodeShow">{{countdownTime}}</span>
+                    </div>
+                    <div class="getCodeBox box"
+                         v-show='imgCodeShow'>
+                      <input type="text"
+                             placeholder="请输入右侧图片验证码"
+                             :class="imgCodes?'inputBoxBlur':'inputBox'"
+                             v-model="imgCodeMain"
+                             v-on:blur="autofocusImgCode(emailCode)"
+                             @focus="imgcodeFocus">
+                      <span class="imgCode cur"
+                            id="validate">{{validate}}</span>
+                    </div>
+                    <div class="pwd_div box">
+                      <input :type="!check?'text':'password'"
+                             placeholder="请输入密码"
+                             :class="errorPwd?'inputBoxBlur':'inputBox'"
+                             v-model="password"
+                             v-on:blur="autofocusPw(password)"
+                             @focus="pawdFocus"
+                             v-on:input="pwdInput(password)"
+                             autocomplete="off"
+                             maxlength="20">
+                      <i class="iconfont"
+                         :class="check?'icon-yanjing-bi':'icon-yanjing-zheng'"
+                         @click="check = !check"></i>
+                      <div class=""
+                           v-show="triangleShow">
+                        <span class="Triangle"></span>
+                        <div class="hintMessage">
+                          <p>您的密码必须包含：</p>
+                          <p>
+                            <el-checkbox v-model="radio"> 请输入6-20个字符</el-checkbox>
+                          </p>
+                          <p>
+                            <el-checkbox v-model="radio2">同时包含字母和数字</el-checkbox>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pwd_div box">
+                      <input :type="!checkTwo?'text':'password'"
+                             placeholder="请再次输入密码"
+                             :class="errorPwdTwo ?'inputBoxBlur':'inputBox'"
+                             v-model="repPassword"
+                             v-on:blur="autofocusPwTw(repPassword)"
+                             @focus="pawdFocusTwo"
+                             autocomplete="off"
+                             maxlength="20">
+                      <i class="iconfont"
+                         :class="checkTwo?'icon-yanjing-bi':'icon-yanjing-zheng'"
+                         @click="checkTwo = !checkTwo"></i>
+                    </div>
+                    <span class="error_title"
+                          v-if="erroPaw">{{erroPaw}}</span>
+
+                  </div>
+                  <button :class="repPassword?'saveBtn main_button_bg':'saveBtn main_button_disabled_bg' "
+                          @click="confirmToSubmit">确认提交</button>
+                </div>
+                <div class="successBox"
+                     v-if='logInShow'>
+                  2222
+                </div>
               </div>
             </div>
+          </el-tab-pane>
+          <el-tab-pane label="账号绑定"
+                       name="third">
+            <div class="myMain">
+              <div class="personalMainBox changePassword">
+                <div class="boundEmailBox clearfix"
+                     v-show="!boundEmail">
+                  <ul class="fl optionsList">
+                    <li>邮箱</li>
+                    <li>微信</li>
+                  </ul>
+                  <ul class="fl optionsList accountInformation ">
+                    <li v-if="emails">{{emails}}</li>
+                    <li v-else>
+                      <span class="">请在</span>
+                      <span class="cur mainColor"
+                            @click="activeName = 'second'"> 安全设置 </span>
+                      <span class="">中设置邮箱和密码</span>
+                    </li>
+                    <li v-show="xwName"
+                        class="xwName">{{xwName}}
+                      <span class="cur errRed"
+                            v-show="xwName"
+                            @click="removeWxBind"> 解除绑定</span>
+                    </li>
+                  </ul>
+                  <ul class="fl optionsList goBound">
+                    <li class="cur mainColor"
+                        v-show="emails"
+                        @click="boundEmail=!boundEmail">更换绑定</li>
+                    <li v-if="!emails"
+                        style="opacity:0">dd</li>
+                    <li class="cur mainColor"
+                        v-show="!xwName">
+                      <a href="https://server.apexgame.cn/wecharCode2.ashx">绑定</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="boundEmailBox changePassword changeEmail"
+                     v-show="boundEmail">
+                  <ul class=" fl optionsList">
+                    <li>邮箱账号</li>
+                    <li>验证码</li>
+                    <li v-show="imgCodeShow">动态验证码</li>
+                  </ul>
+                  <div class="fl optionsMain">
+                    <div class="email_div box">
+                      <input type="text"
+                             placeholder="请输入您的工作邮箱"
+                             :class="errorEmail?'inputBoxBlur':'inputBox'"
+                             v-model="email"
+                             v-on:blur="autofocusEm(email)"
+                             @focus="emailFocus">
+                    </div>
+                    <div class="getCodeBox box">
+                      <input type="text"
+                             placeholder="请输入邮箱收到的验证码"
+                             :class="errorCode?'inputBoxBlur':'inputBox'"
+                             v-model="emailCode"
+                             v-on:blur="autofocusCode(emailCode)"
+                             @focus="codeFocus">
+                      <el-button disabled
+                                 class="getCode cur"
+                                 v-if="!email">获取验证码</el-button>
+                      <el-button class="getCode cur"
+                                 v-else
+                                 @click="getCode">获取验证码</el-button>
+                      <span class="getCodes cur"
+                            v-show="getcodeShow">{{countdownTime}}</span>
+                    </div>
+                    <div class="getCodeBox box"
+                         v-show='imgCodeShow'>
+                      <span class="hint"
+                            v-show="hintimgCode">请输入右侧图片验证码</span>
+                      <input type="text"
+                             placeholder="请输入右侧图片验证码"
+                             :class="imgCodes?'inputBoxBlur':'inputBox'"
+                             v-model="imgCodeMain"
+                             v-on:blur="autofocusImgCode(emailCode)"
+                             @focus="imgcodeFocus">
+                      <span class="imgCode"
+                            id="validate">{{validate}}</span>
+                    </div>
+                    <span class="error_title"
+                          v-if="erroPaw">{{erroPaw}}</span>
+                  </div>
+                  <button :class="email&&emailCode?'saveBtn main_button_bg':'saveBtn main_button_disabled_bg' "
+                          @click="changeBind">更换邮箱</button>
+                </div>
+              </div>
 
-          </div>
-        </el-tab-pane>
-      </el-tabs>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
     </div>
 
     <!-- 消息提醒====删除任务 -->
@@ -1334,16 +1336,35 @@ export default {
     box-shadow: 1px 0px 4px 0px rgba(95, 95, 95, 0.3);
   }
   .mainBox {
-    width: 780px;
-    height: calc(100vh - 105px);
-    background: #ffffff;
-    box-shadow: 0px 1px 6px 0px rgba(104, 104, 104, 0.3);
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    margin: auto;
+    width: 100%;
+    padding-top: 50px;
+    height: calc(100vh - 50px);
+    position: relative;
+    .midel {
+      width: 780px;
+      max-height: 660px;
+      background: #ffffff;
+      box-shadow: 0px 1px 6px 0px rgba(104, 104, 104, 0.3);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    @media screen and (max-height: 590px) {
+      .midel {
+        height: 460px;
+      }
+    }
+    .is-top {
+      margin: 0;
+    }
+    .el-tabs {
+      // background: red;
+      // position: absolute;
+      // top: 50%;
+      // left: 50%;
+      // transform: translate(-50%, -50%);
+    }
     .birthday {
       text-align: left;
       select {
@@ -1390,13 +1411,31 @@ export default {
   #pane-second,
   #pane-third {
     width: 100%;
-    height: calc(100vh - 110px);
+    height: calc(100vh - 170px);
     // overflow: auto;
     .myMain {
       width: 100%;
-      height: calc(100vh - 170px);
-      overflow: auto;
-      .hintBox {
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+      .personalInfobox {
+        position: absolute;
+        height: 450px !important;
+        // background: red;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        input {
+          width: 220px;
+          height: 32px;
+          border: 1px solid rgba(208, 208, 208, 1);
+          border-radius: 4px;
+          padding: 0 10px;
+          .box_sizing;
+          left: 0;
+        }
+      }
+      F .hintBox {
         position: relative;
         padding: 12px 24px;
         height: 66px;
@@ -1461,7 +1500,7 @@ export default {
       }
       .changePassword {
         li {
-          text-align: right;
+          text-align: left;
           line-height: 2.5;
           margin-bottom: 17px;
         }
@@ -1482,6 +1521,7 @@ export default {
         text-align: left;
         .xwName {
           width: 140px;
+          overflow: hidden;
           display: inline-block;
           text-align: left;
         }
@@ -1494,17 +1534,6 @@ export default {
       }
       li {
         line-height: 40px;
-      }
-      .personalInfobox {
-        input {
-          width: 220px;
-          height: 32px;
-          border: 1px solid rgba(208, 208, 208, 1);
-          border-radius: 4px;
-          padding: 0 10px;
-          .box_sizing;
-          left: 0;
-        }
       }
 
       .title {

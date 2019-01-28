@@ -15,22 +15,32 @@ proxyTable: {
 target:" http://eggs.apexgame.cn/",
 logLevel:'debug', 
 changeOrigin:true
-                  }, 
+      }, 
 '/upload': {
 target:'http://eggs.apexgame.cn/',
 logLevel:'debug', 
 changeOrigin:true
-                  }, 
+      }, 
 '/ProjectFile.ashx': {
 target:'http://eggs.apexgame.cn/',
 logLevel:'debug', 
 changeOrigin:true
-                  }, 
+      }, 
 "/PersonalFile.ashx": {
 target:"http://eggs.apexgame.cn/",
 logLevel:'debug', 
 changeOrigin:true
-                  }
+      }, 
+'/ExcelFile.ashx': {
+target:'http://eggs.apexgame.cn/',
+logLevel:'debug', 
+changeOrigin:true
+      }, 
+'/img.ashx': {
+target:'http://eggs.apexgame.cn/',
+logLevel:'debug', 
+changeOrigin:true
+      }, 
 }, 
 
 // Various Dev Server settings

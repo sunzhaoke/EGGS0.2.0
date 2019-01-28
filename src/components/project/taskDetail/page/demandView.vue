@@ -20,7 +20,7 @@
                         <i class="iconfont icon-xiazai" @click='multipleDownload'></i>
                     </el-tooltip>
                     <el-tooltip effect="dark" content="收藏" placement="top" :open-delay="300">
-                        <i class="iconfont icon-shoucang1"></i>
+                        <i class="iconfont icon-shoucang1" @click='multipleCollect'></i>
                     </el-tooltip>
                 </template>
             </div>
@@ -86,7 +86,8 @@
                                 :filename='item.FileName'
                                 @mouseenter="enterFile(item)"
                                 @mouseleave="leaveFile(item)"
-                                @click='groupExtendToggle(index, index1, item)'
+                                @click='groupExtendToggle(index, index1, index2)'
+                                
                                 >
                                 <template v-if='item.overLength'>
                                     <span class="file_pic">
@@ -128,10 +129,10 @@
                                         </el-tooltip>
                                         {{item.Count}}
                                         </span>
-                                        <span class="fixed file_checkbox" v-if='oneChecked || item.hover'>
+                                        <span class="fixed file_checkbox" v-if='oneChecked || item.hover' @click.stop>
                                             <el-checkbox v-model="item.checked" @change="everyFileCheckbox($event, item, [index, index1])"></el-checkbox>
                                           </span>
-                                          <el-dropdown class="fixed file_more">
+                                          <el-dropdown class="fixed file_more" @click.native.stop>
                                             <span class="el-dropdown-link"><i class='iconfont icon-gengduo'></i></span>
                                             <el-dropdown-menu slot="dropdown">
                                               <el-dropdown-item @click.native="fileCommand('download', index2, item, group.pkid, index1)">下载</el-dropdown-item>
@@ -151,10 +152,11 @@
                             >
                             <div 
                                 class="every_file"
-                                v-for="(item, index2) in group.FileItemList"
+                                v-for="(item, index2) in group.fileList"
                                 :key="item.FilePkid"
                                 @mouseenter="enterFile(item)"
                                 @mouseleave="leaveFile(item)"
+                                @click='enterTheDetails(index2, index1, index)'
                                 >
                                 <span class="file_pic">
                                     <template v-if='item.FileType === 11 && item.Desc'>
@@ -177,10 +179,10 @@
                                     {{item.Count}}
                                     </span>
                                    
-                                    <span class="fixed file_checkbox" v-if='oneChecked || item.hover'>
+                                    <span class="fixed file_checkbox" v-if='oneChecked || item.hover' @click.stop>
                                         <el-checkbox v-model="item.checked" @change="everyFileCheckbox($event, item, [index, index1])"></el-checkbox>
                                     </span>
-                                    <el-dropdown class="fixed file_more">
+                                    <el-dropdown class="fixed file_more" @click.native.stop>
                                         <span class="el-dropdown-link"><i class='iconfont icon-gengduo'></i></span>
                                         <el-dropdown-menu slot="dropdown">
                                             <el-dropdown-item @click.native="fileCommand('download', index2, item, group.pkid, index1)">下载</el-dropdown-item>
@@ -196,15 +198,25 @@
                 </div>
             </div>
         </div>
+        <transition name="fade1">
+            <file-details v-if="filedetailsShow"
+            :info='enterDetailInfo'
+            @closeDetails='closeDetails' />
+        </transition>
     </div>
 </template>
 <script>
 import { mapState } from 'vuex';
+import FileDetails from '../../fileDetails';
 
 export default {
-    props: ['list'],
+    props: ['list', 'taskTitle'],
+    components: {
+        FileDetails
+    },
     data() {
         return {
+            userId: JSON.parse(localStorage.getItem("staffInfo")).userPkid, // 当前登录者的ID
             fileTypeImg: [
                 {
                     src: require("../../../../assets/img/file_b/0.png")
@@ -253,13 +265,14 @@ export default {
             operateParth: {},
             operateFile: {},
             demandId: '',
+            filedetailsShow: false,
 
 
         }
     },  
     computed: {
         ...mapState([
-            'taskIds'
+            'taskIds',
         ]),
         // 是否有一个文件被选中
         oneChecked() {
@@ -271,9 +284,36 @@ export default {
         }
     },
     methods: {
+        // 进入文件详情
+        enterTheDetails(index, groupIndex, parthsIndex) {
+            let parthsInfo = this.demandList[parthsIndex];
+            parthsInfo.fileList.map(ele => (ele.groupName = ele.GroupName) && (ele.pkid = ele.Pkid));
+            this.enterDetailInfo = {
+                groupIndex: groupIndex,
+                fileIndex: index,
+                fileList: parthsInfo.fileList,
+                type: 2,
+                menuList: [
+                    this.taskTitle, 
+                    parthsInfo.oldstageTitle, 
+                    parthsInfo.fileList[groupIndex].GroupName, 
+                    parthsInfo.fileList[groupIndex].fileList[index].FileName
+                ]
+            }
+            this.filedetailsShow = true;
+            
+        },
+        // 关闭文件详情
+        closeDetails() {
+            this.filedetailsShow = false;
+        },
+
         // 文件组折叠/展开
-        groupExtendToggle(index, index1, item) {
-            if(item !== true && !item.overLength) {return}
+        groupExtendToggle(index, index1, index2) {
+            if(item !== true && !item.overLength) {
+                this.enterTheDetails(index2, index1, index);
+                return;
+            }
             this.demandList[index].fileList[index1].packUp = !this.demandList[index].fileList[index1].packUp;
             this.demandList = this.demandList.concat();
 
@@ -295,6 +335,7 @@ export default {
                 return;
             }
             if(type === 'collect') { // 收藏
+                this.fileCollect(group);
                 return;
             }
 
@@ -309,6 +350,7 @@ export default {
                 return;
             }
             if(type === 'collect') { // 收藏
+                this.fileCollect(item);
                 return;
             }
             
@@ -331,7 +373,7 @@ export default {
             this.checkedList = [];
             for(let x of this.demandList) {
                 for(let y of x.fileList) {
-                    for(let z of y.FileItemList) {
+                    for(let z of y.fileList) {
                         if(val) {
                             z.checked = true;
                             this.checkedList.push(z);
@@ -341,6 +383,7 @@ export default {
                     }
                 }
             }
+            this.fileCheckbox = val;
             this.demandList = this.demandList.concat();
         },
         // 文件的选中状态发生改变
@@ -355,7 +398,7 @@ export default {
                 let arr = [];
                 for(let x of this.demandList) {
                     for(let y of x.fileList) {
-                        for(let z of y.FileItemList) {
+                        for(let z of y.fileList) {
                             arr.push(z.checked);
                         }
                     }
@@ -376,9 +419,13 @@ export default {
         multipleDownload() {
             this.fromType = 3;
             this.fileDownlod();
-            console.log('demandView--download');
         },
 
+        // 多选收藏
+        multipleCollect() {
+            this.fromType = 3; // 多个文件移交
+            this.fileCollect();
+        },
 
         // 文件下载
         fileDownlod(item) {
@@ -422,6 +469,41 @@ export default {
                 } 
             }
         },
+
+        // 文件收藏
+        fileCollect(item) {
+            // 3--多选 4--分组 5 单个文件
+            let ids = [];
+            if(this.fromType === 5) {
+                ids = [item.FilePkid];
+            }else if (this.fromType === 3 && this.checkedList.length === 1) {
+                ids = [this.checkedList[0].FilePkid];
+            } else if(this.fromType === 3 && this.checkedList.length > 1) {
+                for(let x of this.checkedList) {
+                    ids.push(x.FilePkid);
+                }
+            }else if(this.fromType === 4) {
+                if(item.Pkid) { // 分组
+                    ids.push(item.Pkid);
+                }else { // 未分组
+                    for(let x of item.fileList) {
+                        ids.push(x.FilePkid);
+                    }
+                }
+            }
+            let obj = {
+                myUserId: this.userId,
+                vale: ids.join(','),
+                type: 2,
+                idType: this.fromType === 4 && item.Pkid ? 2 : 1,
+                fatherId: 0,
+                iLevel: 1,
+            };
+            this.$emit('handleCollect', obj);
+            if(this.fromType === 3) {
+                this.fileCheckboxAll(false); // 多选操作完成后把选中状态还原
+            } 
+        },
            // 窗口/元素大小变化对文件分组收起时的影响
         sizeChange() {
              for(let x = 0; x < this.demandList.length; x++) {
@@ -440,7 +522,7 @@ export default {
                 .width();
                 const x = Math.floor(w / this.fileBoxW);
                 let newObj = this.demandList[n].fileList[i];
-                let list = [...newObj.FileItemList];
+                let list = [...newObj.fileList];
                 let length = list.length;
                 if (length <= x) {
                     newObj.packUp = null;
@@ -470,7 +552,7 @@ export default {
                     overList: overList
                 });
                 this.demandList = this.demandList.concat();
-                // console.log('countFileMore--', 'w--> ' + w, 'x--> ' + x, 'length==>' + newObj.FileItemList.length, newObj);
+                // console.log('countFileMore--', 'w--> ' + w, 'x--> ' + x, 'length==>' + newObj.fileList.length, newObj);
             });
         },
 
@@ -500,7 +582,7 @@ export default {
                 for(let y = 0; y < xx.fileList.length; y++) {
                     this.$set(xx.fileList[y], 'packUp', null);
                     this.countFileMore(y, x);
-                    for(let z of xx.fileList[y].FileItemList) {
+                    for(let z of xx.fileList[y].fileList) {
                         let returnObj = this.addFileAttr(z);
                         z = Object.assign(z, returnObj);
                     }

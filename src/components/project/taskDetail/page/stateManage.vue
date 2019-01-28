@@ -87,7 +87,7 @@
        <transition name="fade1">
             <selected-file 
                 v-if='selectedFileShow && selectedIds.length'
-                :list='stageInfo.fileList'
+                :info='stageInfo'
                 :ids="selectedIds"
                 @handleCancle='selectedFileCancel'
                 @handleSure='selectedFileSure'

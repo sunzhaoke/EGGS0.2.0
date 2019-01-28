@@ -12,7 +12,7 @@
         <div class="full_preview_list clearfix">
             <div    
                 class="every_stage"
-                v-for='stage in fullPreview.stageFileList'
+                v-for='(stage, index) in fullPreview.stageFileList'
                 :key='stage.stageTaskId'
                 >
                 <div class="stage_top">{{stage.title}}</div>
@@ -20,20 +20,24 @@
                     <template v-if='stage.enabled'>
                         <div 
                             class="file_group"
-                            v-for='group in stage.fileList'
+                            v-for='(group, index1) in stage.fileList'
                             :key='group.pkid'
                             >
                             <p class="group_title">{{group.groupName ? group.groupName : '未分组文件'}}</p>
                             <div class="group_list clearfix">
-                                <div class="file_box"
-                                    v-for='file in group.fileList'
-                                    :key='file.FilePkid'
+                                <div 
+                                    :class="{file_box: true, file_box_hover: item.FilePkid === file.FilePkid}"
+                                    v-for='(item, index2) in group.fileList'
+                                    :key='item.FilePkid'
+                                    @mouseenter.stop="fileMouseenter($event, item, index2, index1, index)"
+                                    @mouseleave="fileMouseleave($event, item)"
+                                    @click='enterTheDetails(index2, index1, index)'
                                 >
                                     <span class="file_img">
-                                        <img :src="file.UrlMin" alt="">
+                                        <img :src="item.UrlMins" alt="">
                                         <span class="none"></span>
                                     </span>
-                                    <p class="file_title word_over">{{file.FileName}}</p>
+                                    <p class="file_title word_over">{{item.FileName}}</p>
                                 </div>
                             </div>
                         </div>
@@ -53,14 +57,62 @@
                 </div>
             </div>
         </div>
+        <transition name="fade1">
+            <div 
+                v-if='fileShow' 
+                id='hoverFile' 
+                class="hover_file" 
+                >
+                <div 
+                    class="every_file"
+                    @mouseenter="enterFile(file)"
+                    @mouseleave="leaveFile(file)"
+                    @click='enterTheDetails(file.index, file.groupIndex, file.stageIndex)'
+                    >
+                    <span class="file_pic">
+                        <template v-if='file.FileType === 11 && file.Desc'>
+                        <span class="text_desc"><span>{{file.Desc}}</span></span>
+                        </template>
+                        <template v-else>
+                        <img :src="file.UrlMin" alt="">
+                        </template>
+                        <span class="none"></span>
+                    </span>
+                    <div class="file_info">
+                        <p class="title">{{file.FileName}}</p>
+                        <el-tooltip effect="dark" :content="file.nickName ? file.nickName : file.userName" placement="top" :open-delay="300">
+                        <img :src="file.UserPic" alt="" class="from_header">
+                        </el-tooltip>
+                        <span class="file_message fr">
+                        <el-tooltip effect="dark" content="评论" placement="top" :open-delay="300">
+                            <i class='iconfont icon-pinglun'></i>
+                        </el-tooltip>
+                        {{file.Count}}
+                        </span>
+                        
+                    </div>
+                    <div class="null"></div>
+                </div>
+            </div>
+        </transition>
+        <transition name="fade1">
+            <file-details v-if="filedetailsShow"
+            :info='enterDetailInfo'
+            @closeDetails='closeDetails' />
+        </transition>
     </div>
 </template>
 <script>
+import FileDetails from '../../fileDetails';
+
 export default {
     props: ['taskId', 'fullList'],
+    components: {
+        FileDetails
+    },
     data() {
         return {
-            fileTypeImg: [
+            fileTypeImgM: [
                 {
                     src: require("../../../../assets/img/file_m/0.png")
                 }, {
@@ -87,17 +139,143 @@ export default {
                     src: require("../../../../assets/img/file_m/11.png")
                 },
             ], // 文件类型图片
+             fileTypeImgB: [
+                {
+                    src: require("../../../../assets/img/file_b/0.png")
+                }, {
+                    src: require("../../../../assets/img/file_b/1.png")
+                }, {
+                    src: require("../../../../assets/img/file_b/2.png")
+                }, {
+                    src: require("../../../../assets/img/file_b/3.png")
+                }, {
+                    src: require("../../../../assets/img/file_b/4.png")
+                }, {
+                    src: require("../../../../assets/img/file_b/5.png")
+                }, {
+                    src: require("../../../../assets/img/file_b/6.png")
+                }, {
+                    src: require("../../../../assets/img/file_b/7.png")
+                }, {
+                    src: require("../../../../assets/img/file_b/8.png")
+                }, {
+                    src: require("../../../../assets/img/file_b/9.png")
+                }, {
+                    src: require("../../../../assets/img/file_b/10.png")
+                }, {
+                    src: require("../../../../assets/img/file_b/11.png")
+                },
+            ], // 文件类型图片
             fullPreview: {},
+            file: {},
+            fileShow: false,
+            _time: null,
+            _time1: null,
+            filedetailsShow: false,
         }
     },
     methods: {
+        // 进入文件详情
+        enterTheDetails(index, groupIndex, stageIndex) {
+            let stageInfo = this.fullPreview.stageFileList[stageIndex];
+            this.enterDetailInfo = {
+                groupIndex: groupIndex,
+                fileIndex: index,
+                fileList: stageInfo.fileList,
+                type: 1,
+                menuList: [
+                    this.fullPreview.taskTitle, 
+                    stageInfo.title, 
+                    stageInfo.fileList[groupIndex].groupName, 
+                    stageInfo.fileList[groupIndex].fileList[index].FileName
+                ]
+            }
+            this.filedetailsShow = true;
+            
+        },
+        // 关闭文件详情
+        closeDetails() {
+            this.filedetailsShow = false;
+        },
+        fileMouseenter(e, item, index2, index1, index) {
+            if(this._time || this._time1) {
+                clearTimeout(this._time);
+                clearTimeout(this._time1);
+                this._time = null;
+                this._time1 = null;
+            }
+            this._time = setTimeout(() => {
+                this.fileShow = true;
+                this.file = Object.assign({}, item, {index: index2, groupIndex: index1, stageIndex: index});
+                
+                let returns = this.findparent($(e.target));
+                let left = returns[0];
+                let top = returns[1] + 70;
+                this.$nextTick(() => {
+                    let left1 = $('#hoverFile').offset().left;
+                    let top1 = $('#hoverFile').offset().top;
+                    let w = $('#hoverFile').width();
+                    let h = $('#hoverFile').height();
+                    let appW = $('#app').width();
+                    let appH = $('#app').height();
+                    if(left + w > appW) {
+                        left = appW - w;;
+                    }
+                    if(top + h > appH) {
+                        top = top - h - 70;
+                    }
+                    $('#hoverFile').css({left: left + 'px', top: top + 'px'});
+
+                });
+            }, 200);
+            
+        },
+        fileMouseleave(e, item) {
+            if(this._time || this._time1) {
+                clearTimeout(this._time);
+                clearTimeout(this._time1);
+                this._time = null;
+                this._time1 = null;
+            }
+          
+            this._time1 = setTimeout(() => {
+                this.fileShow = false;
+                this.file = {};
+            }, 200);
+
+        },
+        enterFile() {
+            if(this._time) {
+                clearTimeout(this._time);
+            }
+            if(this._time1) {
+                clearTimeout(this._time1);
+            }
+            this.fileShow = true;
+        },
+        leaveFile() {
+            this.fileShow = false;
+            this.file = {};
+        },
+        findparent(e) {
+            let attrs = e.attr('class');
+            if(attrs && attrs === 'file_box') {
+                return [e.offset().left, e.offset().top]
+            }else {
+               return this.findparent(e.parent()); 
+            }
+        },
         getData() {
             this.fullPreview = Object.assign({}, this.fullList);
             for(let x of this.fullPreview.stageFileList) {
                 for(let y of x.fileList) {
                     for(let z of y.fileList) {
                         this.$set(z, 'FileType', this.getFlieTyle(z.Type));
-                        this.$set(z, 'UrlMin', this.fileTypeImg[z.FileType].src);
+                        if(z.FileType !== 1) {
+                            this.$set(z, 'UrlMin', this.fileTypeImgB[z.FileType].src);
+                        }
+                        this.$set(z, 'UrlMins', this.fileTypeImgM[z.FileType].src);
+
                     }
                 }
             }
@@ -195,6 +373,12 @@ export default {
                               text-align: center;
                               
                           }
+                        &:hover {
+                            border: 1px solid #3684FF;
+                        }
+                      }
+                      .file_box_hover {
+                          border: 1px solid #3684FF;
                       }
                   }
               }
@@ -230,6 +414,14 @@ export default {
                   }
               }
           }
+      }
+  }
+  .hover_file {
+      position: fixed;
+      .every_file {
+          border: 1px solid #3684FF;
+          background: #ffffff;
+          box-shadow:0px 1px 8px 0px rgba(59,59,59,0.5);
       }
   }
 }

@@ -1,5 +1,5 @@
 <template>
-	<div class="other_view" @click.stop='() => {}'>
+	<div id='otherView' class="other_view" @click.stop>
 		<div class="top_header" v-if='!groupSortFlag'>
 			<div class="file_name header_item">
 				<span @click='sortHandle(0)'>文件</span>
@@ -37,7 +37,7 @@
         class="file_empty_upload"
         :ref="uploadFrom === 1 ? 'fileUpload' : ''"
         :drag='power && !groupSortFlag && uploadFrom === 1 ? true : false'
-        :action="'/ProjectFile.ashx?&myUserId='+ids.userId+'&projectId='+ids.projectId+'&stageTaskId='+ids.stageTaskId+'&filePartitionId='+0"
+        :action="'/ProjectFile.ashx?myUserId='+ids.userId+'&projectId='+ids.projectId+'&stageTaskId='+ids.stageTaskId+'&filePartitionId='+0"
         :show-file-list="false"
         :multiple="true"
         :on-error="uploadError"
@@ -46,11 +46,11 @@
         :limit="9"
         :on-exceed="handleExceed"
         :before-upload="beforeUpload"
-        @click.native.stop.prevent='(e) => { e.preventDefault(); return false}'
+        @click.native.prevent
         >
         <!-- 文件为空的时候 -->
         <template v-if='fileEmpty'>
-          <div class="file_empty">
+          <div class="file_empty" @click.stop>
             <div class="empty_img">
               <img src="../../../../assets/img/file_empty.png" alt="">
             </div>
@@ -60,7 +60,7 @@
         </template>
         <!-- 有分组（无排序） -->
         <template v-else-if='sortType === 0'>
-          <p class="mainColor_underline_text go_back_sort" v-if='groupSortFlag' @click='backParthSort'>退出分组排序</p>
+          <p class="mainColor_underline_text go_back_sort" v-if='groupSortFlag' @click.stop='backParthSort'>退出分组排序</p>
           <!-- 分组排序 -->
           <template v-if='groupSortFlag'>
             <draggable
@@ -71,7 +71,8 @@
                 draggable: power && parthsGroup.length > 2 ? '.draged' : '',
                 }"
               @end='dragEndParth'
-            >
+              @click.native.stop
+              >
               <div 
                 class="parths_group is_sort draged"
                 v-if='group.pkid'
@@ -91,12 +92,13 @@
               v-for="(group, index0) in parthsGroup"
               :key="group.pkid"
               @dragenter.stop="parthDragEnter(group.pkid)"
+              @click.stop
               >
               <el-upload
                 class="file_empty_upload"
                 :ref="uploadFrom === 2 ? 'fileUpload' : ''"
                 :drag='power && !groupSortFlag ? true : false'
-                :action="'/ProjectFile.ashx?&myUserId='+ids.userId+'&projectId='+ids.projectId+'&stageTaskId='+ids.stageTaskId+'&filePartitionId='+group.pkid"
+                :action="'/ProjectFile.ashx?myUserId='+ids.userId+'&projectId='+ids.projectId+'&stageTaskId='+ids.stageTaskId+'&filePartitionId='+group.pkid"
                 :show-file-list="false"
                 :multiple="true"
                 :on-error="uploadError"
@@ -105,10 +107,10 @@
                 :limit="9"
                 :on-exceed="handleExceed"
                 :before-upload="beforeUpload"
-                @click.native.stop='(e) => { e.preventDefault(); return false}'
+                @click.native.prevent
                 >
                 <!-- 分组的头部操作 -->
-                <div class="group_top">
+                <div class="group_top" @click.stop>
                     <span v-if='!group.edit' class="group_name">{{group.groupName}}</span>
                       <input 
                         v-else 
@@ -117,6 +119,7 @@
                         type="text" 
                         v-model='group.groupName'
                         @blur='groupTitleBlur(group)'
+                        @keyup.enter='groupTitleBlur(group, true)'
                         />
                     <div class="group_operate">
                         <el-dropdown 
@@ -133,7 +136,7 @@
                               <el-upload 
                                 :ref="uploadFrom === 3 && filePartitionId === group.pkid ? 'fileUpload' : ''"
                                 class="upload_file"
-                                :action="'/ProjectFile.ashx?&myUserId='+userId+'&projectId='+projectId+'&stageTaskId='+stageTaskId+'&filePartitionId='+group.pkid"
+                                :action="'/ProjectFile.ashx?myUserId='+userId+'&projectId='+projectId+'&stageTaskId='+stageTaskId+'&filePartitionId='+group.pkid"
                                 :show-file-list="false"
                                 :multiple="true"
                                 :on-error="uploadError"
@@ -190,7 +193,7 @@
                         </el-dropdown>
                     </div>
                 </div>
-                <div class="group_file">
+                <div class="group_file" @click.stop>
                   <div 
                     class="every_files"
                     v-for="(file, index) in group.fileList"
@@ -198,8 +201,8 @@
                     >
                     <div class="file_name every_common">
                       <el-checkbox v-model='file.checked' @change='checkboxChange($event, file, 0)'></el-checkbox>
-                      <img :src="file.FileType === 1 ? fileTypeImg[1].src : file.UrlMin" alt="">
-                      <span v-if='!file.edit' class="file_title">{{file.FileName}}</span>
+                      <img :src="file.FileType === 1 ? fileTypeImg[1].src : file.UrlMin" alt="" @click='enterTheDetails(index, index0)'>
+                      <span @click='enterTheDetails(index, index0)' v-if='!file.edit' class="file_title">{{file.FileName}}</span>
                         <input 
                           v-else 
                           class="edit" 
@@ -207,15 +210,16 @@
                           id="fileNameEdit"
                           @input='fileNameEditChange($event, file)'
                           @blur="fileNameEditBlur($event, file)"
+                          @keyup.enter='fileNameEditBlur($event, file, true)'
                           />
                     </div>
-                    <div class="file_from every_common">
+                    <div class="file_from every_common" @click='enterTheDetails(index, index0)'>
                       <span>{{file.nickName ? file.nickName : file.userName}}</span>
                     </div>
-                    <div class="file_time every_common">
+                    <div class="file_time every_common" @click='enterTheDetails(index, index0)'>
                       <span>{{file.formatTime}}</span>
                     </div>
-                    <div class="file_message every_common">
+                    <div class="file_message every_common" @click='enterTheDetails(index, index0)'>
                       <i class="iconfont icon-pinglun"></i>
                       <span v-if='file.Count'>{{file.Count}}</span>
                     </div>
@@ -244,7 +248,7 @@
         </template>
         <!-- 无分组（排序） -->
         <template v-else>
-           <div class="no_group parths_group">
+          <div class="no_group parths_group"  @click.stop>
             <div class="group_file">
               <div 
                 class="every_files"
@@ -253,8 +257,8 @@
                 >
                 <div class="file_name every_common">
                   <el-checkbox v-model='file.checked' @change='checkboxChange($event, file, 1)'></el-checkbox>
-                  <img :src="file.FileType === 1 ? fileTypeImg[1].src : file.UrlMin" alt="">
-                  <span v-if='!file.edit' class="file_title">{{file.FileName}}</span>
+                  <img :src="file.FileType === 1 ? fileTypeImg[1].src : file.UrlMin" alt="" @click='enterTheDetails(file.index, file.groupIndex)'>
+                  <span v-if='!file.edit' class="file_title" @click='enterTheDetails(file.index, file.groupIndex)'>{{file.FileName}}</span>
                   <input 
                     v-else 
                     class="edit" 
@@ -262,15 +266,16 @@
                     id="fileNameEdit"
                     @input='fileNameEditChange($event, file)'
                     @blur="fileNameEditBlur($event, file)"
+                    @keyup.enter='fileNameEditBlur($event, file, true)'
                     />
                 </div>
-                <div class="file_from every_common">
+                <div class="file_from every_common" @click='enterTheDetails(file.index, file.groupIndex)'>
                   <span>{{file.nickName ? file.nickName : file.userName}}</span>
                 </div>
-                <div class="file_time every_common">
+                <div class="file_time every_common" @click='enterTheDetails(file.index, file.groupIndex)'>
                   <span>{{file.formatTime}}</span>
                 </div>
-                <div class="file_message every_common">
+                <div class="file_message every_common" @click='enterTheDetails(file.index, file.groupIndex)'>
                   <i class="iconfont icon-pinglun"></i>
                   <span v-if='file.Count'>{{file.Count}}</span>
                 </div>
@@ -411,6 +416,8 @@ export default {
       transferDefaultStage: [], // 移交时默认选择下一阶段阶段
       transferType: 1, // 1--单个文件移交， 2--多个文件移交， 3--组文件的移交
       uploadFrom: 1, // 1--从本地拖拽上传； 2--从本地拖拽上传到分组中； 3--分组点击分组里的上传
+      lastTime: null, // 判断失焦和进入详情的间隔
+      enterEdit: false, // enter保存
     };
   },
   watch: {
@@ -484,8 +491,15 @@ export default {
     ...mapMutations([
       'CHECKEDLIST_CHANGE',
       'FILELENGTH_CHANGE'
-
     ]),
+    // 进入文件详情
+    enterTheDetails(index, groupIndex) {
+      let times = new Date().getTime();
+      if(times - this.lastTime < 500) {
+        return;
+      }
+      this.$emit('handleDetails', index, groupIndex);      
+    },
     // 文件选中状态改变
     checkboxChange(val, item, flag) {
       this.selectedListChange(val, item, flag);
@@ -494,6 +508,16 @@ export default {
       }else { // 有分组
         this.parthsGroup = this.parthsGroup.concat();
       }
+    },
+
+    // 编辑时对input框的获取焦点等操作
+    editFocus(element, select = true) {
+      this.$nextTick(() => {
+        const ele = element ? $(element) : this.$refs.createdGroup[0];
+        ele.focus();
+        select ? ele.select() : null;
+        this.enterEdit = false;
+      });
     },
     // 已选列表改变
     selectedListChange(val, item, flag) {
@@ -511,16 +535,15 @@ export default {
       }
       if(this.sortType) { // 排序
         if(checked) { // 全选
-          this.fileList.map(ele => ele.ckecked = true);
+          this.fileList.map(ele => ele.checked = true);
           this.checkedList = this.fileList.concat();
         }else { // 全不选
-          this.fileList.map(ele => ele.ckecked = false);
+          this.fileList.map(ele => ele.checked = false);
           this.checkedList = [];
         }
         this.fileList = this.fileList.concat();
       }else {
         if(checked) { // 全选
-
           this.checkedList = [];
           for(let x of this.parthsGroup) {
             for(let y of x.fileList) {
@@ -562,16 +585,18 @@ export default {
         this.setSort();
 			}else { // 恢复默认排序
 				this.sortType = 0;
-			}
+      }
     },
     // 排序后的数据
     setSort() {
       const list = [];
       for(let i = 0; i < this.parthsGroup.length; i++) {
         let x = this.parthsGroup[i];
-        for(let ele of x.fileList) {
+        for(let n = 0; n < x.fileList.length; n++) {
+          let ele = x.fileList[n];
           ele.groupId = x.pkid; 
           ele.groupIndex = i;
+          ele.index = n;
         }
         list.push(...x.fileList);
 
@@ -648,14 +673,7 @@ export default {
         // console.log(this.parthsGroup);
 
         // 分组名获取焦点并选
-        this.$nextTick(() => {
-          const ele = $(this.$refs.createdGroup[0]);
-          ele.focus();
-          ele.select();
-          // this.$refs.createdGroup[0].scrollIntoView({
-          //   behavior: "smooth"
-          // });
-        });
+        this.editFocus();
         return;
       }
 
@@ -667,39 +685,45 @@ export default {
     },
 
     // 新建/编辑分组名
-    groupTitleBlur(group) {
+    groupTitleBlur(group, flag) {
+      if(this.enterEdit) {
+        return;
+      }
+      this.lastTime = new Date().getTime();
       if(group.groupName == '') {
         this.$message.warning('分组名不能为空！');
-        this.$nextTick(() => {
-          const ele = $(this.$refs.createdGroup[0]);
-          ele.focus();
-        });
+        this.editFocus();
+        return;
+      }
+      // 先判重，如果有重复的名字--提示，否则--发送请求
+      let repeat = this.parthsGroup.findIndex(ele => (ele.groupName === group.groupName && ele.pkid !== group.pkid));
+      if(repeat !== -1) {
+        this.$message.warning('已含有同名分组名！');
+        this.editFocus();
+        return;
       }
       if(group.createdGroup) { // 新建
         // 发送请求---新建分组
         this.addParth(group.groupName);
       }else { // 编辑
-        // 先判重，如果有重复的名字--提示，否则--发送请求
-        let repeat = this.parthsGroup.findIndex(ele => (ele.groupName === group.groupName && ele.pkid !== group.pkid));
-        if(repeat !== -1) {
-          this.$message.warning('已含有同名分组名！');
-        }else {
           // 发送修改分组名的接口
-          if(this.groupNameCopy !== group.groupName) {
-            let obj = {
-              filePartitionId: group.pkid,
-              title: group.groupName
-            };
-            this.$HTTP('post', '/filePartition_update', obj).then(res => {
-              console.log('文件分组名修改成功', res);
-              this.$message.success('文件分组名修改成功!');
-            }).catch(err => {
-              console.log(err);
-            });
-          }
-          group.edit = false;
-          this.parthsGroup = this.parthsGroup.concat();
+        if(this.groupNameCopy !== group.groupName) {
+          let obj = {
+            filePartitionId: group.pkid,
+            title: group.groupName
+          };
+          this.$HTTP('post', '/filePartition_update', obj).then(res => {
+            console.log('文件分组名修改成功', res);
+            this.$message.success('文件分组名修改成功!');
+          }).catch(err => {
+            console.log(err);
+          });
         }
+        group.edit = false;
+        this.parthsGroup = this.parthsGroup.concat();
+      }
+      if(flag) {
+        this.enterEdit = true;
       }
     },
 
@@ -736,7 +760,6 @@ export default {
     },
 
 
-
     // 分组的更多操作--------------------分组的操作
     fileGroupCommand(type, index, group) {
       this.filePartitionId = group.pkid;
@@ -751,6 +774,7 @@ export default {
         return;
       }
       if(type === 'collect') { // 收藏
+        this.fileCollect(group);
         return;
       }
       if(type === 'transfer') { // 整组移交
@@ -763,11 +787,7 @@ export default {
         group.edit = true;
         this.groupNameCopy = group.groupName;
         this.parthsGroup = this.parthsGroup.concat();
-        this.$nextTick(() => {
-          const ele = $(this.$refs.createdGroup[0]);
-          ele.focus();
-          ele.select();
-        });
+        this.editFocus();
         return;
       }
       if(type === 'delete') { // 删除
@@ -864,6 +884,7 @@ export default {
         return;
       }
       if(type === 'collect') { // 收藏
+        this.fileCollect(item);
         return;
       }
       if(type === 'transfer') { // 移交
@@ -875,12 +896,10 @@ export default {
         item.edit = true;
         this.fileNameCopy = item.FileTitle;
         this.parthsGroup = this.parthsGroup.concat();
-
+        this.editFocus('#fileNameEdit');
         this.$nextTick(() => {
           const ele = $('#fileNameEdit');
           ele.css({width: this.textWidth(ele.val()) + 4})
-          ele.focus();
-          ele.select();
         });
         return;
       }
@@ -908,15 +927,16 @@ export default {
       return width;
     },
     // 修改文件名失焦--保存
-    fileNameEditBlur(e, item) {
+    fileNameEditBlur(e, item, flag) {
+      if(this.enterEdit) {
+        return;
+      }
+      this.lastTime = new Date().getTime();
       const { index, groupId, groupIndex } = this.operateFile;
       const newTitle = item.FileTitle + '.' + item.Type;
       if(item.FileTitle == '') {
         this.$message.warning('文件名不能为空！');
-        this.$nextTick(() => {
-          const ele = $('#fileNameEdit');
-          ele.focus();
-        });
+        this.editFocus('#fileNameEdit');
         return;
       }
       // 先判重，如果有重复的名字--提示，否则--发送请求
@@ -925,10 +945,7 @@ export default {
       
       if(repeat !== -1) {
         this.$message.error('该分组内含有同名文件！');
-        this.$nextTick(() => {
-          const ele = $('#fileNameEdit');
-          ele.focus();
-        });
+        this.editFocus('#fileNameEdit');
       }else {
         // 发送修改分组名的接口
         if(this.fileNameCopy !== item.FileTitle) {
@@ -946,6 +963,9 @@ export default {
         }
         item.edit = false;
         this.parthsGroup = this.parthsGroup.concat();
+      }
+      if(flag) {
+        this.enterEdit = true;
       }
     },
     // 取消删除文件
@@ -1127,6 +1147,29 @@ export default {
     },
 
 
+
+    // 文件收藏
+    fileCollect(item) {
+      // transferType: 1, // 1--单个文件移交， 2--多个文件移交， 3--组文件的移交
+      let ids = [];
+      if(this.transferType === 1) {
+        ids = [item.FilePkid];
+      }else if(this.transferType === 3) {
+        ids.push(item.pkid);
+      }
+      let obj = {
+        myUserId: this.userId,
+        vale: ids.join(','),
+        type: 1,
+        idType: this.transferType === 3 ? 2 : 1,
+        fatherId: 0,
+        iLevel: 1,
+      };
+      this.$emit('handleCollect', obj);
+      
+    },
+
+
     // 文件上传--------------------------------start
      parthDragEnter(id, flag) {
       this.filePartitionId = id;
@@ -1184,7 +1227,7 @@ export default {
     uploadFile(formData, file) {
       let _ = this;
       file.reUploadXhr = $.ajax({
-        url:`/ProjectFile.ashx?&myUserId${this.userId}&projectId=${this.projectId}&stageTaskId=${this.stageTaskId}&filePartitionId=${this.filePartitionId}`,
+        url:`/ProjectFile.ashx?myUserId${this.userId}&projectId=${this.projectId}&stageTaskId=${this.stageTaskId}&filePartitionId=${this.filePartitionId}`,
         type: "post",
         dataType: "json",
         data: formData,
@@ -1395,7 +1438,6 @@ export default {
         this.setSort();
       }
       
-      
     },
 
     // 添加文件时，对文件的属性进行处理
@@ -1496,10 +1538,12 @@ export default {
     width: 184px;
   }
   .file_message {
-    width: 114px;
+    width: 100px;
   }
   .file_more {
-    width: 30px;
+    width: 44px;
+    padding-left: 14px;
+    box-sizing: border-box;
   }
   .top_header {
     overflow: hidden;
@@ -1582,6 +1626,7 @@ export default {
           border: 1px solid #eeeeee;
           box-sizing: border-box;
           margin-top: 6px;
+          cursor: pointer;
           .every_common {
             height: 38px;
             line-height: 40px;

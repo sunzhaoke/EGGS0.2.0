@@ -205,6 +205,8 @@ MyApi.install = function (Vue, options) {
             return 10; // ai
         } else if (surffix === 'txt') {
             return 11; // txt文本
+        } else if (surffix === 'folder') {
+            return 12; // txt文本
         } else {
             return 0; // 其他
         }
