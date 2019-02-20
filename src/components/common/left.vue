@@ -70,7 +70,6 @@ export default {
   width: 100%;
   height: 100vh;
   background: #ffffff;
-
   .top {
     width: 166px;
     height: 50px;

@@ -129,7 +129,8 @@ export default {
     width: 100x;
     height: 100%;
     background: #ffffff;
-    box-shadow: -1px 0px 4px 0px rgba(95, 95, 95, 0.3);
+    border-right: 1px solid #EEEEEE;
+    // box-shadow: -1px 0px 4px 0px rgba(95, 95, 95, 0.3);
     position: fixed;
     top: 50px;
     left: 0;
@@ -142,7 +143,7 @@ export default {
     top: 0;
     height: 50px;
     background: #ffffff;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid #EEEEEE;
   }
   .maiContent {
     height: calc(100% - 50px);

@@ -2,7 +2,7 @@
   <div id="PMP">
     <div class="PMP_top">
       <span class="topName">项目管理</span>
-      <span class="button_pmp mf-20"
+      <span class="main_button_bg mf-20"
             @click="newPro">新建项目</span>
       <span class="fr">
         <i class="iconfont icon-sousuo"></i>
@@ -166,10 +166,12 @@
       </div>
       <div class="iJoined classify clearfix"
            v-if="I_participatein">
-        <div>
-          <span class="title">我参与的</span>
-          <i class="iconfont icon-shaixuan"></i>
+        <div style="height:21px;"
+             class="title">
+          <div class="fl">我参与的</div>
+          <i class="iconfont icon-shaixuan fl"></i>
           <el-select v-model="value"
+                     class="fl"
                      placeholder="请选择"
                      @change="selectState(value)">
             <el-option v-for="item in options"
@@ -270,7 +272,7 @@
           <div class="card fl"
                v-for="(list,index) in projectArchiveList"
                :key="index"
-                 @click="enterTask(list)">
+               @click="enterTask(list)">
             <h2>{{list.title}}</h2>
             <i class="iconfont icon-star fr"
                v-if="list.isStar"
@@ -281,58 +283,58 @@
             <div class="statisticalFigures">
               <div class="num saveTime">归档日期：{{list.saveTime}}</div>
             </div>
-             <div class="participantBottom">
-            <ul class="clearfix">
-              <div v-if="list.userCount<5">
-                <li class="lessThan5">
-                  <img :src="list.creater.createrPic"
-                       alt="赵珂">
-                </li>
-                <li class="lessThan5"
-                    v-for="(img,index) in list.userlist"
-                    :key="index">
-                  <img :src="img.image"
-                       alt="">
-                </li>
-              </div>
+            <div class="participantBottom">
+              <ul class="clearfix">
+                <div v-if="list.userCount<5">
+                  <li class="lessThan5">
+                    <img :src="list.creater.createrPic"
+                         alt="赵珂">
+                  </li>
+                  <li class="lessThan5"
+                      v-for="(img,index) in list.userlist"
+                      :key="index">
+                    <img :src="img.image"
+                         alt="">
+                  </li>
+                </div>
 
-              <div v-if="list.userCount >= 5 "
-                   class="moreUser clearfix">
-                <li class="moreThan5"
-                    :style="{'z-index': Math.abs( index- 200)}">
-                  <img :src="list.creater.createrPic"
-                       alt="赵珂">
-                </li>
-                <li class="moreThan5"
-                    v-for="(img,index) in list.userlist"
-                    :key="index"
-                    :style="{'z-index': Math.abs( index-100)}">
-                  <img :src="img.image"
-                       alt="">
-                </li>
-                <li class="nums fr">等{{list.userCount}}人</li>
-              </div>
+                <div v-if="list.userCount >= 5 "
+                     class="moreUser clearfix">
+                  <li class="moreThan5"
+                      :style="{'z-index': Math.abs( index- 200)}">
+                    <img :src="list.creater.createrPic"
+                         alt="赵珂">
+                  </li>
+                  <li class="moreThan5"
+                      v-for="(img,index) in list.userlist"
+                      :key="index"
+                      :style="{'z-index': Math.abs( index-100)}">
+                    <img :src="img.image"
+                         alt="">
+                  </li>
+                  <li class="nums fr">等{{list.userCount}}人</li>
+                </div>
 
-            </ul>
-            <span @click.stop
-                  class="moreButton">
-              <el-dropdown @command="handleCommand"
-                           trigger="click"
-                           visible-change.stop>
-                <span class="el-dropdown-link"
-                      @click.stop>
-                  <i class="iconfont icon-gengduo fr"></i>
-                </span>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item :command="index"
-                                    v-for="(lists,index) in handoverSettings"
-                                    :key="index"
-                                    :dataProjectid='list.projectid'
-                                    classify='iParticipate'>{{lists.name}}</el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-            </span>
-          </div>
+              </ul>
+              <span @click.stop
+                    class="moreButton">
+                <el-dropdown @command="handleCommand"
+                             trigger="click"
+                             visible-change.stop>
+                  <span class="el-dropdown-link"
+                        @click.stop>
+                    <i class="iconfont icon-gengduo fr"></i>
+                  </span>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item :command="index"
+                                      v-for="(lists,index) in ArchiveSettingsList"
+                                      :key="index"
+                                      :dataProjectid='list.projectid'
+                                      classify='iParticipate'>{{lists.name}}</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -535,7 +537,7 @@ export default {
     // 获取我负责的列表
     getMyResponsibleList() {
       let data = { createrId: this.createrId };
-      this.$HTTP("post", "/project_getListByCreaterId", data,$('#app')[0]).then(res => {
+      this.$HTTP("post", "/project_getListByCreaterId", data, $('#app')[0]).then(res => {
         this.myResponsibleList = res.result;
         console.log('我负责的', this.myResponsible)
       });
@@ -543,7 +545,7 @@ export default {
     // 获取我参与的列表
     get_I_participatein(createrId) {
       let data = { userId: this.createrId };
-      this.$HTTP("post", "/projectParticipation_getListByUserId", data,$('#app')[0]).then(
+      this.$HTTP("post", "/projectParticipation_getListByUserId", data, $('#app')[0]).then(
         res => {
           this.I_participatein = res.result;
           console.log(res)
@@ -614,8 +616,8 @@ export default {
       }
     },
     enterTask(list) {
-      console.log(list) 
-      
+      console.log(list)
+
       localStorage.setItem('projectItem', JSON.stringify(list));
       this.$router.push("/project/projectInfo");
     },
@@ -700,18 +702,7 @@ export default {
   margin-left: @mf;
 }
 
-// 按钮样式
-#PMP .button_pmp {
-  display: inline-block;
-  width: 83px;
-  height: 30px;
-  background: rgba(54, 132, 255, 1);
-  border-radius: 4px;
-  color: #ffffff;
-  text-align: center;
-  line-height: 30px;
-  cursor: pointer;
-}
+
 #PMP {
   .el-popper[x-placement^="bottom"] {
     width: 120px;
@@ -779,6 +770,14 @@ export default {
     .recently,
     .filed {
       /* 开始过渡阶段,动画出去阶段 */
+      .el-input--suffix {
+        input {
+          height: 20px;
+        
+        }  .el-select__caret{
+            line-height: 1;
+          }
+      }
       .fadeds {
         width: 100px;
         height: 100px;
@@ -812,6 +811,9 @@ export default {
         border: none;
         background: none;
         width: 90px;
+      }
+      .el-input__inner-placeholder {
+        color: red;
       }
       .card {
         margin-right: 22px;

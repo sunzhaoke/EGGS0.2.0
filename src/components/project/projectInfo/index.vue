@@ -618,7 +618,6 @@
                          @click="goFlod(element)"></i>
                       <div type="text"
                            class="stageTittle"
-                           style=""
                            contenteditable="true"
                            @keydown='checkEnter'
                            v-html="element.partitionTitle"
@@ -822,76 +821,38 @@
                                     </span>
                                   </el-button>
                                 </el-tooltip>
-
+                                <el-tooltip class="item ml-5"
+                                            effect="dark"
+                                            content="添加成员"
+                                            :open-delay="300"
+                                            @click.native="addPeople($event,item,lists,index,element)"
+                                            placement="top-start">
+                                  <el-button class="timeShow">
+                                    <i class="iconfont icon-tianjiarenyuan otherColor"></i>
+                                  </el-button>
+                                </el-tooltip>
+                                <!-- 添加时间 -->
                                 <el-tooltip class="item ml-5"
                                             effect="dark"
                                             content="添加时间"
                                             :open-delay="300"
-                                            @click.native.stop="haha(lists)"
+                                            @click.native.stop="haha($event,lists)"
                                             placement="top-start">
                                   <el-button>
-                                    <div class="calendar">
-                                      <el-date-picker v-model="value6"
-                                                      prefix-icon='iconfont icon-rili1'
-                                                      type="datetimerange"
-                                                      :clearable='false'
-                                                      popper-class="stage_time"
-                                                      @change="checkTime(item,lists,value6)"
-                                                      range-separator="至"
-                                                      :start-placeholder="lists.startTime"
-                                                      :end-placeholder="lists.endTime">
-                                      </el-date-picker>
-                                    </div>
+                                    <i class="iconfont iconrili1 otherColor"></i>
                                   </el-button>
                                 </el-tooltip>
-                                <div class="people ml-5 ">
-                                  <div class="add_people_box"
-                                       @click.stop="addPeople(item,lists,index,element)">
-                                    <el-tooltip class="item"
-                                                effect="dark"
-                                                content="添加成员"
-                                                :open-delay="300"
-                                                placement="top-start">
-                                      <el-button>
-                                        <i class="iconfont icon-tianjiarenyuan otherColor"></i>
-                                      </el-button>
-                                    </el-tooltip>
-                                    <el-collapse-transition>
-                                      <Participant v-if="lists.addPopShow"
-                                                   ref="addPeople"
-                                                   id="addPeople"
-                                                   :creatorId="userPkid"
-                                                   :defaultKeys="defaultKeys"
-                                                   :userList="userList"
-                                                   @handleSure="addPeopleSure"
-                                                   @handleInvite="invitePeople" />
-                                    </el-collapse-transition>
-                                  </div>
-                                </div>
                                 <!-- 文件上传 -->
                                 <el-dropdown placement="bottom"
                                              trigger="click"
                                              @visible-change='uploadVistible($event)'>
                                   <i class='iconfont icon-shangchuan'
-                                     :class="{'cur_dis':!lists.isPartIn}"
-                                     @click.stop='haha(lists)'></i>
+                                     :class="{'cur_dis':!lists.isPartIn}"></i>
                                   <el-dropdown-menu slot="dropdown"
                                                     v-show="false">
                                     <el-dropdown-item @click.native="handleClickUpload(item,lists,element,'partitions')">
-                                      <el-upload ref="fileUpload"
-                                                 class="upload_file"
-                                                 :action="'/ProjectFile.ashx?&myUserId='+userPkid+'&projectId='+item.taskId+'&stageTaskId='+lists.stageTaskId+'&filePartitionId=0'"
-                                                 :show-file-list="false"
-                                                 :multiple="true"
-                                                 :on-error="uploadError"
-                                                 :on-success="uploadSuccess"
-                                                 :on-progress="uploadProgress"
-                                                 :limit="9"
-                                                 :on-exceed="handleExceed"
-                                                 :before-upload="beforeUpload">本地上传
-                                      </el-upload>
+                                      本地上传
                                     </el-dropdown-item>
-                                    <!-- <el-dropdown-item>从个人文档上传</el-dropdown-item> -->
                                   </el-dropdown-menu>
                                 </el-dropdown>
                                 <el-tooltip class="item ml-5"
@@ -918,7 +879,6 @@
                                   </el-button>
                                 </el-tooltip>
                               </div>
-
                               <div class="finishHover"
                                    v-if="lists.stageTaskState===true&&lists.enabled===true">
                                 <el-tooltip class="item"
@@ -1019,7 +979,29 @@
             :projectId='projectId'
             :classify='classify'></Info>
     </transition>
-
+    <el-upload ref="fileUpload"
+               class="upload_file"
+               :style='{top:(fillPageY+10 )+"px",left :(fillPageX -40) +"px" }'
+               :action="'/ProjectFile.ashx?&myUserId='+userPkid+'&projectId='+taskId+'&stageTaskId='+1+'&filePartitionId=0'"
+               :show-file-list="false"
+               :multiple="true"
+               :on-error="uploadError"
+               :on-success="uploadSuccess"
+               :on-progress="uploadProgress"
+               :limit="9"
+               :on-exceed="handleExceed"
+               :before-upload="beforeUpload">
+      本地上传
+    </el-upload>
+    <Participant v-if="addPopShow"
+                 :style='{top:(addPopShowPageY +10 )+"px",left :(addPopShowPageX +10) +"px" }'
+                 ref="addPeople"
+                 id="addPeople"
+                 :creatorId="userPkid"
+                 :defaultKeys="defaultKeys"
+                 :userList="userList"
+                 @handleSure="addPeopleSure"
+                 @handleInvite="invitePeople" />
     <transition name="fade1">
       <Reminder2 v-if="reminder2Flag"
                  :type="1"
@@ -1028,6 +1010,21 @@
                  @handleCancle="reminderCancel"
                  @handleSure="reminderSure" />
     </transition>
+    <!-- 日历 -->
+    <transition name="fade1">
+      <el-date-picker v-model="value6"
+                      v-if="stageHoverIsShow"
+                      :style='{top:(riliPageY )+"px",left :(riliPageX) +"px" }'
+                      id='rili'
+                      prefix-icon='iconfont icon-rili1'
+                      type="datetimerange"
+                      :clearable='false'
+                      popper-class="stage_time"
+                      @change="checkTime(item,value6)"
+                      range-separator="至">
+      </el-date-picker>
+    </transition>
+
     <transition name="fade1">
       <ShadePop v-if="popShow"
                 @closePop='closePop'
@@ -1091,6 +1088,15 @@ export default {
       searchIsShow: false, //搜索是否显示
       text: '改一下试一试',
       abg: '10 100',
+      addPopShow: false, //添加人员组件
+      addPopShowPageX: '', //添加人员组件X
+      addPopShowPageY: '', //添加人员组件Y
+      fillPageX: '', //上传文件组件X
+      fillPageY: '', //上传文件组件Y
+
+      stageHoverIsShow: false,
+      riliPageX: '',
+      riliPageY: '',
       mouseLeftIndex: -1,
       mouseTopIndex: -1,
       topAddPopShow: true, //顶部添加人员
@@ -1218,16 +1224,17 @@ export default {
   }
   ,
   methods: {
-
     // serchPartitionAndTask
     serchPartitionAndTask(value) {
       this.getProjectAll(value, this.projectId);
     },
-    haha(lists) {
-      lists.stageHoverIsShow = true;
+    haha(event, lists) {
+      this.riliPageX = event.pageX;
+      this.riliPageY = event.pageY;
+      this.stageHoverIsShow = true;
       this.partitionsList = [...this.partitionsList];
       let clickHide = e => {
-        lists.stageHoverIsShow = false;
+        // this.stageHoverIsShow = false;
         this.partitionsList = [...this.partitionsList];
         $(document).unbind("click", clickHide);
       };
@@ -1447,14 +1454,18 @@ export default {
               this.defaultKeys.push(x.userpkid);
             }
           }
-          item.addPopShow = true;
+          this.addPopShow = true;
           this.partitionsList = [...this.partitionsList];
         }).catch(err => {
           reject(err);
         });
       });
     },
-    async addPeople(list, item, index, element) {
+    async addPeople(event, list, item, index, element) {
+      this.addPopShow = true;
+      console.log(this.addPopShow)
+      this.addPopShowPageX = event.pageX;
+      this.addPopShowPageY = event.pageY;
       let userlist = [];
       for (let i of item.userList) {
         userlist.push(i.userpkid);
@@ -1467,7 +1478,6 @@ export default {
       this.nowStageId = item.stageId;
       this.taskPeopleList = item.userList;
       this.fromInfo.id = this.nowStageId;
-
       this.partitionsList = [...this.partitionsList];
 
       try {
@@ -1476,7 +1486,7 @@ export default {
         console.log(err);
       }
       let clickHide = e => {
-        item.addPopShow = false;
+        this.addPopShow = false;
         item.stageHoverIsShow = false;
         this.partitionsList = [...this.partitionsList];
         $(document).unbind("click", clickHide)
@@ -1522,7 +1532,7 @@ export default {
                   if (isparInno !== -1) {
                     item.stageTaskList[index].isPartIn = false;
                   }
-                  item.stageTaskList[index].addPopShow = false;
+                  this.addPopShow = false;
                   item.stageTaskList[index].userList = arr.userList;
                 }
               }
@@ -1929,7 +1939,7 @@ export default {
                 }
                 this.stageTaskList = i.stageTaskList;
                 for (let item of i.stageTaskList) {
-                  item.addPopShow = false; //添加人员是否显示
+                  this.addPopShow = false; //添加人员是否显示
                   item.isRepeat = false; //是否重复
                   item.stageHoverIsShow = false; // 几个按钮hover是否显示
                   if (item.userList.length) {
@@ -2007,6 +2017,8 @@ export default {
     // 文件上传--------------------------------start
     // 当前点击的是哪个分组的上传
     handleClickUpload(item, lists, element, name) {
+
+
       lists.stageHoverIsShow = false;
       this.partitionsList = [...this.partitionsList];
       this.fileNum = lists.fileCont;
@@ -2255,11 +2267,6 @@ export default {
     this.getstageList(this.projectId); //获取阶段列表 
     this.getProjectAll('', this.projectId);
     // this.partitionsList
-
-
-
-
-
     this.getProjectUserList();
     this.getProjectLists(); //获取项目标题列表
   },
@@ -2302,12 +2309,12 @@ export default {
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
   opacity: 0;
 }
-.flodRotate-enter-active {
-  animation: bounce-in 0.1s;
-}
-.flodRotate-leave-active {
-  animation: bounce-in 0.5s reverse;
-}
+// .flodRotate-enter-active {
+//   animation: bounce-in 0.1s;
+// }
+// .flodRotate-leave-active {
+//   animation: bounce-in 0.5s reverse;
+// }
 .el-popper {
   padding: 0;
   .searchUser {
@@ -2319,7 +2326,6 @@ export default {
   }
   .projectUserLists {
     border-top: 1px solid #e5e5e5;
-
     .projecttTitle {
       line-height: 30px;
       margin-left: 15px;
@@ -2347,17 +2353,17 @@ export default {
 }
 // 拖拽项目人员列表
 
-@keyframes bounce-in {
-  0% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(90deg);
-  }
-  100% {
-    transform: rotate(180deg);
-  }
-}
+// @keyframes bounce-in {
+//   0% {
+//     transform: rotate(0deg);
+//   }
+//   50% {
+//     transform: rotate(90deg);
+//   }
+//   100% {
+//     transform: rotate(180deg);
+//   }
+// }
 .hoverBg {
   background: #f2f2f2 !important;
 }
@@ -2373,6 +2379,32 @@ export default {
   height: 100%;
   // height: calc(~ '100% - 50px');
   overflow: hidden;
+  .participant_y {
+    position: fixed;
+  }
+  .upload_file {
+    position: fixed;
+    z-index: 100;
+  }
+  .el-date-editor--datetimerange {
+    position: fixed;
+    z-index: 100;
+
+    // top:0;
+    // left: 0;
+    // 日历
+    .el-date-editor {
+      width: 20px;
+      border: none;
+      input,
+      span {
+        display: none;
+      }
+    }
+    i {
+      color: #666666;
+    }
+  }
   .icon-unfold {
     font-size: 12px !important;
   }
@@ -2484,7 +2516,7 @@ export default {
           }
           //4个阶段 标题 内容
           .stageTitleLists {
-            z-index: 99;
+            z-index: 10;
             width: 252px;
             height: 40px;
             line-height: 40px;
@@ -2635,13 +2667,13 @@ export default {
 
                   .stageHover {
                     position: absolute;
-                    // display: inline-block;
+                    display: inline-block;
+                    border: 1px solid transparent;
                     height: 100%;
                     width: 100%;
-                    z-index: 100;
+                    z-index: 10;
                     padding: 15px 35px;
                     display: none;
-                    // opacity: n;
                     .box_sizing;
                     i {
                       font-size: 14px !important;
@@ -2735,20 +2767,6 @@ export default {
                         .add_people_show {
                           color: @mainColor;
                         }
-                      }
-                    }
-                    // 日历
-                    .calendar {
-                      .el-date-editor {
-                        width: 20px;
-                        border: none;
-                        input,
-                        span {
-                          display: none;
-                        }
-                      }
-                      i {
-                        color: #666666;
                       }
                     }
                   }

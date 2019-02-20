@@ -150,6 +150,10 @@ input:-webkit-autofill {
 .cur {
   cursor: pointer;
 }
+.cur_dis {
+  cursor: not-allowed !important;
+  color: #999999 !important;
+}
 .word_over {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -268,7 +272,7 @@ input:-webkit-autofill {
   cursor: pointer;
   vertical-align: middle;
 }
-.main_button_color:hover { 
+.main_button_color:hover {
   border: 1px solid #3762EB;
   color: #3762EB;
 }
@@ -636,7 +640,7 @@ not supported by any browser */
   position: fixed;
   right: 0;
   bottom: 0;
-  width: 600px;
+  width: 390px;
   min-height: 100px;
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
@@ -656,7 +660,6 @@ not supported by any browser */
   top: 16px;
   font-size: 16px;
   color: #999999;
-  font-weight: bold;
   cursor: pointer;
 }
 .upload_progress .upload_progress_title {
@@ -668,7 +671,7 @@ not supported by any browser */
 }
 .upload_progress .upload_progress_ul {
   width: 100%;
-  max-height: 310px;
+  max-height: 210px;
   overflow: auto;
   padding: 10px 24px;
   box-sizing: border-box;
@@ -695,28 +698,27 @@ not supported by any browser */
 }
 .upload_progress .upload_progress_ul .upload_progress_li .upload_progress_img {
   display: inline-block;
-  width: 32px;
+  width: 24px;
   height: 32px;
   vertical-align: middle;
+  text-align: center;
 }
 .upload_progress .upload_progress_ul .upload_progress_li .upload_progress_img img {
-  display: inline-block;
-  height: 100%;
-  vertical-align: top;
-  text-align: center;
-  max-width: 32px;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: super;
 }
 .upload_progress .upload_progress_ul .upload_progress_li .upload_progress_name {
   display: inline-block;
   vertical-align: top;
-  max-width: calc(100% - 140px);
+  max-width: calc(100% - 180px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   height: 20px;
   line-height: 20px;
-  margin-top: 10px;
-  margin-left: 10px;
+  margin-top: 6px;
+  margin-left: 8px;
 }
 .upload_progress .upload_progress_ul .upload_progress_li .upload_progress_percent {
   width: calc(100% - 60px);
@@ -725,8 +727,8 @@ not supported by any browser */
   margin-top: 10px;
   position: absolute;
   left: 44px;
-  top: 16px;
-  margin-left: 10px;
+  top: 12px;
+  margin-left: 8px;
 }
 .upload_progress .upload_progress_ul .upload_progress_li .upload_progress_percent .el-progress--line {
   width: calc(100% - 25px);
@@ -740,13 +742,25 @@ not supported by any browser */
 .upload_progress .upload_progress_ul .upload_progress_li .upload_progress_percent .el-progress--line .el-progress-bar__outer .el-progress-bar__inner {
   height: 2px;
 }
+.upload_progress .upload_progress_ul .upload_progress_li .upload_progress_error {
+  width: calc(100% - 60px);
+  height: 20px;
+  line-height: 20px;
+  margin-top: 7px;
+  position: absolute;
+  left: 44px;
+  top: 16px;
+  margin-left: 8px;
+  font-size: 12px;
+  color: #EA3F33;
+}
 .upload_progress .upload_progress_ul .upload_progress_li .upload_progress_size {
   font-size: 12px;
   color: #999999;
   display: inline-block;
   height: 20px;
   line-height: 20px;
-  margin-top: 10px;
+  margin-top: 6px;
   margin-right: 20px;
   float: right;
 }
@@ -755,7 +769,7 @@ not supported by any browser */
   top: 0px;
   right: 6px;
   color: #999999;
-  font-size: 16px;
+  font-size: 12px;
   height: 42px;
   line-height: 42px;
   display: inline;
@@ -779,7 +793,6 @@ not supported by any browser */
 .demo_textarea textarea::-webkit-input-placeholder {
   /* WebKit browsers */
   color: #9c9c9c;
-
 }
 .demo_textarea textarea:-moz-placeholder {
   /* Mozilla Firefox 4 to 18 */
@@ -793,6 +806,9 @@ not supported by any browser */
   /* Internet Explorer 10+ */
   color: #9c9c9c;
 }
+.el-popper[x-placement^=bottom] {
+  margin-top: 0 !important;
+}
 .el-dropdown-menu__item {
   line-height: 32px !important;
 }
@@ -800,9 +816,17 @@ not supported by any browser */
   background: #f6f6f6 !important;
   color: #3684FF !important;
 }
+.el-dropdown-menu__item:hover .state_manage_y .list_ul,
+.el-dropdown-menu__item:hover .names {
+  color: #333 !important;
+}
 .el-dropdown-menu__item .download_a {
   text-decoration: none;
   color: inherit;
+}
+.el-dropdown-menu__item .upload_file .el-upload {
+  width: 100%;
+  text-align: left !important;
 }
 .parth_el_dropdown_move {
   position: relative;
@@ -864,4 +888,30 @@ not supported by any browser */
 }
 .parth_el_dropdown_move .move_group2_left {
   left: 130px;
+}
+.el_dropdown_state {
+  position: relative;
+}
+.el_dropdown_state .state_manage_y {
+  left: 118px;
+  top: 0px;
+}
+.stage_time .el-picker-panel__footer .el-button--text {
+  display: none !important;
+}
+::-webkit-input-placeholder {
+  /* WebKit, Blink, Edge */
+  color: #d0d0d0 !important;
+}
+:-moz-placeholder {
+  /* Mozilla Firefox 4 to 18 */
+  color: #d0d0d0 !important;
+}
+::-moz-placeholder {
+  /* Mozilla Firefox 19+ */
+  color: #d0d0d0 !important;
+}
+:-ms-input-placeholder {
+  /* Internet Explorer 10-11 */
+  color: #d0d0d0  !important;
 }

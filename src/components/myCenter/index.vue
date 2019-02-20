@@ -189,7 +189,7 @@
                       <el-button disabled
                                  class="getCode cur"
                                  v-if="!email">获取验证码</el-button>
-                      <el-button class="getCode cur"
+                      <el-button class="getCode cur blueBorder"
                                  v-else
                                  @click="getCode">获取验证码</el-button>
                       <span class="getCodes cur"
@@ -324,7 +324,7 @@
                       <el-button disabled
                                  class="getCode cur"
                                  v-if="!email">获取验证码</el-button>
-                      <el-button class="getCode cur"
+                      <el-button class="getCode cur blueBorder"
                                  v-else
                                  @click="getCode">获取验证码</el-button>
                       <span class="getCodes cur"
@@ -448,9 +448,9 @@ export default {
     };
   },
   watch: {
-    personalImg(val, old){
-      console.log(1,val, 2,old)
-          this.saveShow = true;
+    personalImg(val, old) {
+      console.log(1, val, 2, old)
+      this.saveShow = true;
     },
     // 真实姓名 
     realName(val, old) {
@@ -594,9 +594,9 @@ export default {
     },
     // 保存信息
     saveMain() {
-      let birthday=''
-      if(this.year){
-      this.year + '-' + this.month + '-' + this.day
+      let birthday = ''
+      if (this.year) {
+        this.year + '-' + this.month + '-' + this.day
       }
       let obj = {
         userId: this.userId,
@@ -972,7 +972,7 @@ export default {
         if (res.code == 200) {
           localStorage.setItem("wrongNum", 0);
           this.activeName = 'first';
-          this.$message.success('邮箱及密码设置成功，下次您可以使用该邮箱及密码进行登录（5）')
+          this.$message.success('邮箱及密码设置成功，下次您可以使用该邮箱及密码进行登录');
         }
       })
 
@@ -1023,7 +1023,7 @@ export default {
     removeWxBind() {
       if (!this.emails) {
         this.buttonMes = '解除绑定'
-        this.errMessage = '这是登录此账号的最后一个凭证了。接触绑定后，此账号数据将丢失，无法找回'
+        this.errMessage = '这是登录此账号的最后一个凭证了。解除绑定后，此账号数据将丢失，无法找回'
       } else {
         this.buttonMes = '确认'
         this.errMessage = '解除绑定后将无法继续使用该账号进行登录'
@@ -1175,6 +1175,7 @@ export default {
 .errRed {
   color: red;
 }
+
 .popBox_k {
   width: 400px;
   min-height: 65px;
@@ -1232,6 +1233,10 @@ export default {
         height: 32px;
         border: 1px solid rgba(229, 229, 229, 1);
         position: absolute;
+      }
+      .blueBorder{
+         border: 1px solid #3684FF;
+         color: #3684FF;
       }
       .getCodes {
         position: absolute;
@@ -1351,7 +1356,8 @@ export default {
     position: relative;
     .midel {
       width: 780px;
-      max-height: 660px;
+      // max-height: 660px;
+      height: calc(100vh - 150px);
       background: #ffffff;
       box-shadow: 0px 1px 6px 0px rgba(104, 104, 104, 0.3);
       position: absolute;
@@ -1428,15 +1434,11 @@ export default {
       overflow: hidden;
       position: relative;
       .personalInfobox {
-        position: absolute;
         height: 450px !important;
-        // background: red;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
         input {
           width: 220px;
           height: 32px;
+          color: #333;
           border: 1px solid rgba(208, 208, 208, 1);
           border-radius: 4px;
           padding: 0 10px;
@@ -1474,12 +1476,11 @@ export default {
       }
       .personalMainBox {
         width: 300px;
-        height: 100%;
+        // height: 100%;
         margin: 0 auto;
         .successBox {
           width: 100%;
           height: 100%;
-
           background: red;
         }
       }

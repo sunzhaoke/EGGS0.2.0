@@ -6,60 +6,70 @@
          alt="">
     <div class="otherButton fr clearfix">
       <ul class="clearfix">
-        <span ref='userInfo'>
-          <li class="last">
-            <el-dropdown trigger="click">
-              <span class="el-dropdown-link">
-                {{staffInfo.realName ? staffInfo.realName : 'Happy work'}}
-                <i class="el-icon-arrow-down el-icon--right"></i>
-              </span>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item>
-                  <router-link tag="li"
-                               to='/myCenter'>
-                    个人中心
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>系统设置</el-dropdown-item>
-                <el-dropdown-item>问题反馈</el-dropdown-item>
-                <el-dropdown-item @click.native="exitLogin">
-                  退出登录
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-          </li>
-          <li class="last">
+        <li class="last">
+          <el-dropdown trigger="click">
+            <span class="el-dropdown-link">
+              {{staffInfo.realName ? staffInfo.realName : 'Happy work'}}
+              <i class="el-icon-arrow-down el-icon--right"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item>
+                <router-link tag="li"
+                             to='/myCenter'>
+                  个人中心
+                </router-link>
+              </el-dropdown-item>
+              <el-dropdown-item>系统设置</el-dropdown-item>
+              <el-dropdown-item>问题反馈</el-dropdown-item>
+              <el-dropdown-item @click.native="exitLogin">
+                退出登录
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </li>
+        <li class="imgboxB">
+          <span class="imgbox">
             <img :src="staffInfo.pic"
-                v-if='staffInfo.pic'
+                 v-if='staffInfo.pic'
                  class="userImg"
-                 alt=""
-                 >
+                 alt="">
             <img src="../../assets/img/load.gif"
-              v-else
+                 v-else
                  class="userImg"
-                 alt=""
-                 >
-          </li>
-        </span>
+                 alt="">
+          </span>
+
+        </li>
         <li>
-          <el-tooltip effect="dark" content="刷新" placement="top" :open-delay="300">
-            <i class="iconfont  icon-shuaxin" @click="refresh"></i>
+          <el-tooltip effect="dark"
+                      content="刷新"
+                      placement="top"
+                      :open-delay="300">
+            <i class="iconfont  icon-shuaxin"
+               @click="refresh"></i>
           </el-tooltip>
         </li>
         <li class="notice_icon">
-          <el-tooltip effect="dark" content="消息通知" placement="top" :open-delay="300">
-            <i class="iconfont icon-tongzhi" @click.stop='clickNotice'></i>
+          <el-tooltip effect="dark"
+                      content="消息通知"
+                      placement="top"
+                      :open-delay="300">
+            <i class="iconfont icon-tongzhi"
+               @click.stop='clickNotice'></i>
           </el-tooltip>
-          <span v-if="Number(unreadNum)" class="unread" @click.stop='clickNotice'>{{unreadNum > 99 ? '···' : unreadNum}}</span>
+          <span v-if="Number(unreadNum)"
+                class="unread"
+                @click.stop='clickNotice'>{{unreadNum > 99 ? '···' : unreadNum}}</span>
           <transition name="fade1">
-            <notice-page 
-              v-if='noticeShow' 
-              @enterAll='enterAll'
-              />
+            <notice-page v-if='noticeShow'
+                         @enterAll='enterAll' />
           </transition>
         </li>
         <li @click="friend">
-          <el-tooltip effect="dark" content="好友管理" placement="top" :open-delay="300">
+          <el-tooltip effect="dark"
+                      content="好友管理"
+                      placement="top"
+                      :open-delay="300">
             <i class="iconfont icon-haoyouliebiao"></i>
           </el-tooltip>
         </li>
@@ -95,9 +105,9 @@ export default {
     },
     // 消息通知
     clickNotice() {
-      if(this.noticeShow) {
+      if (this.noticeShow) {
         this.noticeShow = false;
-      }else {
+      } else {
         this.noticeShow = true;
       }
       let clickHide = e => {
@@ -208,18 +218,25 @@ export default {
     .last {
       border: none;
       color: #333333;
-      .userImg {
-        display: inline-block;
-        vertical-align: middle;
-        width: 28px;
-        height: 28px;
-        .border_radius(@br: 3px);
-      }
       i {
         font-size: 12px;
       }
     }
-    
+    .imgboxB {
+      border: none;
+    }
+    .imgbox {
+      display: inline-block;
+      width: 28px !important;
+      height: 28px;
+      overflow: hidden;
+      .border_radius(@br: 3px);
+      .userImg {
+        display: inline-block;
+        vertical-align: middle;
+        width: 28px;
+      }
+    }
     .notice_icon {
       position: relative;
       .unread {

@@ -20,6 +20,9 @@
   content: "\e61c";
 }
 
+.iconrili1:before {
+  content: "\e792";
+}
 .icon-delete:before {
   content: "\e69d";
 }
