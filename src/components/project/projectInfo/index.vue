@@ -821,6 +821,7 @@
                                     </span>
                                   </el-button>
                                 </el-tooltip>
+                                <!-- 添加人员 -->
                                 <el-tooltip class="item ml-5"
                                             effect="dark"
                                             content="添加成员"
@@ -840,21 +841,31 @@
                                             placement="top-start">
                                   <el-button>
                                     <i class="iconfont iconrili1 otherColor"></i>
+                                    <el-date-picker v-model="value6"
+                                                    id='rili'
+                                                    prefix-icon='iconfont icon-rili1'
+                                                    type="datetimerange"
+                                                    :clearable='false'
+                                                    popper-class="stage_time"
+                                                    @change="checkTime(item,value6)"
+                                                    range-separator="至">
+                                    </el-date-picker>
                                   </el-button>
                                 </el-tooltip>
                                 <!-- 文件上传 -->
-                                <el-dropdown placement="bottom"
-                                             trigger="click"
-                                             @visible-change='uploadVistible($event)'>
-                                  <i class='iconfont icon-shangchuan'
-                                     :class="{'cur_dis':!lists.isPartIn}"></i>
-                                  <el-dropdown-menu slot="dropdown"
-                                                    v-show="false">
-                                    <el-dropdown-item @click.native="handleClickUpload(item,lists,element,'partitions')">
-                                      本地上传
-                                    </el-dropdown-item>
-                                  </el-dropdown-menu>
-                                </el-dropdown>
+                                <el-tooltip class="item ml-5"
+                                            effect="dark"
+                                            :content="lists.isPartIn?'上传文件': '需要先参与任务'"
+                                            :open-delay="300"
+                                            placement="top-start">
+                                  <el-button>
+                                    <i class="iconfont icon-shangchuan otherColor"
+                                       v-if="lists.isPartIn"
+                                       @click.stop="fileUpload($event,item,lists,element,'partitions')"></i>
+                                    <i class="iconfont icon-shangchuan otherColor cur_dis"
+                                       v-else></i>
+                                  </el-button>
+                                </el-tooltip>
                                 <el-tooltip class="item ml-5"
                                             effect="dark"
                                             v-if="lists.userList.length"
@@ -979,20 +990,26 @@
             :projectId='projectId'
             :classify='classify'></Info>
     </transition>
-    <el-upload ref="fileUpload"
-               class="upload_file"
-               :style='{top:(fillPageY+10 )+"px",left :(fillPageX -40) +"px" }'
-               :action="'/ProjectFile.ashx?&myUserId='+userPkid+'&projectId='+taskId+'&stageTaskId='+1+'&filePartitionId=0'"
-               :show-file-list="false"
-               :multiple="true"
-               :on-error="uploadError"
-               :on-success="uploadSuccess"
-               :on-progress="uploadProgress"
-               :limit="9"
-               :on-exceed="handleExceed"
-               :before-upload="beforeUpload">
-      本地上传
-    </el-upload>
+    <!-- 上传文件 -->
+    <div class="drop-down-more"
+         v-if="fileUploadShow"
+         :style='{top:(fillPageY + 15 )+"px",left :(fillPageX - 80) +"px" }'>
+      <el-upload ref="fileUpload"
+                 class="upload_file "
+                 :action="'/ProjectFile.ashx?&myUserId='+userPkid+'&projectId='+taskId+'&stageTaskId='+stageTaskId+'&filePartitionId=0'"
+                 :show-file-list="false"
+                 :multiple="true"
+                 :on-error="uploadError"
+                 :on-success="uploadSuccess"
+                 :on-progress="uploadProgress"
+                 :limit="9"
+                 :on-exceed="handleExceed"
+                 :before-upload="beforeUpload">
+        <span class="cur"
+              @click="handleClickUpload()"> 本地上传</span>
+      </el-upload>
+    </div>
+    <!-- 添加成员 -->
     <Participant v-if="addPopShow"
                  :style='{top:(addPopShowPageY +10 )+"px",left :(addPopShowPageX +10) +"px" }'
                  ref="addPeople"
@@ -1011,19 +1028,20 @@
                  @handleSure="reminderSure" />
     </transition>
     <!-- 日历 -->
-    <transition name="fade1">
-      <el-date-picker v-model="value6"
-                      v-if="stageHoverIsShow"
-                      :style='{top:(riliPageY )+"px",left :(riliPageX) +"px" }'
-                      id='rili'
-                      prefix-icon='iconfont icon-rili1'
-                      type="datetimerange"
-                      :clearable='false'
-                      popper-class="stage_time"
-                      @change="checkTime(item,value6)"
-                      range-separator="至">
-      </el-date-picker>
-    </transition>
+    <!-- <transition name="fade1">
+      <div class="rili" v-if="true">
+        <el-date-picker v-model="value6"
+                        :style='{top:(riliPageY )+"px",left :(riliPageX) +"px" }'
+                        id='rili'
+                        prefix-icon='iconfont icon-rili1'
+                        type="datetimerange"
+                        :clearable='false'
+                        popper-class="stage_time"
+                        @change="checkTime(item,value6)"
+                        range-separator="至">
+        </el-date-picker>
+      </div>
+    </transition> -->
 
     <transition name="fade1">
       <ShadePop v-if="popShow"
@@ -1091,10 +1109,17 @@ export default {
       addPopShow: false, //添加人员组件
       addPopShowPageX: '', //添加人员组件X
       addPopShowPageY: '', //添加人员组件Y
-      fillPageX: '', //上传文件组件X
-      fillPageY: '', //上传文件组件Y
+      fillPageX: 100, //上传文件组件X
+      fillPageY: 100, //上传文件组件Y
 
-      stageHoverIsShow: false,
+      fileUploadShow: false, //上传文件是否显示 
+      stageTaskId: '', //当前点击的任务id
+      nowClickItem: '', //当前点击的上传列表
+      nowClickLists: '', //当前点击的上传列表
+      nowClickName: '', //当前点击的上传列表
+      nowClickElment: '', //当前点击的上传列表
+
+      riliIsShow: false,
       riliPageX: '',
       riliPageY: '',
       mouseLeftIndex: -1,
@@ -1224,6 +1249,27 @@ export default {
   }
   ,
   methods: {
+    fileUpload(event, item, lists, elment, name) {
+      console.log('ddddd', item, lists)
+      this.nowClickItem = item; //当前点击的上传列表
+      this.nowClickLists = lists; //当前点击的上传列表
+      this.nowClickName = name;//当前点击的上传列表
+      this.nowClickElment = elment;//当前点击的上传列表
+      lists.stageHoverIsShow = true;
+      this.fileUploadShow = true;
+      this.fillPageX = event.pageX;
+      this.fillPageY = event.pageY;
+      this.stageTaskId = lists.stageTaskId;
+
+      let clickHide = e => {
+        this.fileUploadShow = false;
+        lists.stageHoverIsShow = false;
+
+        $(document).unbind("click", clickHide);
+      };
+      $(document).bind("click", clickHide);
+
+    },
     // serchPartitionAndTask
     serchPartitionAndTask(value) {
       this.getProjectAll(value, this.projectId);
@@ -1231,11 +1277,11 @@ export default {
     haha(event, lists) {
       this.riliPageX = event.pageX;
       this.riliPageY = event.pageY;
-      this.stageHoverIsShow = true;
+      lists.stageHoverIsShow = true;
+      this.riliIsShow = true;
       this.partitionsList = [...this.partitionsList];
       let clickHide = e => {
-        // this.stageHoverIsShow = false;
-        this.partitionsList = [...this.partitionsList];
+        lists.stageHoverIsShow = false;
         $(document).unbind("click", clickHide);
       };
       $(document).bind("click", clickHide);
@@ -1463,7 +1509,6 @@ export default {
     },
     async addPeople(event, list, item, index, element) {
       this.addPopShow = true;
-      console.log(this.addPopShow)
       this.addPopShowPageX = event.pageX;
       this.addPopShowPageY = event.pageY;
       let userlist = [];
@@ -2013,18 +2058,19 @@ export default {
       })
     },
 
-
     // 文件上传--------------------------------start
     // 当前点击的是哪个分组的上传
     handleClickUpload(item, lists, element, name) {
-
-
+      item = this.nowClickItem;//当前点击的上传列表
+      lists = this.nowClickLists; //当前点击的上传列表
+      element = this.nowClickElment; //当前点击的上传列表
+      name = this.nowClickName; //当前点击的上传列表
       lists.stageHoverIsShow = false;
-      this.partitionsList = [...this.partitionsList];
       this.fileNum = lists.fileCont;
       this.filePartitionId = 0;
       this.notGroupedList = lists.fileNames;
       this.nowUploadId = { 'name': name, 'taskId': item.taskId, 'stage': lists.stageId, 'partitionId': element.partitionId };
+      this.partitionsList = [...this.partitionsList];
     },
     // 关闭文件上传视图
     closeProgress() {
@@ -2061,7 +2107,6 @@ export default {
           this.$refs.fileUpload.httpRequest = this.uploadFile(formData, file);
         }
       });
-
     },
     // 重新上传的请求
     uploadFile(formData, file) {
@@ -2186,6 +2231,8 @@ export default {
     // 文件上传成功
     uploadSuccess(res, _file) {
       this.fileNum++;
+      this.fileUploadShow = false;
+
       if (this.nowUploadId.name == 'noPartitions') {
         let index = this.noPartitions.taskList.findIndex(res => {
           return res.taskId == this.nowUploadId.taskId;
@@ -2279,7 +2326,40 @@ export default {
 
 <style lang="less">
 @import "../../../assets/css/base.less";
+.drop-down-more {
+  position: fixed;
+  z-index: 100;
+  top: 100px;
+  left: 100px;
+  width: 146px;
+  padding: 5px 0;
+  .box_sizing;
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0px 1px 4px 0px rgba(59, 81, 133, 0.3);
+  border-radius: 4px;
+  color: #333333;
+  .upload_file {
+    .el-upload {
+      width: 100%;
+    }
+    span {
+      text-align: left;
+      display: block;
+      width: 100%;
+      height: 32px;
+      line-height: 32px;
+      padding: 0 24px;
+      .box_sizing;
+    }
+    // position: fixed;
+    // z-index: 100;
+  }
 
+  span:hover {
+    background: #f2f2f2;
+    color: #3762eb;
+  }
+}
 .drag_userImg {
   img {
     width: 18px;
@@ -2382,16 +2462,10 @@ export default {
   .participant_y {
     position: fixed;
   }
-  .upload_file {
-    position: fixed;
-    z-index: 100;
-  }
+
   .el-date-editor--datetimerange {
     position: fixed;
     z-index: 100;
-
-    // top:0;
-    // left: 0;
     // 日历
     .el-date-editor {
       width: 20px;
