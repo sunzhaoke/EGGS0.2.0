@@ -17,7 +17,7 @@ export default {
     },
     methods: {
         returnBack() {
-            this.$router.push('/notice');
+            this.$router.push({name: 'ProjectInfo', params: {projectId: this.$route.params.projectId}});
         }
     },
     created() {
@@ -26,7 +26,7 @@ export default {
             if(this.times <= 0) {
                 clearInterval(this.setTime);
                 this.setTime = null;
-                this.$router.push('/notice');
+                this.$router.push({name: 'ProjectInfo', params: {projectId: this.$route.params.projectId}});
             }
         }, 1000);
     },

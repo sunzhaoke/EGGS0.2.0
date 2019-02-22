@@ -255,7 +255,8 @@
         </div>
       </div>
       <div class="filed classify clearfix">
-        <div class="titleBox">
+        <div class="title cur active" v-if="fillShowAll" @click="fillShowAll=!fillShowAll">显示已归档项目({{fillLength}})</div>
+        <div class="titleBox" v-if="!fillShowAll">
           <span class="title cur"
                 :class="checkIndex==index?'active':'' "
                 v-for=" (li,index) in pigeonholeAndconnect"
@@ -263,12 +264,9 @@
                 :key="index">{{li.name}} &nbsp;</span>
           <span class="cur"
                 v-if="showButton"
-                @click="showAll">隐藏</span>
-          <span class="cur"
-                v-else
-                @click="showAll">显示</span>
+                @click="fillShowAll=!fillShowAll">隐藏</span>
         </div>
-        <div v-if="showButton">
+        <div v-if="!fillShowAll">
           <div class="card fl"
                v-for="(list,index) in projectArchiveList"
                :key="index"
@@ -365,6 +363,7 @@ export default {
   // props: ["Info"],
   data() {
     return {
+      fillShowAll:true, //归档文件 显示全部
       info: "",
       userId: "",
       options: [
@@ -382,6 +381,7 @@ export default {
       myResponsibleList: [], //
       I_participatein: [], //我参与的列表
       projectArchiveList: [], //项目归档列表
+      fillLength:'', //项目归档数目
       OtherfeatureLists: [
         { name: "项目信息", id: 0 },
         { name: "项目记录", id: 1 },
@@ -557,6 +557,8 @@ export default {
       let data = { createrId: this.createrId };
       this.$HTTP("post", "/project_getSaveListByCreaterId", data).then(res => {
         this.projectArchiveList = res.result;
+        // console.log(this.projectArchiveList.length)
+        this.fillLength=this.projectArchiveList.length;
         for (var item of this.projectArchiveList) {
           if (item.saveTime) {
             let i = item.saveTime.split(" ");

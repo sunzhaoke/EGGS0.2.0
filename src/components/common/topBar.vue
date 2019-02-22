@@ -6,70 +6,60 @@
          alt="">
     <div class="otherButton fr clearfix">
       <ul class="clearfix">
-        <li class="last">
-          <el-dropdown trigger="click">
-            <span class="el-dropdown-link">
+        <span ref='userInfo'>
+          <li class="last">
+            <el-dropdown trigger="click">
+              <span class="el-dropdown-link">
               {{staffInfo.realName ? staffInfo.realName : 'Happy work'}}
               <i class="el-icon-arrow-down el-icon--right"></i>
-            </span>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item>
                 <router-link tag="li"
-                             to='/myCenter'>
-                  个人中心
+                to='/myCenter'>
+                个人中心
                 </router-link>
-              </el-dropdown-item>
-              <el-dropdown-item>系统设置</el-dropdown-item>
-              <el-dropdown-item>问题反馈</el-dropdown-item>
-              <el-dropdown-item @click.native="exitLogin">
+                </el-dropdown-item>
+                <el-dropdown-item>系统设置</el-dropdown-item>
+                <el-dropdown-item>问题反馈</el-dropdown-item>
+                <el-dropdown-item @click.native="exitLogin">
                 退出登录
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </li>
-        <li class="imgboxB">
-          <span class="imgbox">
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </li>
+          <li class="imgboxB">
+            <span class="imgbox">
             <img :src="staffInfo.pic"
-                 v-if='staffInfo.pic'
-                 class="userImg"
-                 alt="">
+              v-if='staffInfo.pic'
+              class="userImg"
+              alt="">
             <img src="../../assets/img/load.gif"
-                 v-else
-                 class="userImg"
-                 alt="">
-          </span>
-
-        </li>
+              v-else
+              class="userImg"
+              alt="">
+            </span>
+          </li>
+        </span>
         <li>
-          <el-tooltip effect="dark"
-                      content="刷新"
-                      placement="top"
-                      :open-delay="300">
-            <i class="iconfont  icon-shuaxin"
-               @click="refresh"></i>
+          <el-tooltip effect="dark" content="刷新" placement="top" :open-delay="300">
+            <i class="iconfont  icon-shuaxin" @click="refresh"></i>
           </el-tooltip>
         </li>
-        <li class="notice_icon">
-          <el-tooltip effect="dark"
-                      content="消息通知"
-                      placement="top"
-                      :open-delay="300">
-            <i class="iconfont icon-tongzhi"
-               @click.stop='clickNotice'></i>
+        <li class="notice_icon" @mouseenter.stop="getNoticeNum()" @click.stop='clickNotice'>
+          <el-tooltip effect="dark" content="消息通知" placement="top" :open-delay="300">
+            <i class="iconfont icon-tongzhi"></i>
           </el-tooltip>
-          <span v-if="Number(unreadNum)"
-                class="unread"
-                @click.stop='clickNotice'>{{unreadNum > 99 ? '···' : unreadNum}}</span>
+          <span v-if="Number(unreadNum)" class="unread">{{unreadNum > 99 ? '···' : unreadNum}}</span>
           <transition name="fade1">
-            <notice-page v-if='noticeShow'
-                         @enterAll='enterAll' />
+            <notice-page 
+              v-if='noticeShow' 
+              @enterAll='enterAll'
+              />
           </transition>
         </li>
         <li @click="friend">
-          <el-tooltip effect="dark"
-                      content="好友管理"
-                      placement="top"
-                      :open-delay="300">
+          <el-tooltip effect="dark" content="好友管理" placement="top" :open-delay="300">
             <i class="iconfont icon-haoyouliebiao"></i>
           </el-tooltip>
         </li>
@@ -79,26 +69,28 @@
 </template>
 <script>
 import noticePage from "../notice";
-import { mapState } from 'vuex';
-import { setCookie } from '../../api/cookie';
+import { mapState, mapMutations } from "vuex";
+import { setCookie } from "../../api/cookie";
 
 export default {
   components: {
-    noticePage,
+    noticePage
   },
-  inject: ['reload'],
+  inject: ["reload"],
   data() {
     return {
       staffInfo: "",
       createrId: "",
       setListShow: false,
       noticeShow: false,
+      noticeInterval: null
     };
   },
   computed: {
-    ...mapState(['unreadNum']),
+    ...mapState(["unreadNum"])
   },
   methods: {
+    ...mapMutations(["UNREAD_CHANGE"]),
     // 刷新页面
     refresh() {
       this.reload();
@@ -112,9 +104,25 @@ export default {
       }
       let clickHide = e => {
         this.noticeShow = false;
-        $(document).unbind("click", clickHide)
+        $(document).unbind("click", clickHide);
       };
-      $(document).bind("click", clickHide)
+      $(document).bind("click", clickHide);
+    },
+    // 获取未读消息数量
+    getNoticeNum(userId) {
+      return new Promise((resolve, reject) => {
+        let obj = { userId: userId ? userId : this.staffInfo.userPkid };
+        this.$HTTP("post", "/user_get_notificationListCount", obj)
+          .then(res => {
+            this.UNREAD_CHANGE(parseInt(res.result));
+            // console.log("消息列表数量", res);
+            resolve(true);
+          })
+          .catch(err => {
+            console.log("消息列表数量获取失败", err);
+            reject(err);
+          });
+      });
     },
     enterAll() {
       this.noticeShow = false;
@@ -125,23 +133,35 @@ export default {
     // 退出登录
     exitLogin() {
       localStorage.setItem("staffInfo", "");
-      setCookie('RememberYourPassword', 0);
+      setCookie("RememberYourPassword", 0);
       this.$router.push("/login");
     },
     // 获取个人信息
     getInfo(userpkid) {
-      let data = { userPkid: userpkid };
-      this.$HTTP("post", "/user_get", data).then(res => {
-        localStorage.setItem("staffInfo", JSON.stringify(res.result));
-        this.staffInfo = res.result;
-        this.createrId = this.staffInfo.userPkid;
+      return new Promise((resolve, reject) => {
+        let data = { userPkid: userpkid };
+        this.$HTTP("post", "/user_get", data)
+          .then(res => {
+            localStorage.setItem("staffInfo", JSON.stringify(res.result));
+            this.staffInfo = res.result;
+            this.createrId = this.staffInfo.userPkid;
+            resolve(true);
+          })
+          .catch(err => {
+            reject(err);
+          });
       });
-    },
+    }
   },
-  created() {
+  async created() {
     if (localStorage.getItem("staffInfo")) {
       let staffInfo = JSON.parse(localStorage.getItem("staffInfo"));
-      this.getInfo(staffInfo.userPkid)
+      try {
+        await this.getInfo(staffInfo.userPkid);
+        await this.getNoticeNum(staffInfo.userPkid);
+      } catch (err) {
+        console.log(err);
+      }
     }
     let urls = decodeURI(window.location.href).split("?")[1];
     if (urls) {
@@ -149,7 +169,7 @@ export default {
         .split("?")[1]
         .split("&");
 
-      if (url[0].split("=")[0] == 'userId') {
+      if (url[0].split("=")[0] == "userId") {
         let userId = url[0].split("=")[1];
         this.getInfo(userId);
       } else {
@@ -171,6 +191,13 @@ export default {
     //   }
     //   _this.setListShow = true;
     // });
+    this.noticeInterval = setInterval(() => {
+      this.getNoticeNum();
+    }, 1000 * 10);
+  },
+  beforeDestroy() {
+    clearInterval(this.noticeInterval);
+    this.noticeInterval = null;
   }
 };
 </script>
@@ -219,24 +246,25 @@ export default {
       border: none;
       color: #333333;
       i {
-        font-size: 12px;
+      font-size: 12px;
       }
     }
     .imgboxB {
       border: none;
-    }
-    .imgbox {
-      display: inline-block;
-      width: 28px !important;
-      height: 28px;
-      overflow: hidden;
-      .border_radius(@br: 3px);
-      .userImg {
+      .imgbox {
+        display: inline-block;
+        width: 28px !important;
+        height: 28px;
+        overflow: hidden;
+        .border_radius(@br: 3px);
+        .userImg {
         display: inline-block;
         vertical-align: middle;
         width: 28px;
+        }
       }
     }
+
     .notice_icon {
       position: relative;
       .unread {

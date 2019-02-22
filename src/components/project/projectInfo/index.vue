@@ -139,7 +139,7 @@
                                 content="默认分区无法移动"
                                 placement="top-start">
                       <span class="icon">
-                        <i class="iconfont icon-pailie"></i>
+                        <i class="iconfont  icon-pailie"></i>
                       </span>
                     </el-tooltip>
                     <el-tooltip class="item"
@@ -331,7 +331,7 @@
                           <!--1. 参与与不参与 都显示详细内容  -->
                           <div class="stageHover"
                                :class="{'stageHoverShow':lists.stageHoverIsShow}"
-                               v-if="lists.stageTaskState===false&&lists.enabled===true||lists.enabled===''">
+                               v-if="lists.stageTaskState==false&&lists.enabled===true||lists.enabled===''">
                             <el-tooltip class="item"
                                         effect="dark"
                                         :open-delay="300"
@@ -341,7 +341,7 @@
                                         v-if="!lists.isPartIn">
                               <el-button>
                                 <span class="iconBg">
-                                  <i class="iconfont icon-jiaru-1"></i>
+                                  <i class="iconfont iconfontno icon-jiaru-1"></i>
                                 </span>
                               </el-button>
                             </el-tooltip>
@@ -354,7 +354,7 @@
                                         v-if="lists.isPartIn">
                               <el-button>
                                 <span class="iconBg">
-                                  <i class="iconfont icon-tuichu-"></i>
+                                  <i class="iconfont iconfontno icon-tuichu-"></i>
                                 </span>
                               </el-button>
                             </el-tooltip>
@@ -366,7 +366,7 @@
                                         placement="top-start">
                               <el-button class="timeShow">
                                 <span class="iconBg">
-                                  <i class="iconfont icon-xiangqing"></i>
+                                  <i class="iconfont iconfontno icon-xiangqing"></i>
                                 </span>
                               </el-button>
                             </el-tooltip>
@@ -391,55 +391,32 @@
                                 </div>
                               </el-button>
                             </el-tooltip>
-                            <div class="people ml-5">
-                              <div class="add_people_box"
-                                   @click.stop="addPeople(item,lists,index,noPartitions)">
-                                <el-tooltip class="item"
-                                            effect="dark"
-                                            content="添加成员"
-                                            :open-delay="300"
-                                            placement="top-start">
-                                  <el-button>
-                                    <i class="iconfont icon-tianjiarenyuan otherColor"></i>
-                                  </el-button>
-                                </el-tooltip>
-                                <el-collapse-transition>
-                                  <Participant v-if="lists.addPopShow"
-                                               ref="addPeople"
-                                               id="addPeople"
-                                               :creatorId="userPkid"
-                                               :defaultKeys="defaultKeys"
-                                               :userList="userList"
-                                               @handleSure="addPeopleSure"
-                                               @handleInvite="invitePeople" />
-                                </el-collapse-transition>
-                              </div>
-                            </div>
+                            <!-- 添加人员 -->
+                            <el-tooltip class="item ml-5"
+                                        effect="dark"
+                                        content="添加成员"
+                                        :open-delay="300"
+                                        @click.native="addPeople($event,item,lists,index,noPartitions)"
+                                        placement="top-start">
+                              <el-button class="timeShow">
+                                <i class="iconfont icon-tianjiarenyuan otherColor hover"></i>
+                              </el-button>
+                            </el-tooltip>
+
                             <!-- 文件上传 -->
-                            <el-dropdown placement="bottom"
-                                         trigger="click"
-                                         @visible-change='uploadVistible($event)'>
-                              <i class='iconfont icon-shangchuan'
-                                 :class="{'cur_dis':!lists.isPartIn}"></i>
-                              <el-dropdown-menu slot="dropdown"
-                                                v-show="false">
-                                <el-dropdown-item @click.native="handleClickUpload(item,lists,element,'partitions')">
-                                  <el-upload ref="fileUpload"
-                                             class="upload_file"
-                                             :action="'/ProjectFile.ashx?&myUserId='+userPkid+'&projectId='+item.taskId+'&stageTaskId='+lists.stageTaskId+'&filePartitionId=0'"
-                                             :show-file-list="false"
-                                             :multiple="true"
-                                             :on-error="uploadError"
-                                             :on-success="uploadSuccess"
-                                             :on-progress="uploadProgress"
-                                             :limit="9"
-                                             :on-exceed="handleExceed"
-                                             :before-upload="beforeUpload">本地上传
-                                  </el-upload>
-                                </el-dropdown-item>
-                                <!-- <el-dropdown-item>从个人文档上传</el-dropdown-item> -->
-                              </el-dropdown-menu>
-                            </el-dropdown>
+                            <el-tooltip class="item ml-5"
+                                        effect="dark"
+                                        :content="lists.isPartIn?'上传文件': '需要先参与任务'"
+                                        :open-delay="300"
+                                        placement="top-start">
+                              <el-button>
+                                <i class="iconfont icon-shangchuan otherColor"
+                                   v-if="lists.isPartIn"
+                                   @click.stop="fileUpload($event,item,lists,noPartitions,'noPartitions')"></i>
+                                <i class="iconfont icon-shangchuan otherColor cur_dis"
+                                   v-else></i>
+                              </el-button>
+                            </el-tooltip>
 
                             <el-tooltip class="item ml-5"
                                         effect="dark"
@@ -477,7 +454,7 @@
                                         placement="top-start">
                               <el-button class="timeShow">
                                 <span class="iconBg">
-                                  <i class="iconfont icon-xiangqing"></i>
+                                  <i class="iconfont iconfontno icon-xiangqing"></i>
                                 </span>
                               </el-button>
                             </el-tooltip>
@@ -619,6 +596,7 @@
                       <div type="text"
                            class="stageTittle"
                            contenteditable="true"
+                           
                            @keydown='checkEnter'
                            v-html="element.partitionTitle"
                            @blur="partitionBlur(element,indexs,element.partitionTitle)"
@@ -782,7 +760,7 @@
                               <!--1. 参与与不参与 都显示详细内容  -->
                               <div class="stageHover"
                                    :class="{'stageHoverShow':lists.stageHoverIsShow}"
-                                   v-if="lists.stageTaskState===false&&lists.enabled===true||lists.enabled===''">
+                                   v-if="lists.stageTaskState==false&&lists.enabled===true||lists.enabled===''">
                                 <el-tooltip class="item"
                                             effect="dark"
                                             content="参与任务"
@@ -792,7 +770,7 @@
                                             v-if="!lists.isPartIn">
                                   <el-button>
                                     <span class="iconBg">
-                                      <i class="iconfont icon-jiaru-1"></i>
+                                      <i class="iconfont icon-jiaru-1 iconfontno"></i>
                                     </span>
                                   </el-button>
                                 </el-tooltip>
@@ -805,7 +783,7 @@
                                             v-if="lists.isPartIn">
                                   <el-button>
                                     <span class="iconBg">
-                                      <i class="iconfont icon-tuichu-"></i>
+                                      <i class="iconfont icon-tuichu- iconfontno"></i>
                                     </span>
                                   </el-button>
                                 </el-tooltip>
@@ -817,7 +795,7 @@
                                             placement="top-start">
                                   <el-button class="timeShow">
                                     <span class="iconBg">
-                                      <i class="iconfont icon-xiangqing"></i>
+                                      <i class="iconfont iconfontno icon-xiangqing "></i>
                                     </span>
                                   </el-button>
                                 </el-tooltip>
@@ -829,29 +807,32 @@
                                             @click.native="addPeople($event,item,lists,index,element)"
                                             placement="top-start">
                                   <el-button class="timeShow">
-                                    <i class="iconfont icon-tianjiarenyuan otherColor"></i>
+                                    <i class="iconfont icon-tianjiarenyuan otherColor hover"></i>
                                   </el-button>
                                 </el-tooltip>
-                                <!-- 添加时间 -->
-                                <el-tooltip class="item ml-5"
+
+                                <el-tooltip class="item"
                                             effect="dark"
                                             content="添加时间"
                                             :open-delay="300"
-                                            @click.native.stop="haha($event,lists)"
+                                            @click.native.stop="haha(lists)"
                                             placement="top-start">
                                   <el-button>
-                                    <i class="iconfont iconrili1 otherColor"></i>
-                                    <el-date-picker v-model="value6"
-                                                    id='rili'
-                                                    prefix-icon='iconfont icon-rili1'
-                                                    type="datetimerange"
-                                                    :clearable='false'
-                                                    popper-class="stage_time"
-                                                    @change="checkTime(item,value6)"
-                                                    range-separator="至">
-                                    </el-date-picker>
+                                    <div class="calendar">
+                                      <el-date-picker v-model="value6"
+                                                      prefix-icon='iconfont icon-rili1'
+                                                      type="datetimerange"
+                                                      :clearable='false'
+                                                      popper-class="stage_time"
+                                                      @change="checkTime(item,lists,value6)"
+                                                      range-separator="至"
+                                                      start-placeholder="开始日期"
+                                                      end-placeholder="结束日期">
+                                      </el-date-picker>
+                                    </div>
                                   </el-button>
                                 </el-tooltip>
+
                                 <!-- 文件上传 -->
                                 <el-tooltip class="item ml-5"
                                             effect="dark"
@@ -900,7 +881,7 @@
                                             placement="top-start">
                                   <el-button class="timeShow">
                                     <span class="iconBg">
-                                      <i class="iconfont icon-xiangqing"></i>
+                                      <i class="iconfont iconfontno icon-xiangqing"></i>
                                     </span>
                                   </el-button>
                                 </el-tooltip>
@@ -1087,7 +1068,7 @@ import UploadProgress from "../../common/uploadProgress";
 import AddPeople from "../../common/addPeople";
 import Reminder2 from "../../common/reminder2";
 import draggable from "vuedraggable";
-import clusterize from "vue-clusterize"
+// import clusterize from "vue-clusterize"
 // import { constants } from 'http2';
 export default {
   components: {
@@ -1099,7 +1080,7 @@ export default {
     Participant,
     UploadProgress,
     AddPeople,
-    "clusterize": clusterize
+    // "clusterize": clusterize
   },
   data() {
     return {
@@ -1250,7 +1231,7 @@ export default {
   ,
   methods: {
     fileUpload(event, item, lists, elment, name) {
-      console.log('ddddd', item, lists)
+
       this.nowClickItem = item; //当前点击的上传列表
       this.nowClickLists = lists; //当前点击的上传列表
       this.nowClickName = name;//当前点击的上传列表
@@ -1264,7 +1245,6 @@ export default {
       let clickHide = e => {
         this.fileUploadShow = false;
         lists.stageHoverIsShow = false;
-
         $(document).unbind("click", clickHide);
       };
       $(document).bind("click", clickHide);
@@ -1274,11 +1254,8 @@ export default {
     serchPartitionAndTask(value) {
       this.getProjectAll(value, this.projectId);
     },
-    haha(event, lists) {
-      this.riliPageX = event.pageX;
-      this.riliPageY = event.pageY;
+    haha(lists) {
       lists.stageHoverIsShow = true;
-      this.riliIsShow = true;
       this.partitionsList = [...this.partitionsList];
       let clickHide = e => {
         lists.stageHoverIsShow = false;
@@ -2232,7 +2209,6 @@ export default {
     uploadSuccess(res, _file) {
       this.fileNum++;
       this.fileUploadShow = false;
-
       if (this.nowUploadId.name == 'noPartitions') {
         let index = this.noPartitions.taskList.findIndex(res => {
           return res.taskId == this.nowUploadId.taskId;
@@ -2302,6 +2278,7 @@ export default {
           return res.projectid == this.projectId;
         })
         this.selectedProject = this.projectList[index].title;
+        console.log(this.projectList[index].title,this.projectList[index]);
         this.starFlag = this.projectList[index].isStar;
       })
     }
@@ -2326,6 +2303,9 @@ export default {
 
 <style lang="less">
 @import "../../../assets/css/base.less";
+.iconfont:hover {
+  color: @mainColor !important;
+}
 .drop-down-more {
   position: fixed;
   z-index: 100;
@@ -2376,9 +2356,6 @@ export default {
   z-index: 100;
 }
 
-.ml-5 {
-  margin-left: 5px !important;
-}
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.1s;
@@ -2463,22 +2440,22 @@ export default {
     position: fixed;
   }
 
-  .el-date-editor--datetimerange {
-    position: fixed;
-    z-index: 100;
-    // 日历
-    .el-date-editor {
-      width: 20px;
-      border: none;
-      input,
-      span {
-        display: none;
-      }
-    }
-    i {
-      color: #666666;
-    }
-  }
+  // .el-date-editor--datetimerange {
+  //   position: fixed;
+  //   z-index: 100;
+  //   // 日历
+  //   .el-date-editor {
+  //     width: 20px;
+  //     border: none;
+  //     input,
+  //     span {
+  //       display: none;
+  //     }
+  //   }
+  //   i {
+  //     color: #666666;
+  //   }
+  // }
   .icon-unfold {
     font-size: 12px !important;
   }
@@ -2522,7 +2499,6 @@ export default {
       line-height: 50px;
       vertical-align: middle;
       margin-left: 10px;
-
       .add_people_box {
         position: relative;
       }
@@ -2749,13 +2725,19 @@ export default {
                     padding: 15px 35px;
                     display: none;
                     .box_sizing;
+                    .iconfontno:hover {
+                      color: #fff !important;
+                    }
                     i {
                       font-size: 14px !important;
                     }
                     .el-button {
+                      margin-top: 8px;
+                      // width: 17px;
                       border: none !important;
                       background: none;
                       padding: 0 !important;
+                      // color: red;
                       i {
                         color: #fff;
                         font-size: 14px;
@@ -2763,10 +2745,22 @@ export default {
                       .otherColor {
                         color: #666666;
                       }
+
                       .calendar {
                         width: 14px;
+                        margin-left: -7px;
                         .el-date-editor {
-                          width: 14px;
+                          width: 20px;
+                          height: 15px;
+                          border: none;
+                          input,
+                          span {
+                            display: none;
+                          }
+                        }
+                        i {
+                          line-height: 14px;
+                          color: #666666;
                         }
                       }
                     }
@@ -2851,7 +2845,7 @@ export default {
                     display: inline-block;
                     height: 100%;
                     width: 100%;
-                    z-index: 100;
+                    z-index: 10;
                     background: #ffffff;
                     text-align: center;
                     // opacity: 0;
@@ -3049,7 +3043,8 @@ export default {
                     z-index: 3;
                     padding: 15px 35px;
                     .box_sizing;
-                    // animation: ttt 0.5s 1 forwards;
+                    animation: ttt 0.5s 1 forwards;
+                   
                   }
                   .closeHover {
                     display: block;

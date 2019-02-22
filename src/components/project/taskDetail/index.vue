@@ -45,7 +45,7 @@
       <div class="detail_left">
           <div 
               class="task_group"
-              v-for="(group, index) in this.tasksList"
+              v-for="(group, index) in tasksList"
               :key="group.partitionId"
               >
               <div class="group_title" @click='extendToggle(index)'>
@@ -916,6 +916,8 @@
                   <demand-view
                   :taskTitle='stageInfo.title'
                   :list='demandList'
+                  :noticeType="noticeType"
+                  :noticeFile="noticeFile"
                   @handleCollect="sendCollection"
                   ref="demandView"
                   />
@@ -1354,6 +1356,8 @@ export default {
       lastTime: null, // 判断失焦和进入详情的间隔
       enterEdit: false, // enter保存
       stateTooltip: ['已开启', '已完成', '未开始', '进行中', '已超时', '已关闭'],
+      noticeType: null, // 是否从消息提醒过来的，类型是多少
+      noticeFile: null, 
 
     };
   },
@@ -1512,7 +1516,8 @@ export default {
           this.stageInfo.stageList[x].stageTitle, 
           this.stageInfo.fileList[groupIndex].groupName, 
           this.stageInfo.fileList[groupIndex].fileList[index].FileName
-          ]
+          ],
+          noticeType: this.noticeType
       }
       this.filedetailsShow = true;
       
@@ -1762,7 +1767,7 @@ export default {
           myUserId: this.idList.userId,
         }
         this.$HTTP('post', '/demand_list', obj, $('#app')[0]).then(res => {
-          // console.log(res.result);
+          // console.log('相关需求',res.result);
           this.demandList = [...res.result];
           this.demandOrGain = flag;
         }).catch(err => {
@@ -3880,8 +3885,14 @@ export default {
           for (let y of this.tasksList) {
             y.extend = true;
           }
+
           // console.log("获取任务列表", this.tasksList);
-          this.taskStageDetail(this.taskId ,this.stageId);
+          this.taskStageDetail(this.taskId ,this.stageId)
+          .then(() => {
+            if(this.noticeFile) {
+              this.searchIndex(this.noticeFile);
+            }
+          });
         })
         .catch(err => {
           console.log("获取任务列表失败", err);
@@ -3895,7 +3906,7 @@ export default {
 
     // 任务/阶段--详情
     taskStageDetail(taskId, stageId) {
-      return new Promise(() => {
+      return new Promise((resolve, reject) => {
         this.initData(); // 初始化数据
         this.taskId = taskId;
         this.stageId = stageId;
@@ -3908,14 +3919,19 @@ export default {
         let obj = {
           myUserId: this.userId,
           projectId: this.projectId,
-          stageId: this.stageId,
+          stageId: this.stageId, 
           taskId: this.taskId,
+
         }
         this.$HTTP("post", "/stagetask_get", obj, $('#app')[0])
         .then(res => {
-          this.dataProcessing(res.result);
+          if(res.code === '1') {
+            this.$router.push({name: 'NoTask', params: {projectId: this.projectId}});
+          }else {
+            this.dataProcessing(res.result);
+          }
           // console.log("获取任务详情", res.result);
-
+          resolve(true);
         })
         .catch(err => {
           console.log("获取任务详情失败", err);
@@ -3924,6 +3940,8 @@ export default {
             message: '获取任务详情失败，请检查网络',
             center: true
           });
+          reject(err);
+
         });
       });
     },
@@ -3973,7 +3991,11 @@ export default {
       this.stageInfo.fileList = returnList.concat();
       this.$nextTick(() => {
         this.$refs.stageManage && this.$refs.stageManage.setData(this.stageInfo);
-        document.getElementById('selectTask').scrollIntoView({behavior: "smooth"});
+        let doc = document.getElementById('selectTask');
+        if(doc) {
+          doc.scrollIntoView({behavior: "smooth"});
+        }
+        
       });
       this.countFileOne();
       this.idList = null;
@@ -4035,6 +4057,18 @@ export default {
         resolve(arrList);
       });
     },
+    // 从通知点击过来查看文件
+    searchIndex(id) {
+      let list1 = [...this.stageInfo.fileList];
+      for(let x = 0; x < list1.length; x++) {
+        let list2 = list1[x].fileList;
+        for(let y = 0; y < list2.length; y++) {
+          if(list2[y].FilePkid === id) {
+            return this.enterTheDetails(y, x);
+          }
+        }
+      }
+    }
     // 获取数据及处理--------------------------------end
 
 
@@ -4048,12 +4082,25 @@ export default {
     }else {
       params = JSON.parse(localStorage.getItem('getTaskIds'));
     }
-    console.log(params);
     this.projectId = params.projectId;
     this.stageId = params.stageId.toString();
     this.taskId = params.taskId;
+    this.noticeType = params.type ? params.type : null;
+    if(this.noticeType && (this.noticeType === 5 ||  this.noticeType === 6 || this.noticeType === 11 || this.noticeType === 12)) {
+      this.noticeFile = params.noticeFile ? params.noticeFile : 1483;
+    }
+    this.idList = {
+      userId: this.userId,
+      projectId: this.projectId,
+      stageId: this.stageId,
+      taskId: this.taskId,
+    }
+    // console.log(params);
     this.getTaskList(this.projectId); // 获取任务列表
     
+    if(params.type && (params.type === 7 || params.type === 11)) { // 相关需求
+      this.demandOrGainChange(false);
+    }
   },
   mounted() {
     let _ = this;

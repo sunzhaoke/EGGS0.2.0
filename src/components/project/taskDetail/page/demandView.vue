@@ -210,7 +210,7 @@ import { mapState } from 'vuex';
 import FileDetails from '../../fileDetails';
 
 export default {
-    props: ['list', 'taskTitle'],
+    props: ['list', 'taskTitle', 'noticeType', 'noticeFile'],
     components: {
         FileDetails
     },
@@ -298,10 +298,10 @@ export default {
                     parthsInfo.oldstageTitle, 
                     parthsInfo.fileList[groupIndex].GroupName, 
                     parthsInfo.fileList[groupIndex].fileList[index].FileName
-                ]
+                ],
+                noticeType: this.noticeType
             }
             this.filedetailsShow = true;
-            
         },
         // 关闭文件详情
         closeDetails() {
@@ -560,6 +560,7 @@ export default {
         addFileAttr(obj) {
             let len = obj.Type.length;
             let title = obj.FileName.slice(0, obj.FileName.length - (len + 1));
+            console.log(title);
             let data = {
                 checked: false,
                 hover: false,
@@ -571,6 +572,22 @@ export default {
                 data.UrlMin = this.fileTypeImg[data.FileType].src;
             }
             return data;
+        },
+        // 从通知点击过来查看文件
+        searchIndex(id) {
+            let list1 = [...this.demandList];
+            for(let x = 0; x < list1.length; x++) {
+                let list2 = list1[x].fileList;
+                for(let y = 0; y < list2.length; y++) {
+                    let list3 = list2[y].fileList;
+                    for(let z = 0; z < list3.length; z++) {
+                        let list3 = list2[y].fileList;
+                        if(list3[z].FilePkid === id) {
+                            return this.enterTheDetails(z, y, x);
+                        }
+                    }
+                }
+            }
         },
 
         // 数据的获取和设置
@@ -588,7 +605,11 @@ export default {
                     }
                 }
             }
-            console.log('相关需求~~~~', this.demandList);
+            if(this.noticeType === 11 && this.noticeFile) {
+                this.searchIndex(this.noticeFile);
+                console.log('相关需求~~~~', this.demandList, this.noticeType, this.noticeFile);
+
+            }
         },
     },
     created() {

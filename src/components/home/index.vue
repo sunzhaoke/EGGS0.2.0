@@ -16,7 +16,6 @@ import leftNav from "../common/left";
 import topBar from "../common/topBar";
 import noticeAll from "../notice/noticeAll";
 import { setCookie, getCookie } from '../../api/cookie';
-import { mapState, mapMutations } from 'vuex';
 
 export default {
   components: {
@@ -27,11 +26,9 @@ export default {
   data() {
     return {
       userId: '',
-      noticeInterval: null,
     };
   },
   methods: {
-    ...mapMutations(['UNREAD_CHANGE']),
     // 获取个人信息
     getInfo(userpkid) {
       let data = { userPkid: userpkid };
@@ -45,19 +42,6 @@ export default {
       this.$HTTP('post', '/user_friends_add', obj).then(res => {
         console.log(res)
       })
-    },
-    // 获取未读消息数量
-    getNoticeNum() {
-      let obj = { userId: this.userId };
-      this.$HTTP("post", "/user_get_notificationListCount", obj)
-        .then(res => {
-          this.UNREAD_CHANGE(parseInt(res.result));
-
-          // console.log("消息列表数量", res);
-        })
-        .catch(err => {
-          console.log("消息列表数量获取失败", err);
-        });
     },
 
   },
@@ -101,19 +85,9 @@ export default {
     } else {
       this.$router.push("/login");
     }
-    this.getNoticeNum();
 
   },
-  mounted() {
-    this.noticeInterval = setInterval(() => {
-      this.getNoticeNum();
-    }, 1000 * 10);
-    
-  },
-  beforeDestroy() {
-    clearInterval(this.noticeInterval);
-    this.noticeInterval = null;
-  }
+
 };
 </script>
 <style lang='less'>
@@ -129,8 +103,8 @@ export default {
     width: 100x;
     height: 100%;
     background: #ffffff;
-    border-right: 1px solid #EEEEEE;
     // box-shadow: -1px 0px 4px 0px rgba(95, 95, 95, 0.3);
+    border-right: 1px solid #EEEEEE;
     position: fixed;
     top: 50px;
     left: 0;
@@ -143,7 +117,9 @@ export default {
     top: 0;
     height: 50px;
     background: #ffffff;
+    // box-shadow: 1px 0px 4px 0px rgba(95, 95, 95, 0.3);
     border-bottom: 1px solid #EEEEEE;
+
   }
   .maiContent {
     height: calc(100% - 50px);

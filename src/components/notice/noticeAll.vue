@@ -12,6 +12,7 @@
                 :class="item.Enabled ? false : 'is_read'"
                 v-for='(item, index) in noticeList'
                 :key='item.Pkid'
+                @click="enterDetail(item, index)"
                 >
                 <span class="left_header fl">
                     <img :src="item.userPic" alt="">
@@ -21,22 +22,24 @@
                         <span class="notice_from">{{item.userName}}</span>
                         <span class='location' v-if='item.Type !== 1 && item.Type !== 2 && item.Type !== 9'>{{item.ProjectTitle}}</span>
                     </div>
-                    <div class="notice_type" v-if='item.Type === 1'>已将你加入<span :class="item.Enabled ? 'mainColor_text' : 'read_style'" @click="enterDetail(item)">{{item.Content}}</span></div>
+                    <div class="notice_type" v-if='item.Type === 1'>已将你加入<span :class="item.Enabled ? 'mainColor_text' : 'read_style'">{{item.Content}}</span></div>
                     <div class="notice_type" v-else-if='item.Type === 2'>已将你移出<span class="gray_night">{{item.Content}}</span></div>
-                    <div class="notice_type" v-else-if='item.Type === 3'>已将你加入<span :class="item.Enabled ? 'mainColor_text' : 'read_style'" @click="enterDetail(item)">{{item.Content}}</span>阶段</div>
+                    <div class="notice_type" v-else-if='item.Type === 3'>已将你加入<span :class="item.Enabled ? 'mainColor_text' : 'read_style'">{{item.Content}}</span>阶段</div>
                     <div class="notice_type" v-else-if='item.Type === 4'>已将你移出<span class="gray_night">{{item.Content}}</span>阶段</div>
-                    <div class="notice_type" v-else-if='item.Type === 5'>评论<span :class="item.Enabled ? 'mainColor_text' : 'read_style'" @click="enterDetail(item)">{{item.Content}}</span>：{{item.Content}}</div>
-                    <div class="notice_type" v-else-if='item.Type === 6'>在评论 <span>{{item.userName}}</span>的<span :class="item.Enabled ? 'mainColor_text' : 'read_style'" @click="enterDetail(item)">{{item.Content}}</span>时@你：{{item.Content}}</div>
+                    <div class="notice_type" v-else-if='item.Type === 5'>评论<span :class="item.Enabled ? 'mainColor_text' : 'read_style'">{{item.Content}}</span>：{{item.Remarks}}</div>
+                    <div class="notice_type" v-else-if='item.Type === 11'>评论<span :class="item.Enabled ? 'mainColor_text' : 'read_style'">{{item.Content}}</span>：{{item.Remarks}}</div>
+                    <div class="notice_type" v-else-if='item.Type === 6'>在评论 <span>{{item.userName}}</span>的<span :class="item.Enabled ? 'mainColor_text' : 'read_style'">{{item.Content}}</span>时@你：{{item.Remarks}}</div>
                     <div class="notice_type" v-else-if='item.Type === 7'>已经完成工作并将文件移交给你</div>
-                    <div class="notice_type" v-else-if='item.Type === 8'>已将<span :class="item.Enabled ? 'mainColor_text' : 'read_style'" @click="enterDetail(item)">{{item.Content}}</span>交接给你</div>
-                    <div class="notice_type" v-else-if='item.Type === 9'>已将<span :class="item.Enabled ? 'mainColor_text' : 'read_style'" @click="enterDetail(item)">{{item.Content}}</span>归档</div>
+                    <div class="notice_type" v-else-if='item.Type === 8'>已将<span :class="item.Enabled ? 'mainColor_text' : 'read_style'">{{item.Content}}</span>交接给你</div>
+                    <div class="notice_type" v-else-if='item.Type === 9'>已将<span :class="item.Enabled ? 'mainColor_text' : 'read_style'">{{item.Content}}</span>归档</div>
+                    <div class="notice_type" v-else-if='item.Type === 10'>已将<span :class="item.Enabled ? 'mainColor_text' : 'read_style'">{{item.Content}}</span>从归档项目中恢复</div>
                 </div>
                 <div class="hover_show">
                     <span class="notice_time">{{item.showDate}}</span>
                     <i 
                         v-if='item.Enabled'
                         class='iconfont icon-yidu'
-                        @click='clickRead(index)'
+                        @click.stop='clickRead(index)'
                     ></i>
                 </div>
                 <div class="bottom_line"></div>
@@ -46,6 +49,10 @@
                 class="load_more"
                 @click="loadMore"
                 >查看更多通知</div>
+            <div 
+                v-else
+                class="load_more"
+                ></div>
         </div>
     </div>
 </template>
@@ -113,7 +120,8 @@ export default {
             
         },
         // 进入通知详情
-        enterDetail(item) { 
+        enterDetail(item, index) { 
+            this.clickRead(index);
             
              /**
              * 1 已将你加入  项目  
@@ -125,33 +133,64 @@ export default {
              * 7已经完成的工作并将文件转交给你
              * 8 已将 ... 交接给你  
              * 9 已将  。。。归档
+             * 10 已将  。。。从归档项目中恢复
+             * 11 相关需求中的评论  
              * **/
             let type = item.Type;
             if(type === 1) {
                 this.$router.push({name: 'ProjectInfo', params: {projectId: item.ProjectId}});
-            }else if(type === 3) {
+            }else if(type === 2) {
+                return;
+            }else if(type === 3 || type === 4) {
                 this.$router.push({
                     name: 'TaskDetail',
                     params: {
-                    projectId: item.ProjectId,
-                    stageId: item.StageId,
-                    taskId: item.TaskId,
+                        projectId: item.ProjectId,
+                        stageId: item.StageId,
+                        taskId: item.TaskId,
+                        type: type
                     }
                 });
 
-            }else if(type === 5 || type === 6) {
-
+            }else if(type === 5 || type === 6 || type === 11) {
+                // console.log(item);
+                this.$router.push({
+                    name: 'TaskDetail',
+                    params: {
+                        projectId: item.ProjectId,
+                        stageId: item.StageId,
+                        taskId: item.TaskId,
+                        type: type,
+                        noticeFile: item.Id
+                    }
+                });
             }else if(type === 7) {
                 this.$router.push({
                     name: 'TaskDetail',
                     params: {
-                    projectId: item.ProjectId,
-                    stageId: item.StageId,
-                    taskId: item.TaskId,
+                        projectId: item.ProjectId,
+                        stageId: item.StageId,
+                        taskId: item.TaskId,
+                        type: type
                     }
                 });
             }else if(type === 8) {
-                this.$router.push({name: 'ProjectInfo', params: {projectId: item.ProjectId}});
+                this.$router.push({
+                    name: 'ProjectInfo', 
+                    params: {
+                        projectId: item.ProjectId,
+                        type: 8,
+                    }
+                });
+
+            }else if(type === 9 || type === 10) {
+                this.$router.push({
+                    name: 'ProjectInfo', 
+                    params: {
+                        projectId: item.ProjectId,
+                        type: 9,
+                    }
+                });
 
             }
             // this.$router.push('/noTask');
@@ -159,17 +198,22 @@ export default {
 
         // 查看更多通知
         loadMore() {
-            this.getNoticeList(this.page++, 10);
+            this.page++;
+            this.getNoticeList(this.page, 20, true);
         },
-        getNoticeList(page = 1, number = 20) {
+        getNoticeList(page = 1, number = 20, load = false) {
             let obj = { page: page, number: number, userId: this.userId, enabled: '' };
             this.$HTTP("post", "/user_get_notificationList", obj, $('#app')[0])
             .then(res => {
                 let result = [...res.result];
-                console.log("消息列表", res.result);
-                this.noticeList = result;
-                this.noticeList.map(ele => ele.showDate = this.timeDiff(ele.CreateTime));
-                if(this.noticeList.length && this.noticeList.length < Number(res.newsCont)) {
+                // console.log("消息列表", result);
+                result.map(ele => ele.showDate = this.timeDiff(ele.CreateTime));
+                if(load) {
+                    this.noticeList = this.noticeList.concat(result);
+                }else {
+                    this.noticeList = result;
+                }
+                if(this.noticeList.length && this.noticeList.length < Number(res.iRecordsTotal)) {
                     this.loadMoreShow = true;
                 }else {
                     this.loadMoreShow = false;
@@ -233,6 +277,7 @@ export default {
                 width: 100%;
                 padding: 16px 0 16px 24px;
                 .box_sizing;
+                .cur;
                 position: relative;
                 .left_header {
                     width: 28px;
@@ -327,6 +372,7 @@ export default {
         }
         .load_more {
             color: @mainColor;
+            height: 50px;
             line-height: 50px;
             .cur;
             margin-left: 24px;
