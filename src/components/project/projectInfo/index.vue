@@ -596,14 +596,15 @@
                       <div type="text"
                            class="stageTittle"
                            contenteditable="true"
-                           
                            @keydown='checkEnter'
                            v-html="element.partitionTitle"
                            @blur="partitionBlur(element,indexs,element.partitionTitle)"
-                           @focus="partitionFocus(element.partitionTitle,element,indexs)">{{element.partitionTitle}}</div>
+                           @focus="partitionFocus(element.partitionTitle,element,indexs)">
+                        {{element.partitionTitle}}
+                      </div>
                     </div>
                     <!-- 空白占位 -->
-                    <span v-if="element.isBlank"
+                    <!-- <span v-if="element.isBlank"
                           class="stageBox dragging">
                       <span class="stageLists">
                         <textarea class="stageName"
@@ -619,7 +620,7 @@
                              class="stage">
                         </div>
                       </div>
-                    </span>
+                    </span> -->
                     <draggable v-model="element.taskList"
                                class="box"
                                @remove='moveNopartitonTask(element,$event)'
@@ -634,7 +635,7 @@
                                         :data-partitionId='element.partitionId'>
                         <!-- 任务及阶段 -->
                         <li v-for="(item,index) in element.taskList"
-                            v-if='item.taskId'
+                            
                             :key="item.taskId"
                             class="stageBox"
                             :data-taskid='item.taskId'
@@ -1888,7 +1889,8 @@ export default {
     },
     // 跨分区移动
     moveNopartitonTask(element, evt) {
-      console.log(element)
+
+      console.log(evt  )
       if (evt.to.dataset.partitionid) {
         let data = { 'taskId': evt.item.dataset.taskid, 'partitionId': evt.to.dataset.partitionid, 'isSort': evt.newIndex }
         this.$HTTP('post', '/task_group_update_isSort', data).then(res => {
@@ -1957,7 +1959,7 @@ export default {
                 i.isnews = false;
                 if (i.taskId == '') {
                   list.isBlank = true;
-                  list.taskList.splice(i, 1);
+                  // list.taskList.splice(i, 1);
                 }
                 this.stageTaskList = i.stageTaskList;
                 for (let item of i.stageTaskList) {
@@ -2278,7 +2280,7 @@ export default {
           return res.projectid == this.projectId;
         })
         this.selectedProject = this.projectList[index].title;
-        console.log(this.projectList[index].title,this.projectList[index]);
+        console.log(this.projectList[index].title, this.projectList[index]);
         this.starFlag = this.projectList[index].isStar;
       })
     }
@@ -2582,8 +2584,7 @@ export default {
       // 上下滚动 定位样式
       .topTableFixed {
         position: fixed;
-        z-index: 99;
-        // border: 1px solid red;
+        z-index:11;
         box-shadow: 0px 2px 4px 0px rgba(153, 153, 153, 0.4);
       }
 
@@ -2714,7 +2715,9 @@ export default {
                     border-left: 2px solid #3684ff;
                     z-index: 1;
                   }
-
+ .iconfontno:hover {
+                      color: #fff !important;
+                    }
                   .stageHover {
                     position: absolute;
                     display: inline-block;
@@ -3044,7 +3047,6 @@ export default {
                     padding: 15px 35px;
                     .box_sizing;
                     animation: ttt 0.5s 1 forwards;
-                   
                   }
                   .closeHover {
                     display: block;

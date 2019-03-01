@@ -255,7 +255,7 @@
         </div>
       </div>
       <div class="filed classify clearfix">
-        <div class="title cur active" v-if="fillShowAll" @click="fillShowAll=!fillShowAll">显示已归档项目({{fillLength}})</div>
+        <div class="titles cur " style="color:#3762EB" v-if="fillShowAll" @click="fillShowAll=!fillShowAll">显示已归档项目({{fillLength}})</div>
         <div class="titleBox" v-if="!fillShowAll">
           <span class="title cur"
                 :class="checkIndex==index?'active':'' "
@@ -312,7 +312,6 @@
                   </li>
                   <li class="nums fr">等{{list.userCount}}人</li>
                 </div>
-
               </ul>
               <span @click.stop
                     class="moreButton">
@@ -337,7 +336,6 @@
         </div>
       </div>
     </div>
-
     <Info v-if="itemInformationShow"
           @closePop='closeInfo'
           num='itemInformation'
@@ -730,6 +728,10 @@ export default {
       margin-bottom: 25px;
     }
     .titleBox {
+      margin-bottom: 15px;
+    }
+    .titles{
+       font-size: 16px;
       margin-bottom: 15px;
     }
     .title {

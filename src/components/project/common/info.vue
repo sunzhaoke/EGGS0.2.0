@@ -360,7 +360,6 @@ export default {
     // 保存修改信息
     saveMain() {
       if (!this.saveButton) return;
-
       if (this.startTime) {
         this.startTime = this.format(this.startTime, "yyyy-MM-dd HH:mm:ss");
       }
@@ -376,10 +375,10 @@ export default {
           }
           if (item.del) {
             DelUserList.push(item.userId);
-          }
+          } 
         }
       }
-
+    // console.log(AddUserList,'/AddUserList')
       let obj = {
         projectId: this.projectId,
         title: this.title,
