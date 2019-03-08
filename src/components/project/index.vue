@@ -57,7 +57,6 @@ export default {
 
   created() {
     let staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
-    
     this.enterShow = staffInfo.isHomeVideo; 
     this.name = staffInfo.realName;
     this.userId = staffInfo.userPkid;

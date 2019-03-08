@@ -368,7 +368,7 @@ export default {
         return;
       }
       let reg = new RegExp(
-        "^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"
+        "^[a-zA-Z0-9]+([._\\-]*[a-zA-Z0-9])*@([a-z0-9]+[a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"
       );
       if (!reg.test(email.email)) {
         email.check = "邮箱格式错误";
@@ -435,7 +435,7 @@ export default {
     },
     // 邀请加入
     inviteJoin(email, emailError) {
-      let data = { 'emailList': email, 'myUserId': this.userPkid, 'type': this.fromInfo.type, 'id': this.fromInfo.id }
+      let data = { 'emailList': email, 'myUserId': this.userPkid, 'type': this.fromInfo.fromType, 'id': this.fromInfo.id }
       this.$HTTP('post', '/user_invitationEmail', data, $('#app')[0]).then(res => {
         this.$message({
           type: 'success',

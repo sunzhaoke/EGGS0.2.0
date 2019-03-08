@@ -93,9 +93,9 @@
               <li>
                 <div class="num">{{list.createTaskCount}}</div>
                 <div>已创建任务</div>
-                <span class="line"></span>
+                <!-- <span class="line"></span> -->
               </li>
-              <li>
+              <!-- <li>
                 <div class="num">{{list.finishTaskCount}}</div>
                 <div>已完成任务</div>
                 <span class="line"></span>
@@ -103,7 +103,7 @@
               <li>
                 <div class="num">{{list.incompleteTtasksCount}}</div>
                 <div>已超时任务</div>
-              </li>
+              </li> -->
             </ul>
           </div>
           <div class="participantBottom">
@@ -195,7 +195,7 @@
           <div class="statisticalFigures">
             <ul class="clearfix">
               <li>
-                <div class="num">{{list.createTaskCount}}</div>
+                <div class="num">{{list.incompleteTtasksCount}}</div>
                 <div>我未完成的任务</div>
               </li>
             </ul>
@@ -255,8 +255,12 @@
         </div>
       </div>
       <div class="filed classify clearfix">
-        <div class="titles cur " style="color:#3762EB" v-if="fillShowAll" @click="fillShowAll=!fillShowAll">显示已归档项目({{fillLength}})</div>
-        <div class="titleBox" v-if="!fillShowAll">
+        <div class="titles cur "
+             style="color:#3762EB"
+             v-if="fillShowAll"
+             @click="fillShowAll=!fillShowAll">显示已归档项目({{fillLength}})</div>
+        <div class="titleBox"
+             v-if="!fillShowAll">
           <span class="title cur"
                 :class="checkIndex==index?'active':'' "
                 v-for=" (li,index) in pigeonholeAndconnect"
@@ -361,7 +365,7 @@ export default {
   // props: ["Info"],
   data() {
     return {
-      fillShowAll:true, //归档文件 显示全部
+      fillShowAll: true, //归档文件 显示全部
       info: "",
       userId: "",
       options: [
@@ -379,7 +383,7 @@ export default {
       myResponsibleList: [], //
       I_participatein: [], //我参与的列表
       projectArchiveList: [], //项目归档列表
-      fillLength:'', //项目归档数目
+      fillLength: '', //项目归档数目
       OtherfeatureLists: [
         { name: "项目信息", id: 0 },
         { name: "项目记录", id: 1 },
@@ -460,6 +464,14 @@ export default {
     // 选择状态
     selectState(e) {
       console.log('chufa  ', e)
+      if (e == 1) {
+        this.get_I_participatein();
+      } else {
+        let index = this.I_participatein.findIndex(res => {
+          return res.incompleteTtasksCount == 0;
+        })
+        this.I_participatein.splice(index, 1);
+      }
     },
     onSubmit() {
       console.log("submit!");
@@ -556,7 +568,7 @@ export default {
       this.$HTTP("post", "/project_getSaveListByCreaterId", data).then(res => {
         this.projectArchiveList = res.result;
         // console.log(this.projectArchiveList.length)
-        this.fillLength=this.projectArchiveList.length;
+        this.fillLength = this.projectArchiveList.length;
         for (var item of this.projectArchiveList) {
           if (item.saveTime) {
             let i = item.saveTime.split(" ");
@@ -617,7 +629,6 @@ export default {
     },
     enterTask(list) {
       console.log(list)
-
       localStorage.setItem('projectItem', JSON.stringify(list));
       this.$router.push("/project/projectInfo");
     },
@@ -629,12 +640,11 @@ export default {
     agreeJoin(myUserId, friendsUserId) {
       let obj = { myUserId: myUserId, friendsUserId: friendsUserId };
       this.$HTTP('post', '/user_friends_add', obj).then(res => {
-        console.log(res)
       })
     },
     // 2.通过项目加入
-    byProject(type, id) {
-      let obj = { myUserId: myUserId, friendsUserId: friendsUserId, type: type, id: id };
+    byProject(friendsUserId, type, id) {
+      let obj = { myUserId: this.userId, friendsUserId: friendsUserId, type: type, id: id };
       this.$HTTP('post', '/user_friendsByType_add', obj).then(res => {
         console.log(res)
       });
@@ -654,18 +664,17 @@ export default {
       let url = decodeURI(window.location.href)
         .split("?")[1]
         .split("&");
-
-      // console.log(url[1].split("=")[1], url[0].split("=")[1], url[2].split("=")[1])
+      // console.log(1,url[1].split("=")[1],2, url[0].split("=")[1], 3,url[2].split("=")[1])
       // 1.通过好友列表进入的 
       if (url[1].split("=")[1] == 0) {
         this.agreeJoin(this.userId, url[0].split("=")[1]);
-
         // 2.通过项目进入
       } else if (url[1].split("=")[1] == 1) {
-        this.byProject();
+        this.byProject(url[0].split("=")[1], 1, url[2].split("=")[1]);
         // 3.通过任务片段进入
       } else {
-        this.byProject();
+        // console.log(urls)
+        this.byProject(url[0].split("=")[1], 2, url[2].split("=")[1]);
       }
     }
 
@@ -702,7 +711,6 @@ export default {
   margin-left: @mf;
 }
 
-
 #PMP {
   .el-popper[x-placement^="bottom"] {
     width: 120px;
@@ -730,8 +738,8 @@ export default {
     .titleBox {
       margin-bottom: 15px;
     }
-    .titles{
-       font-size: 16px;
+    .titles {
+      font-size: 16px;
       margin-bottom: 15px;
     }
     .title {
@@ -777,10 +785,10 @@ export default {
       .el-input--suffix {
         input {
           height: 20px;
-        
-        }  .el-select__caret{
-            line-height: 1;
-          }
+        }
+        .el-select__caret {
+          line-height: 1;
+        }
       }
       .fadeds {
         width: 100px;

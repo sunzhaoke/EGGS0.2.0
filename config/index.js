@@ -12,39 +12,39 @@ assetsSubDirectory:'static',
 assetsPublicPath:'/', 
 proxyTable: {
 "/EggsWebService.asmx": {
-target:" http://eggs.apexgame.cn/",
+target:"http://192.168.31.11/",
 logLevel:'debug', 
 changeOrigin:true
       }, 
 '/upload': {
-target:'http://eggs.apexgame.cn/',
+target:'http://192.168.31.11/',
 logLevel:'debug', 
 changeOrigin:true
       }, 
 '/ProjectFile.ashx': {
-target:'http://eggs.apexgame.cn/',
+target:'http://192.168.31.11/',
 logLevel:'debug', 
 changeOrigin:true
       }, 
 "/PersonalFile.ashx": {
-target:"http://eggs.apexgame.cn/",
+target:"http://192.168.31.11/",
 logLevel:'debug', 
 changeOrigin:true
       }, 
 '/ExcelFile.ashx': {
-target:'http://eggs.apexgame.cn/',
+target:'http://192.168.31.11/',
 logLevel:'debug', 
 changeOrigin:true
       }, 
 '/img.ashx': {
-target:'http://eggs.apexgame.cn/',
+target:'http://192.168.31.11/',
 logLevel:'debug', 
 changeOrigin:true
       }, 
 }, 
 
 // Various Dev Server settings
-host:'localhost', // can be overwritten by process.env.HOST
+host:'192.168.31.96', // can be overwritten by process.env.HOST
 port:8080, // can be overwritten by process.env.PORT, if port is in use, a free one will be determined
 autoOpenBrowser:true, 
 errorOverlay:true, 

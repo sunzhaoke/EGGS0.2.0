@@ -251,6 +251,7 @@ export default {
       });
     }
     else if (urls) {
+      console.log('sssss')
       let url = decodeURI(window.location.href)
         .split("?")[1]
         .split("&");
@@ -266,7 +267,7 @@ export default {
     }
     else if (staffInfo && getCookie('RememberYourPassword')) {
       console.log('执行这个3')
-      this.$router.push('/project');
+      // this.$router.push('/project');
     }
   },
   mounted() {

@@ -46,16 +46,18 @@ export default {
 
   },
   created() {
-    let urls = decodeURI(window.location.href).split("?")[1];
-    let staffInfo = JSON.parse(localStorage.getItem("staffInfo"));
+    if (window.location.href) {
+      var urls = decodeURI(window.location.href).split("?")[1];
+    }
     let RememberYourPassword = getCookie('RememberYourPassword');
+    // return
     // 1.状态1 如果有自动登录并且保存数据
-    if (staffInfo && getCookie('RememberYourPassword')) {
+    if (localStorage.getItem("staffInfo") && getCookie('RememberYourPassword') && !urls) {
+      var staffInfo = JSON.parse(localStorage.getItem("staffInfo"));
       // this.$router.push("/project");
       this.userId = staffInfo.userPkid;
       // 2.有链接地址
     } else if (urls) {
-      console.log(this.userId, this.myUserId, '0 kankan加好友没有')
       let url = decodeURI(window.location.href)
         .split("?")[1]
         .split("&");
@@ -66,14 +68,10 @@ export default {
       } else {
         this.userId = staffInfo.userPkid;
         this.type = url[1].split("=")[1];
-        
         // 1.通过好友列表进入的
-        
         // 2.通过项目进入
-
         // 3.通过任务片段进入
-
-        console.log(this.userId, this.myUserId, '2 kankan加好友没有')
+        // console.log(this.userId, this.myUserId, '2 kankan加好友没有')
         this.myUserId = url[0].split("=")[1];
         this.id = url[2].split("=")[1];
         if (this.userId !== this.myUserId) {
@@ -81,11 +79,9 @@ export default {
         }
       }
       // 没有链接地址 没有自动登录
-
     } else {
       this.$router.push("/login");
     }
-
   },
 
 };
@@ -104,7 +100,7 @@ export default {
     height: 100%;
     background: #ffffff;
     // box-shadow: -1px 0px 4px 0px rgba(95, 95, 95, 0.3);
-    border-right: 1px solid #EEEEEE;
+    border-right: 1px solid #eeeeee;
     position: fixed;
     top: 50px;
     left: 0;
@@ -118,8 +114,7 @@ export default {
     height: 50px;
     background: #ffffff;
     // box-shadow: 1px 0px 4px 0px rgba(95, 95, 95, 0.3);
-    border-bottom: 1px solid #EEEEEE;
-
+    border-bottom: 1px solid #eeeeee;
   }
   .maiContent {
     height: calc(100% - 50px);
@@ -135,7 +130,7 @@ export default {
       left: 0;
       right: 0;
       bottom: 0;
-      background: #CCFFFF;
+      background: #ccffff;
       z-index: 100;
     }
   }
