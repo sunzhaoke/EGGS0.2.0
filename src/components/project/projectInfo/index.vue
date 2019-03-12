@@ -10,7 +10,6 @@
                    :value="item.projectid">
         </el-option>
       </el-select>
-
       <i class="iconfont icon-shoucang"
          v-if="starFlag"
          @click="projectStart(starFlag)"></i>
@@ -180,7 +179,7 @@
                                 group:{name: 'file',pull:'clone'},
                                  dragClass: 'drag_userImg',
                                  }">
-                  <li v-if="noPartitions.isBlank"
+                  <!-- <li v-if="noPartitions.isBlank"
                       class="stageBox ">
                     <span class="stageLists">
                       <textarea class="stageName"
@@ -196,7 +195,7 @@
                            class="stage">
                       </div>
                     </div>
-                  </li>
+                  </li> -->
                 </draggable>
                 <draggable v-model="noPartitions.taskList"
                            class="box"
@@ -218,10 +217,10 @@
                         :data-taskid='item.taskId'
                         @mouseenter="mouseEnter(item,index)"
                         :class="{'stageBoxFixed':leftFixed,'dragging':item.taskId!==''}">
-                      <!-- {{item.taskId}} -->
                       <span class="stageLists cur"
                             :class="{'leftTaskFixed':leftFixed,'hoverBg':mouseLeftIndex==item.taskId}">
-                        <span class="iconBox_">
+                        <span class="iconBox_"
+                              v-if="item.taskId!=='-1' ">
                           <el-tooltip class="item moveHandel"
                                       effect="dark"
                                       content="移动"
@@ -276,7 +275,6 @@
                                v-if='lists.stageTaskState==true'>
                             <i class="iconfont icon-wancheng"></i>完成</div>
                           <!-- 3.开启状态 显示内容 -->
-                          <!-- {{lists.stageTaskState}} -->
                           <div class="stageInfo cur"
                                v-if="(lists.enabled && lists.enabled==true &&lists.stageTaskState!==true) || lists.enabled===''">
                             <div class="participantImg">
@@ -608,24 +606,7 @@
                         {{element.partitionTitle}}
                       </div>
                     </div>
-                    <!-- 空白占位 -->
-                    <!-- <span v-if="false"
-                          class="stageBox dragging">
-                      <span class="stageLists">
-                        <textarea class="stageName"
-                                  style="resize:none"
-                                  @keydown='checkEnter'
-                                  v-model="element.newStageName"
-                                  @blur="newStageBlur(element,element.newStageName)">
-                        </textarea>
-                      </span>
-                      <div class="stageListsBox ">
-                        <div v-for="(list,index) in newTask.stageTaskList"
-                             :key="list.stageId"
-                             class="stage">
-                        </div>
-                      </div>
-                    </span> -->
+
                     <draggable v-model="element.taskList"
                                class="box"
                                @remove='moveNopartitonTask(element,$event)'
@@ -645,12 +626,11 @@
                             class="stageBox"
                             :data-taskid='item.taskId'
                             @mouseenter="mouseEnter(item,index)"
-                            :class="{'stageBoxFixed':leftFixed,'dragging':item.taskId!==''}">
-                          <!-- {{item.taskId}} -->
-
+                            :class="{'stageBoxFixed':leftFixed,'dragging':item.taskId}">
                           <span class="stageLists cur"
                                 :class="{'leftTaskFixed':leftFixed,'hoverBg':mouseLeftIndex==item.taskId}">
-                            <span class="iconBox_">
+                            <span class="iconBox_"
+                                  v-if="item.taskId!=='-1' && item.taskId.indexOf('-')==-1">
                               <el-tooltip class="item moveHandel"
                                           effect="dark"
                                           content="移动"
@@ -682,6 +662,7 @@
                                 </span>
                               </el-tooltip>
                             </span>
+                            <!-- <span class="stageName">{{item.taskTitle}}</span> -->
                             <span v-html="item.taskTitle"
                                   class="stageName"
                                   contenteditable="true"
@@ -689,6 +670,8 @@
                                   @blur="stageNameBlur(item.taskTitle,item,element,index,indexs)"
                                   @focus="stageFocus(item.taskTitle,item,element,index)">
                             </span>
+                            <!-- <textarea class="stageName" name="" v-model="item.taskTitle">
+                          </textarea> -->
                           </span>
                           <div class="stageListsBox"
                                :class="{'stageListsBoxFixed':leftFixed}">
@@ -1233,12 +1216,12 @@ export default {
             if (!i.taskList.length) {
               i.taskList.push(this.newTask);
             } else {
-              var index=val.findIndex(res=>{
-                return res.taskList[0].taskId==-1 || res.taskList[0].taskId.indexOf('-')!==-1;
+              var index = val.findIndex(res => {
+                return res.taskList[0].taskId == -1 || res.taskList[0].taskId.indexOf('-') !== -1;
               })
             }
           }
-              // val.splice(index,1);
+          // val.splice(index,1);
 
         }
       }
@@ -1719,12 +1702,20 @@ export default {
       // 先判断 是否是新建项目
       if (this.isNewP) {
         if (title) {
-          let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, title: title, 'iSort': index + 1 }
+          console.log(title, );
+          this.partitionsList[index].partitionTitle = title;
+          let obj = { 'myUserId': this.userPkid, 'projectId': this.projectId, 'title': title, 'iSort': index + 1 }
           this.$HTTP('post', '/partition_iSort_add', obj).then(res => {
-            res.result.isBlank = true;
-            res.result.isnew = false;
+            // res.result.isBlank = true;
+            let arr = res.result;
+            arr.isnew = false;
             this.isNewP = false;
-            this.partitionsList.splice(index, 1, res.result);
+            // this.partitionsList[index].partitionTitle = title;
+            // this.partitionsList[index].partitionId = arr.partitionId;
+            // this.partitionsList.splice(index, 1, res.result);
+          
+            console.log(res.result, this.partitionsList)
+
           })
         } else {
           this.isNewP = false;
@@ -1766,7 +1757,7 @@ export default {
         let taskIds = [];
         for (let list of element.taskList) {
           // taskId=='' 时 说明没有任务 可以直接删除 不用移动
-          if (list.taskId !== '') {
+          if (list.taskId !== '-1' && list.taskId.indexOf('-') == '-1') {
             this.noPartitions.taskList.push(list);
             taskIds.push(list.taskId);
           }
@@ -1816,6 +1807,7 @@ export default {
           this.newTask.taskTitle = '';
           this.isNewS = true;
           el.splice(index + 1, 0, this.newTask);
+          console.log(this.newTask)
           this.$nextTick(res => {
             $(".hhah").children().eq(taskIndex - 1).find('.stageName').eq(index + 1).focus();
           })
@@ -1840,6 +1832,7 @@ export default {
       }
       // 先判断 是否是新建阶段
       if (this.isNewS) {
+        console.log(el.partitionId)
         if (taskTitle) {
           let obj = {
             'myUserId': this.userPkid,
@@ -1914,14 +1907,11 @@ export default {
     },
     // 跨分区移动
     moveNopartitonTask(element, evt) {
-      console.log('dhhhdfl')
-      
       if (evt.to.dataset.partitionid) {
         let data = { 'taskId': evt.item.dataset.taskid, 'partitionId': evt.to.dataset.partitionid, 'isSort': evt.newIndex }
         this.$HTTP('post', '/task_group_update_isSort', data).then(res => {
         })
       }
-
     },
     // 顶部 左侧 置顶
     handleScroll() {
@@ -1942,19 +1932,32 @@ export default {
     },
     // 任务 任务移动
     datadragEnd2(elment, evt) {
-      if(evt.to.childNodes.length=2){
-        // if()
-      }
-      console.log('移动了',evt.to);
+      
+      // if (evt.to.childNodes.length = 2) {
+      //   // if()
+      // }
+      // console.log('移动了', evt.to);
       let data = { 'taskId': evt.item.dataset.taskid, 'partitionId': elment.partitionId, 'isSort': evt.newIndex }
       this.$HTTP('post', '/task_group_update_isSort', data).then(res => {
+
       })
     },
-    dragEnd(elment, evt){
-      if(evt.to){
-
+    dragEnd(elment, evt) {
+      if (evt.to.childNodes.length == 2) {
+        let toEl1 = evt.to.childNodes[0].dataset.taskid;
+        let toEl2 = evt.to.childNodes[1].dataset.taskid;
+        if (toEl1 == -1 || toEl1.indexOf('-') !== -1) {
+          let index = this.partitionsList.findIndex(res => {
+            return res.partitionId == evt.to.dataset.partitionid;
+          })
+          this.partitionsList[index].taskList.splice(0, 1)
+        } else {
+          let index = this.partitionsList.findIndex(res => {
+            return res.partitionId == evt.to.dataset.partitionid;
+          })
+          this.partitionsList[index].taskList.splice(1, 1)
+        }
       }
-      console.log('结束了',evt.to.childNodes.length)
     },
 
     // 获取阶段列表
@@ -1967,10 +1970,10 @@ export default {
           newList.push({ 'stageId': i });
         }
         this.EmptyData =
-          {            'partitionId': -1, 'partitionTitle': '', 'autoExpand': false, 'taskList': [
-              { 'taskId': -1, 'stageTaskList': newList },
+          {            'partitionId': '-1', 'partitionTitle': '', 'autoExpand': false, 'taskList': [
+              { 'taskId': '-1', 'stageTaskList': newList },
             ]          }
-        this.newTask = { 'taskId': -1, 'stageTaskList': newList }
+        this.newTask = { 'taskId':' -1', 'stageTaskList': newList }
         console.log(this.stageList, this.newTask, '=================')
       })
     },
@@ -1979,7 +1982,6 @@ export default {
       let data = { project: projectId, 'myUserId': this.userPkid, 'keys': keys, 'pageIndex': this.PartitionListPage, 'pageSize': this.PartitionListNums };
       this.$HTTP('post', '/project_get_info2', data, $('#app')[0]).then(res => {
         let arr = res.result;
-        // console.log(arr.length)
         if (arr.length) {
           if (isAdd) {
             this.partitionsList = arr;
@@ -1988,14 +1990,11 @@ export default {
               this.partitionsList.push(res);
             })
           }
-
           this.isLoading = true;
           this.searchIsShow = false;
         } else {
           this.loadMoreContet = '没有更多数据了';
           this.isLoading = false;
-          this.partitionsList = [];
-          this.noPartitions = [];
           this.searchIsShow = true;
         }
         if (this.partitionsList) {
@@ -2004,10 +2003,10 @@ export default {
             if (list.taskList !== '') {
               for (let i of list.taskList) {
                 i.isnews = false;
-                if (i.taskId == '') {
-                  list.isBlank = true;
-                  list.taskList.splice(i, 1);
-                }
+                // if (i.taskId == '') {
+                //   list.isBlank = true;
+                //   list.taskList.splice(i, 1);
+                // }
                 this.stageTaskList = i.stageTaskList;
                 for (let item of i.stageTaskList) {
                   this.addPopShow = false; //添加人员是否显示
@@ -2603,7 +2602,7 @@ export default {
           display: flex;
           flex-direction: row;
           border-left: 1px solid #eeeeee;
-          border-bottom: 1px solid #d0d0d0;
+          // border-bottom: 1px solid #d0d0d0;
 
           // 左右移动 左侧 两个title 定位
           .stageHeader {
